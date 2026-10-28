@@ -1,0 +1,95 @@
+D-series autonomous improvement campaign — synthesis
+====================================================
+Question: can the shipped layout cfgE_semiQ (`;aiojvlnrwhfpeygtcmsbxquzkd,./`,
+score 4.3877) be improved — by a harder search, a different alphabet, a
+different objective, different weights, or a third corpus check?
+
+Answer: NO. The layout stands unchanged. Every arm either confirmed the
+floor or mapped a trade-off with no dominance over cfgE.
+
+Arm  D0  recon          expanded-neighborhood local search already existed
+Arm  D1  deep search    4-cycle + double-bridge ILS, multi-start
+Arm  D2  dead-set       which 4 punct chars on the grid, where
+Arm  D3  published wt   ranking under keycraft's own weight files
+Arm  D4  load/balance   keycraft load targets + balance-weight Pareto
+Arm  D5  wikipedia      200 featured articles, third independent corpus
+Arm  D6  space-aware    space grams included in the objective
+
+Per-arm detail
+--------------
+D1 (deep_search2.py -> results/deep_search2_s{0..3}.txt)
+  Neighborhood: 1-swap + sampled disjoint 2-swaps + 3-cycles + bidirectional
+  4-cycles per quench; ILS with k-swap/double-bridge perturb, Metropolis.
+  warm(cfgE) 50 ILS iters: 4.3877 held (floor).
+  anneal x2 starts:      4.4307 / 4.4178 (stuck in worse basins).
+  random start + ILS:    converged to EXACTLY cfgE 4.3877 from 4.4486.
+  => cfgE is a deep optimum; independent random-start ILS rediscovered it.
+
+D2 (deadset_search.py -> results/d2_deadset.txt, corpus punct2)
+  Extended punct corpus (a-z + . , / ; ' -); apostrophe/hyphen now in-run.
+  Mass: ' 0.26%, - 0.26% (each ~2.4x semicolon 0.10%).
+  6 configs = {;, ', -} x slot {Q, P}, core ., /, , fixed:
+    ;@Q  punct 4.4654  letters 4.4584   <- best (B6 cfgE-punct family)
+    ;@P  punct 4.4732  letters 4.4184
+    '@Q  punct 4.4970  letters 4.4118
+    '@P  punct 4.5050  letters 4.5340
+    -@Q  punct 4.4946  letters 4.4961
+    -@P  punct 4.5160  letters 4.4717
+  Baselines on punct2: cfgE 4.5526 / 4.3877; cfgG 4.5920 / 4.4010.
+  => ;@Q remains the best 4th char/slot; in-grid ' and - lose on the
+     punct axis despite higher mass. Alphabet choice validated.
+
+D3 (published_weights.py -> results/d3_published_weights.txt)
+  Ranking of the A2 field under keycraft weights.txt / weights2.txt
+  (keysolve rates; load-dev terms omitted):
+    both files: Sturdy #1 ... cfgG #8, cfgE #9, QWERTY #10.
+  => cfgE mid-pack under standard-fingering community weights —
+     the expected alt-fingering blindness (F1/F4), validation only.
+
+D4 (load_search.py -> results/d4_loads.txt)
+  a) keycraft load_targets (hands 50/50, fingers 7/10/16/17,
+     rows 17.5/75/7.5) as extra penalty, lam in {0.5, 1.5, 3}:
+     load_dev 6.46 -> 3.74-4.14, but original score 4.39 -> 4.76-5.09.
+  b) balance-weight Pareto re-search W_BALANCE in {0, 3, 5}:
+     all bottom at 4.3889 original (+0.0012 over cfgE).
+  => no dominance; cfgE is the knee of the (score, load_dev) frontier.
+     (A4 scenario winners cross-scored on original: none beat 4.3877;
+      closest balance-x3 = 4.3889.)
+
+D5 (wiki_eval.py -> results/d5_wiki.txt, corpus/wiki)
+  200 Wikipedia featured articles, 2.88M letters, 6,131 trigram types.
+  cfgE #1 (4.4095); field order matches iweb almost exactly:
+    cfgE 4.410 < cfgE-punct 4.421 < cfgG 4.451 < hybrid-35 4.501
+    < hybrid-80 4.794 < Sturdy 5.635 < Graphite 5.756 < Colemak-DH 5.758
+    < Gallium 5.798 < QWERTY 8.792.
+  => third independent English source; cfgE #1 again.
+
+D6 (space_eval.py + build_word_corpus.py -> results/d6_space.txt)
+  Space-aware objective over a-z+space (space -> key 30), 49.8% of
+  trigram tokens contain space (44.2% of cost):
+    cfgE still #1 of the whole field (3.998).
+    dedicated space-aware optimum `;anlwkuoibrmctgyehpsxzvdqjf,./`
+    3.972 space / 4.475 letters = +0.087 English cost -> not adopted.
+  => space modeling does not threaten cfgE; robustness evidence only.
+
+Consequences
+------------
+- Shipped layout cfgE_semiQ unchanged; score 4.3877 re-confirmed under
+  deeper search (D1), a third corpus (D5), space-aware scoring (D6),
+  and punct-alphabet variation (D2).
+- Trade-off surface (D4): buying load-deviation 6.46 -> 3.74 costs
+  +0.37..0.70 original score; no candidate is both better-balanced
+  and better on the primary axis.
+- Community-weight rankings (D3) rank cfgE mid-pack — documented
+  expectation (alt-fingering blindness), not a defect signal.
+
+Files
+-----
+analysis/deep_search2.py     D1 search (layout_of display bug fixed)
+analysis/deadset_search.py   D2
+analysis/published_weights.py D3
+analysis/load_search.py      D4
+analysis/wiki_eval.py + build_punct2_corpus.py + corpus/wiki D5
+analysis/space_eval.py + build_word_corpus.py + corpus/word D6
+results/deep_search2_s{0..3}.txt, d2_deadset.txt,
+  d3_published_weights.txt, d4_loads.txt, d5_wiki.txt, d6_space.txt

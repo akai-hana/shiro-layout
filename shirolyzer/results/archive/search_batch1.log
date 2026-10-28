@@ -1,0 +1,98 @@
+
+=== cfgD_slashQ dead={',': ',', '.': '.', ';': ';', '/': 'Q'} ===
+  restart 0: 4.6522 (12s) /tncvxuiazlkprdyemg;wjfsbqo,.h
+  restart 1: 4.6559 (11s) /inckzsraxlputmyevb;wjfdgqo,.h
+  restart 2: 4.6533 (11s) /aiuyzlrsxdbpegmtcf;wjkoqvn,.h
+  restart 3: 4.6463 (11s) /nrlkxuiazdpctgyemb;wjfsvqo,.h
+  restart 4: 4.6639 (11s) /atuzjlirbdgceymnpv;wxkoqfs,.h
+  restart 5: 4.6512 (11s) /sncvkuiaxlfptdyemb;wjgrzqo,.h
+  restart 6: 4.6309 (10s) /aiuyvlrnxsfcegmtpb;jzkoqwd,.h
+  restart 7: 4.6446 (11s) /nrljkuiaxdpctgyemb;wzfsvqo,.h
+  restart 8: 4.6542 (10s) /nrdkxuiajlpmtgyecb;wzfsvqo,.h
+  restart 9: 4.6639 (10s) /oickjlnaxrgmewdtpb;zqfuyvs,.h
+  restart 10: 4.6193 (11s) /nrlvkuiaxspctmyegb;zjfdwqo,.h
+  restart 11: 4.6193 (11s) /nrlvkuiaxspctmyegb;zjfdwqo,.h
+  restart 12: 4.6221 (11s) /sncvjuiaxrgptmyelb;zkfdwqo,.h
+  restart 13: 4.6309 (11s) /aiuyvlrnxsfcegmtpb;jzkoqwd,.h
+  restart 14: 4.6506 (10s) /trlvxuiajdkpnmyecg;bzwsfqo,.h
+  restart 15: 4.6523 (11s) /ntcjkuiaxdpgrlyemv;bzfswqo,.h
+  restart 16: 4.6446 (10s) /nrljkuiaxdpctgyemb;wzfsvqo,.h
+  restart 17: 4.6465 (10s) /tauyzmirkswceghnpb;xjfoqvl,.d
+  restart 18: 4.6309 (11s) /aiuyvlrnxsfcegmtpb;jzkoqwd,.h
+  restart 19: 4.6559 (11s) /inckzsraxlputmyevb;wjfdgqo,.h
+  BEST cfgD_slashQ: 4.6193 /nrlvkuiaxspctmyegb;zjfdwqo,.h
+
+=== cfgB_slashBot dead={',': ',', '.': '.', ';': ';', '/': '/'} ===
+  restart 0: 6.1179 (10s) bnrmvkuiazsphtdyecg;xjflwqo,./
+  restart 1: 6.1128 (11s) wstlzkuiaxdgcnhyemv;fjprbqo,./
+  restart 2: 6.1187 (11s) jancvxuirkhfltdyemw;bzpsgqo,./
+  restart 3: 6.1218 (10s) jatckxlisvdpmeghnuw;fzyoqbr,./
+  restart 4: 6.1153 (10s) bnrlgzuiaxhpctdyemk;vjfswqo,./
+  restart 5: 6.1244 (10s) bnamvxurikspctdyehg;jzflwqo,./
+  restart 6: 6.1226 (10s) ktrlwguiazsvcnmyepb;xjdhfqo,./
+  restart 7: 6.1218 (10s) jatckxlisvdpmeghnuw;fzyoqbr,./
+  restart 8: 6.1129 (10s) wrnlvxuiazhpmtdyecb;kjfsgqo,./
+  restart 9: 6.1174 (10s) xaiuyvlrnjhfmegdtcp;kzboqws,./
+  restart 10: 6.1378 (10s) wrnlvkuiazsfctmyepb;xjhdgqo,./
+  restart 11: 6.1275 (11s) yanujvcirksbhegdtpw;xzfoqml,./
+  restart 12: 6.1174 (10s) xaiuyvlrnjhfmegdtcp;kzboqws,./
+  restart 13: 6.1225 (11s) jailxvcnrbhfuegdtmp;kzyoqws,./
+  restart 14: 6.1226 (10s) xsrlkjuinbcygtmoehp;fzwdvqa,./
+  restart 15: 6.1279 (10s) bnrlfjuiaqhpmtdyecv;kxwsgzo,./
+  restart 16: 6.1128 (10s) wstlzkuiaxdgcnhyemv;fjprbqo,./
+  restart 17: 6.1174 (10s) xaiuyvlrnjhfmegdtcp;kzboqws,./
+  restart 18: 6.1154 (10s) wrnlvxuiajhpmtdyecb;kzfsgqo,./
+  restart 19: 6.1259 (10s) gstljkuiaxdwcnhyemb;fqprvzo,./
+  BEST cfgB_slashBot: 6.1128 wstlzkuiaxdgcnhyemv;fjprbqo,./
+
+=== cfgE_semiQ dead={',': ',', '.': '.', ';': 'Q', '/': '/'} ===
+  restart 0: 4.4411 (10s) ;nrlvkuiajhbptmyecgsqxfdwzo,./
+  restart 1: 4.4371 (10s) ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+  restart 2: 4.4555 (10s) ;nickzuraxdwptmyehgsbjflvqo,./
+  restart 3: 4.4500 (10s) ;aiuyvlrnxsfcegmtpbhjzkoqwd,./
+  restart 4: 4.4595 (12s) ;anckxurijlvptmyehfswzgdbqo,./
+  restart 5: 4.4671 (10s) ;aickqlnoxhbmewdtpgrjzfuyvs,./
+  restart 6: 4.4500 (12s) ;aiuyvlrnxsfcegmtpbhjzkoqwd,./
+  restart 7: 4.4550 (11s) ;ailxkcnrbsfuegmtpvhjqyozwd,./
+  restart 8: 4.4673 (10s) ;aickqlnoxhbmefdtpgrjzwuyvs,./
+  restart 9: 4.4541 (10s) ;ailxkcnrbsfuegmtpvhjzyoqwd,./
+  restart 10: 4.4889 (10s) ;aiukfcrnjlbmeydtgphwqxozvs,./
+  restart 11: 4.4371 (10s) ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+  restart 12: 4.4371 (10s) ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+  restart 13: 4.4371 (11s) ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+  restart 14: 4.4705 (10s) ;sncvkuiazlfptdyemghwxbrjqo,./
+  restart 15: 4.4709 (10s) ;ntczkuiaxdwprhyemgsbjflvqo,./
+  restart 16: 4.4371 (10s) ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+  restart 17: 4.4573 (10s) ;aiuyjcnrbsfmegdtpvhxzkoqwl,./
+  restart 18: 4.4785 (14s) ;atczxmisvdgpeyhnubrwjkoqfl,./
+  restart 19: 4.5036 (22s) ;incvkurajhbptmyelwsxqfgdzo,./
+  BEST cfgE_semiQ: 4.4371 ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+
+=== cfgF_aposQ dead={',': ',', '.': '.', ';': ';', "'": 'Q'} ===
+  restart 0: 4.6432 (14s) 'tauyxlirkspcegmnvb;jzwoqfh,.d
+  restart 1: 4.6585 (10s) 'aiuxvcnrklymegdtpf;wzjoqbs,.h
+  restart 2: 4.6615 (11s) 'aicxvlrskdbuegmtpf;yjzoqwn,.h
+  restart 3: 4.6588 (11s) 'aiujvcnrklymegdtpf;wzxoqbs,.h
+  restart 4: 4.6272 (11s) 'sncvkuiaxrfptdyemb;zjglwqo,.h
+  restart 5: 4.6309 (11s) 'aiuyvlrnxsfcegmtpb;jzkoqwd,.h
+  restart 6: 4.6310 (13s) 'aiuyvlrnxsfcegmtpb;zjkoqwd,.h
+  restart 7: 4.6351 (12s) 'aiuyvmrnxsfpegdtcb;jqkozwl,.h
+  restart 8: 4.6193 (11s) 'nrlvkuiaxspctmyegb;zjfdwqo,.h
+  restart 9: 4.6502 (10s) 'nrdqkuiaxlpctgyemb;wzfsvjo,.h
+  restart 10: 4.6623 (10s) 'nrcfkuiaxlpgtdyemv;wzbsjqo,.h
+  restart 11: 4.6309 (10s) 'aiuyvlrnxsfcegmtpb;jzkoqwd,.h
+  restart 12: 4.6193 (10s) 'nrlvkuiaxspctmyegb;zjfdwqo,.h
+  restart 13: 4.6446 (10s) 'nrljkuiaxdpctgyemb;wzfsvqo,.h
+  restart 14: 4.6339 (10s) 'aickvlrnxsfuegmtpb;jqyozwd,.h
+  restart 15: 4.6495 (10s) 'ntczkuiaxlpgrdyemb;wjfsvqo,.h
+  restart 16: 4.6468 (10s) 'nrlvkuiaxdpctgzemb;yjfswqo,.h
+  restart 17: 4.6412 (11s) 'tauyzlirkspcegmnvb;xjwoqfh,.d
+  restart 18: 4.6381 (10s) 'aiuyjcnrbsfmegdtpv;zxkoqwl,.h
+  restart 19: 4.6446 (10s) 'nrljkuiaxdpctgyemb;wzfsvqo,.h
+  BEST cfgF_aposQ: 4.6193 'nrlvkuiaxspctmyegb;zjfdwqo,.h
+
+=== summary ===
+4.4371  cfgE_semiQ     ;nrlvkuiaxhpgtmyecbsjzfdwqo,./
+4.6193  cfgD_slashQ    /nrlvkuiaxspctmyegb;zjfdwqo,.h
+4.6193  cfgF_aposQ     'nrlvkuiaxspctmyegb;zjfdwqo,.h
+6.1128  cfgB_slashBot  wstlzkuiaxdgcnhyemv;fjprbqo,./

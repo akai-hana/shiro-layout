@@ -1,0 +1,77 @@
+[warm-cfgE] quench 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./  (6s)
+[warm-cfgE] quench 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./  (6s)
+Traceback (most recent call last):
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 231, in <module>
+    main()
+    ~~~~^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 207, in main
+    cand, cs = quench4(ev, cand, cs, rng0)
+               ~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 63, in quench4
+    perm, cur_s = first_improve(
+                  ~~~~~~~~~~~~~^
+        perm, cur_s, [(i, j) for i in range(N) for j in range(i + 1, N)],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        ap_swap, un_swap)
+        ^^^^^^^^^^^^^^^^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 44, in first_improve
+    st = apply(perm, m)
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 56, in ap_swap
+    p[i], p[j] = p[j], p[i]
+                 ~^^^
+IndexError: list index out of range
+[warm-cfgE] quench 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./  (3s)
+[warm-cfgE] stream end 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./  [95s]
+Traceback (most recent call last):
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 247, in <module>
+    main()
+    ~~~~^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 210, in main
+    print(f"[{name}] quench {cur_s:.4f}  {layout_of(cur, ev)}  "
+                                          ~~~~~~~~~^^^^^^^^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 30, in layout_of
+    cur = lay.index(ch)
+ValueError: list.index(x): x not in list
+Traceback (most recent call last):
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 247, in <module>
+    main()
+    ~~~~^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 210, in main
+    print(f"[{name}] quench {cur_s:.4f}  {layout_of(cur, ev)}  "
+                                          ~~~~~~~~~^^^^^^^^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 30, in layout_of
+    cur = lay.index(ch)
+ValueError: list.index(x): x not in list
+Traceback (most recent call last):
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 247, in <module>
+    main()
+    ~~~~^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 210, in main
+    print(f"[{name}] quench {cur_s:.4f}  {layout_of(cur, ev)}  "
+                                          ~~~~~~~~~^^^^^^^^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 30, in layout_of
+    cur = lay.index(ch)
+ValueError: list.index(x): x not in list
+Traceback (most recent call last):
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 247, in <module>
+    main()
+    ~~~~^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 210, in main
+    print(f"[{name}] quench {cur_s:.4f}  {layout_of(cur, ev)}  "
+                                          ~~~~~~~~~^^^^^^^^^
+  File "/home/akai/git/layout-opencode-investigation/analysis/deep_search2.py", line 30, in layout_of
+    cur = lay.index(ch)
+ValueError: list.index(x): x not in list
+[anneal0] quench 4.4318  ;ntlqxoiakdpcrmyegfswbvhjzu,./  (3s)
+[anneal0] ILS 4: 4.4307 (-0.0011)  ;tnlvxoiabhpcrmyegfskqwdjzu,./  [29s]
+[anneal0] stream end 4.4307  ;tnlvxoiabhpcrmyegfskqwdjzu,./  [124s]
+[anneal1] quench 4.4178  ;aecjvliryofptgmnuwsqkbdzxh,./  (3s)
+[anneal1] stream end 4.4178  ;aecjvliryofptgmnuwsqkbdzxh,./  [99s]
+[random] quench 4.4486  ;trokvlaiwdgceymnpbsfjxuzqh,./  (4s)
+[random] ILS 5: 4.4444 (-0.0042)  ;arozvlitkdwceymnupsfbjgqxh,./  [30s]
+[random] ILS 6: 4.4437 (-0.0008)  ;arlwjueobsfctgmnpyizxkdqvh,./  [33s]
+[random] ILS 8: 4.4362 (-0.0075)  ;oeckvliazsdptgbnufrjqymwxh,./  [41s]
+[random] ILS 9: 4.4260 (-0.0101)  ;aidvzcenysfutglrpwojxbmkqh,./  [47s]
+[random] ILS 15: 4.4120 (-0.0141)  ;airzqceoyhfunmvtpgskjwlxbd,./  [76s]
+[random] ILS 19: 4.3877 (-0.0242)  ;aiojvlnrwhfpeygtcmsbxquzkd,./  [99s]
+[random] stream end 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./  [192s]

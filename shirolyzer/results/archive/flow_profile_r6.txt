@@ -1,0 +1,51 @@
+
+=== cfgE ;aiojvlnrwhfpeygtcmsbxquzkd,./ ===
+  repeat      2.82%
+  sfb         0.00%
+  leap        8.71%
+  roll_in    14.25%
+  roll_out    7.63%
+  alt        66.59%
+  rolls      21.88%
+  trigram (default fingers):
+    alternate   40.06%
+    inroll      31.27%
+    outroll     10.12%
+    onehand      0.71%
+    redirect     3.35%
+    sfb_tri     14.49%
+    other        0.00%
+
+=== NEW_BEST ;stckqdaiwnlprhyeguomfvbzxj,./ ===
+  repeat      2.82%
+  sfb         0.00%
+  leap        4.28%
+  roll_in    15.49%
+  roll_out    8.48%
+  alt        68.92%
+  rolls      23.97%
+  trigram (default fingers):
+    alternate   42.91%
+    inroll      25.49%
+    outroll     14.17%
+    onehand      1.57%
+    redirect     2.74%
+    sfb_tri     13.13%
+    other        0.00%
+
+=== annealBEST ;stckzdaiwnlprhyeguobfvmjqx,./ ===
+  repeat      2.82%
+  sfb         0.00%
+  leap        4.03%
+  roll_in    16.02%
+  roll_out    8.19%
+  alt        68.94%
+  rolls      24.21%
+  trigram (default fingers):
+    alternate   42.88%
+    inroll      25.95%
+    outroll     13.60%
+    onehand      1.62%
+    redirect     2.68%
+    sfb_tri     13.27%
+    other        0.00%

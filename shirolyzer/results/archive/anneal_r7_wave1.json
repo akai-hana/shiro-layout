@@ -1,0 +1,170 @@
+[
+ {
+  "start": "rand2005",
+  "quench": 3.190183670172036,
+  "anneal": 3.138547798657547,
+  "final": 3.1363681481385965,
+  "layout": ";stpbqdaiynhcrmkeguowvflzxj,./"
+ },
+ {
+  "start": "rand2010",
+  "quench": 3.136512746679547,
+  "anneal": 3.136512746679547,
+  "final": 3.1363681481385965,
+  "layout": ";stpbqdaiynhcrmkeguowvflzxj,./"
+ },
+ {
+  "start": "ILS1:rand2005",
+  "quench": 3.1363681481385965,
+  "anneal": 3.1363681481385965,
+  "final": 3.1363681481385965,
+  "layout": ";stpbqdaiynhcrmkeguowvflzxj,./"
+ },
+ {
+  "start": "rand2008",
+  "quench": 3.1661467330686337,
+  "anneal": 3.1420772188289248,
+  "final": 3.136512746679547,
+  "layout": ";stpbzdaiynhcrmkeguowvflqxj,./"
+ },
+ {
+  "start": "ILS2:rand2008",
+  "quench": 3.136512746679547,
+  "anneal": 3.136512746679547,
+  "final": 3.136512746679547,
+  "layout": ";stpbzdaiynhcrmkeguowvflqxj,./"
+ },
+ {
+  "start": "ILS3:rand2014",
+  "quench": 3.1371810263693103,
+  "anneal": 3.1370914296966315,
+  "final": 3.1370914296966315,
+  "layout": ";ntpbqdaiyshcrlkeguofvwmzxj,./"
+ },
+ {
+  "start": "rand2014",
+  "quench": 3.1457248455136018,
+  "anneal": 3.1394876233552576,
+  "final": 3.1371810263693103,
+  "layout": ";ntpbzdaiwshcrlyeguofkvmqxj,./"
+ },
+ {
+  "start": "ILS4:NEW_BEST",
+  "quench": 3.1375267822571633,
+  "anneal": 3.1371810263693103,
+  "final": 3.1371810263693103,
+  "layout": ";ntpbzdaiwshcrlyeguofkvmqxj,./"
+ },
+ {
+  "start": "NEW_BEST",
+  "quench": 3.1375267822571633,
+  "anneal": 3.1375267822571633,
+  "final": 3.1375267822571633,
+  "layout": ";stckqdaiwnlprhyeguomfvbzxj,./"
+ },
+ {
+  "start": "PREV_BEST",
+  "quench": 3.1375267822571633,
+  "anneal": 3.1375267822571633,
+  "final": 3.1375267822571633,
+  "layout": ";stckqdaiwnlprhyeguomfvbzxj,./"
+ },
+ {
+  "start": "annealBEST",
+  "quench": 3.1375267822571633,
+  "anneal": 3.1375267822571633,
+  "final": 3.1375267822571633,
+  "layout": ";stckqdaiwnlprhyeguomfvbzxj,./"
+ },
+ {
+  "start": "rand2006",
+  "quench": 3.193773404619138,
+  "anneal": 3.1381714581050053,
+  "final": 3.137978817067129,
+  "layout": ";stcbqdaiynlprhkeguowfvmzxj,./"
+ },
+ {
+  "start": "ILS5:rand2006",
+  "quench": 3.137978817067129,
+  "anneal": 3.137978817067129,
+  "final": 3.137978817067129,
+  "layout": ";stcbqdaiynlprhkeguowfvmzxj,./"
+ },
+ {
+  "start": "rand2013",
+  "quench": 3.1876036136422994,
+  "anneal": 3.1484199576538114,
+  "final": 3.1380437170556914,
+  "layout": ";stcbqdaiynlprhkeguofwvmzxj,./"
+ },
+ {
+  "start": "rand2007",
+  "quench": 3.1901552649687397,
+  "anneal": 3.1450632732262984,
+  "final": 3.1405787249082304,
+  "layout": ";stcxkpaiwrldnhyeguomfvbqzj,./"
+ },
+ {
+  "start": "rand2000",
+  "quench": 3.1448590859674774,
+  "anneal": 3.1432783479443422,
+  "final": 3.1410318208503067,
+  "layout": ";thsvqdaiyncprlkeguofbwmzxj,./"
+ },
+ {
+  "start": "rand2009",
+  "quench": 3.1496909003208033,
+  "anneal": 3.1433033874200578,
+  "final": 3.141856648202502,
+  "layout": ";trdgqhoiyspcnlfekuambwvzjx,./"
+ },
+ {
+  "start": "rand2003",
+  "quench": 3.142692127658846,
+  "anneal": 3.142692127658846,
+  "final": 3.142529168456713,
+  "layout": ";rshbqdaiynlptckeguofmvwzxj,./"
+ },
+ {
+  "start": "rand2002",
+  "quench": 3.1732606327916044,
+  "anneal": 3.144574736462384,
+  "final": 3.1426024926194214,
+  "layout": ";thskzdaiwncprlyeguofbvmqxj,./"
+ },
+ {
+  "start": "rand2001",
+  "quench": 3.1788960797883545,
+  "anneal": 3.145169294606138,
+  "final": 3.143321071104352,
+  "layout": ";trdpzhaiysmcnlgekuofbwvqxj,./"
+ },
+ {
+  "start": "rand2004",
+  "quench": 3.149494249434531,
+  "anneal": 3.1437051267563536,
+  "final": 3.143531145372025,
+  "layout": ";thsbqcaiwndprlyeguofxvmkzj,./"
+ },
+ {
+  "start": "rand2011",
+  "quench": 3.149494249434531,
+  "anneal": 3.1437051267563536,
+  "final": 3.143531145372025,
+  "layout": ";thsbqcaiwndprlyeguofxvmkzj,./"
+ },
+ {
+  "start": "rand2015",
+  "quench": 3.146758139659204,
+  "anneal": 3.145898815790639,
+  "final": 3.144979375822499,
+  "layout": ";ntpvqhoiyslcrdfekuagbwmzjx,./"
+ },
+ {
+  "start": "rand2012",
+  "quench": 3.168547515777197,
+  "anneal": 3.168547515777197,
+  "final": 3.168547515777197,
+  "layout": ";iohkgdsnvaubefcrpltqyzxjwm,./"
+ }
+]

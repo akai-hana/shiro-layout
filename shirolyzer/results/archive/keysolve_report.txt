@@ -1,0 +1,158 @@
+A2+A3 — keysolve-compatible metrics (its corpora + classify defs)
+boundaries: quartiles.json 4 ascending values/metric; band 1 = best
+
+--- SFB %  (lower-better)  bounds 0.80/1.01/1.23/2.09
+  Semimak                   0.67  band 1
+  Gallium                   0.80  band 2
+  Graphite                  0.90  band 2
+  Sturdy                    1.04  band 3
+  Canary                    1.05  band 3
+  Colemak-DH                1.52  band 4
+  Colemak                   1.52  band 4
+  cfgG_semiP (alt)          5.70  band 5
+  cfgE_semiQ (ours)         5.76  band 5
+  QWERTY                    5.98  band 5
+
+--- LSB %  (lower-better)  bounds 1.33/1.92/2.40/3.38
+  cfgG_semiP (alt)          0.57  band 1
+  Sturdy                    1.79  band 2
+  Gallium                   1.94  band 3
+  cfgE_semiQ (ours)         1.99  band 3
+  Graphite                  2.03  band 3
+  Semimak                   2.15  band 3
+  Colemak-DH                2.26  band 3
+  Colemak                   3.94  band 5
+  Canary                    4.08  band 5
+  QWERTY                    6.88  band 5
+
+--- HSB %  (lower-better)  bounds 3.22/4.00/5.19/6.89
+  Graphite                  2.81  band 1
+  Canary                    2.86  band 1
+  Sturdy                    2.86  band 1
+  Gallium                   3.08  band 1
+  cfgG_semiP (alt)          3.17  band 1
+  cfgE_semiQ (ours)         4.17  band 3
+  Semimak                   4.50  band 3
+  Colemak-DH                6.07  band 4
+  Colemak                   6.22  band 4
+  QWERTY                    7.22  band 5
+
+--- FSB %  (lower-better)  bounds 0.16/0.27/0.39/0.62
+  Graphite                  0.19  band 2
+  Gallium                   0.21  band 2
+  Sturdy                    0.34  band 3
+  Colemak                   0.37  band 3
+  Colemak-DH                0.37  band 3
+  Canary                    0.45  band 4
+  Semimak                   0.50  band 4
+  cfgG_semiP (alt)          0.52  band 4
+  cfgE_semiQ (ours)         0.53  band 4
+  QWERTY                    1.06  band 5
+
+--- SFS %  (lower-better)  bounds 5.94/6.46/7.29/8.06
+  Semimak                   5.39  band 1
+  Graphite                  5.75  band 1
+  Gallium                   6.33  band 2
+  Sturdy                    6.69  band 3
+  Canary                    8.45  band 5
+  Colemak-DH                8.79  band 5
+  Colemak                   8.79  band 5
+  cfgG_semiP (alt)          9.90  band 5
+  cfgE_semiQ (ours)         9.96  band 5
+  QWERTY                   12.36  band 5
+
+--- LSS %  (lower-better)  bounds 1.60/2.03/2.45/3.02
+  cfgE_semiQ (ours)         1.18  band 1
+  cfgG_semiP (alt)          1.63  band 2
+  Colemak-DH                1.83  band 2
+  Semimak                   2.05  band 3
+  Canary                    2.30  band 3
+  Gallium                   2.41  band 3
+  Colemak                   2.67  band 4
+  Sturdy                    2.86  band 4
+  Graphite                  2.89  band 4
+  QWERTY                    8.59  band 5
+
+--- HSS %  (lower-better)  bounds 6.27/6.91/7.63/8.46
+  cfgE_semiQ (ours)         4.31  band 1
+  cfgG_semiP (alt)          5.48  band 1
+  Canary                    6.08  band 1
+  Sturdy                    6.22  band 1
+  Colemak-DH                7.06  band 3
+  Colemak                   7.08  band 3
+  QWERTY                    7.39  band 3
+  Semimak                   8.29  band 4
+  Gallium                   8.68  band 5
+  Graphite                  9.00  band 5
+
+--- FSS %  (lower-better)  bounds 0.46/0.68/0.83/1.16
+  Sturdy                    0.21  band 1
+  Graphite                  0.55  band 2
+  Gallium                   0.59  band 2
+  Semimak                   0.59  band 2
+  Colemak                   0.77  band 3
+  Colemak-DH                0.87  band 4
+  Canary                    0.88  band 4
+  cfgG_semiP (alt)          1.15  band 4
+  cfgE_semiQ (ours)         1.21  band 5
+  QWERTY                    1.95  band 5
+
+--- ALT %  (higher-better)  bounds 27.50/32.03/35.47/38.53
+  Gallium                  39.69  band 1
+  Graphite                 38.88  band 1
+  Semimak                  38.26  band 2
+  cfgE_semiQ (ours)        36.28  band 2
+  cfgG_semiP (alt)         36.24  band 2
+  Sturdy                   33.53  band 3
+  Canary                   30.08  band 4
+  Colemak-DH               28.45  band 4
+  Colemak                  28.45  band 4
+  QWERTY                   25.47  band 5
+
+--- ROL %  (higher-better)  bounds 39.44/41.57/42.98/45.58
+  Sturdy                   48.66  band 1
+  Canary                   47.76  band 1
+  Gallium                  44.69  band 2
+  Colemak-DH               44.32  band 2
+  Colemak                  44.32  band 2
+  Graphite                 43.54  band 2
+  Semimak                  40.56  band 4
+  cfgE_semiQ (ours)        39.36  band 5
+  cfgG_semiP (alt)         39.02  band 5
+  QWERTY                   36.67  band 5
+
+--- ONE %  (neutral)  bounds 1.99/2.33/2.70/3.18
+  cfgE_semiQ (ours)         0.32  band 1
+  cfgG_semiP (alt)          0.87  band 1
+  Sturdy                    1.71  band 1
+  Canary                    1.99  band 1
+  QWERTY                    2.32  band 2
+  Graphite                  2.49  band 3
+  Colemak-DH                2.49  band 3
+  Colemak                   2.49  band 3
+  Gallium                   2.66  band 3
+  Semimak                   3.17  band 4
+
+--- RED %  (lower-better)  bounds 2.36/3.09/4.07/5.37
+  Graphite                  3.24  band 3
+  Gallium                   3.30  band 3
+  cfgG_semiP (alt)          3.80  band 3
+  cfgE_semiQ (ours)         3.86  band 3
+  Semimak                   5.75  band 5
+  Sturdy                    6.03  band 5
+  Canary                    7.23  band 5
+  Colemak-DH               11.37  band 5
+  Colemak                  11.37  band 5
+  QWERTY                   13.91  band 5
+
+--- finger shares % (keysolve quartiles)
+  LP  ours   6.8  bounds 5.4/8.7  all: 6.8 8.7 7.0 8.4 7.6 4.6 8.1 8.4 7.6 7.6
+  LR  ours   9.6  bounds 8.2/11.8  all: 9.6 9.7 8.9 9.8 7.8 10.7 10.5 9.6 7.8 8.3
+  LM  ours   7.9  bounds 10.0/15.0  all: 7.9 7.9 13.1 15.3 10.2 12.1 13.7 15.1 10.2 18.1
+  LI  ours  26.3  bounds 13.0/17.9  all: 26.3 26.3 14.2 13.7 18.8 15.1 13.9 13.6 18.8 21.1
+  RI  ours  21.0  bounds 11.4/17.3  all: 21.0 21.1 17.3 13.2 20.0 17.0 12.0 12.4 20.0 20.6
+  RM  ours  10.6  bounds 13.0/19.5  all: 10.6 9.2 16.2 17.4 16.9 20.4 15.6 16.2 16.9 8.7
+  RR  ours   9.7  bounds 9.4/14.9  all: 9.7 11.1 15.4 15.7 10.5 10.9 17.2 15.4 10.5 14.0
+  RP  ours   8.1  bounds 6.9/9.0  all: 8.1 6.0 7.8 6.4 8.2 9.2 8.9 9.3 8.2 1.6
+  LH  ours  50.6  bounds 42.7/49.5  all: 50.6 52.6 43.3 47.3 44.5 42.5 46.3 46.6 44.5 55.1
+  RH  ours  49.4  bounds 46.7/53.5  all: 49.4 47.4 56.7 52.7 55.5 57.5 53.7 53.4 55.5 44.9

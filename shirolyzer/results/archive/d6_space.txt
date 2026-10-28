@@ -1,0 +1,32 @@
+D6 — space-aware objective (trigrams over a-z + space)
+corpus/word: 507040063 chars, space 17.5%, 17491 trigram types (vs letters-only 5461)
+
+-- space-aware score (lower better) --
+layout             space  letters
+cfgE (primary)     3.998    4.388
+cfgE-punct         4.012    4.457
+hybrid-35          4.025    4.503
+cfgG               4.046    4.401
+Colemak-DH         4.995    5.670
+Graphite           4.999    5.628
+Gallium            5.030    5.660
+Sturdy             5.047    5.576
+Canary             5.149    5.929
+Semimak            5.182    5.700
+QWERTY             7.992    8.712
+
+cfgE space-aware total 3.9510; space-adjacent grams = 44.2% of cost (49.8% of tokens)
+
+-- search under space-aware objective --
+  warm: space 3.9829  letters 4.4312  ;aniqvlorwhfpeymtgcsbxjuzkd,./
+  r1: space 3.9823  letters 4.4668  ;aolkjrnibhfmewgtcpsyxquzvd,./
+  r2: space 3.9769  letters 4.4806  ;aepkjloiwsugnfmtcyrxzvhbqd,./
+  r3: space 3.9720  letters 4.4745  ;anlwkuoibrmctgyehpsxzvdqjf,./
+
+  space-aware winner: space 3.9720  letters 4.4745  ;anlwkuoibrmctgyehpsxzvdqjf,./
+
+-- both axes vs cfgE --
+  cfgE:           space 3.9977  letters 4.3877
+  space winner:   space 3.9720  letters 4.4745  (d_space -0.0257, d_letters +0.0868)
+
+(53s total)

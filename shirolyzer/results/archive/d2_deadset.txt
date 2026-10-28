@@ -1,0 +1,13 @@
+D2 — dead-set search (punct2 corpus: a-z + . , / ; ' -)
+core punct , . / fixed on natural keys; 4th char X x slot S
+
+X=';' S=Q      seed-punct 4.5526  best-punct 4.4654  letters 4.4584  .aiozvlnrbhgpeymtcwsfqxu/kd,;j
+X=';' S=P      seed-punct 4.5924  best-punct 4.4732  letters 4.4184  .aiozvlnrwsfpeymtcghxjqu/kd,;b
+X="'" S=Q      seed-punct 4.5579  best-punct 4.4970  letters 4.4118  wrilv'cea.syunmgtpfozj,hxbdk/q
+X="'" S=P      seed-punct 4.5962  best-punct 4.5050  letters 4.5340  .oilwvrna,hymekgtcpsfz'u/bdxqj
+X='-' S=Q      seed-punct 4.5615  best-punct 4.4946  letters 4.4961  wrnlbzoia-smctg,epyhxjvdk/u.qf
+X='-' S=P      seed-punct 4.5980  best-punct 4.5160  letters 4.4717  .oilb-uea,ryctgmnpwsxzvdqfhk/j
+baseline cfgE punct 4.5526  letters 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+baseline cfgG punct 4.5920  letters 4.4010  faiojwlrn;hgpeyvtcmsbqxuzkd,./
+
+(410s total)

@@ -1,0 +1,75 @@
+Round-7 flow profile (scorer2, round-6b model)
+bigrams: context-optimal fingering; trigrams: default fingers
+
+=== cfgE ;aiojvlnrwhfpeygtcmsbxquzkd,./ ===
+  repeat       2.82%
+  sfb          0.00%
+  leap         8.71%
+  roll_in     14.25%
+  roll_out     7.63%
+  alt         66.59%
+  rolls       21.88%
+  trigram (default fingers):
+    alternate      40.06%
+    inroll         31.27%
+    outroll        10.12%
+    onehand         0.71%
+    redirect        2.80%
+    redirect_weak   0.55%
+    sfb_tri        14.49%
+    other           0.00%
+
+=== OLD_BEST ;stckqdaiwnlprhyeguomfvbzxj,./ ===
+  repeat       2.82%
+  sfb          0.00%
+  leap         4.28%
+  roll_in     15.49%
+  roll_out     8.48%
+  alt         68.92%
+  rolls       23.97%
+  trigram (default fingers):
+    alternate      42.91%
+    inroll         25.49%
+    outroll        14.17%
+    onehand         1.57%
+    redirect        1.48%
+    redirect_weak   1.26%
+    sfb_tri        13.13%
+    other           0.00%
+
+=== NEW_BEST ;stpbqdaiynhcrmkeguowvflzxj,./ ===
+  repeat       2.82%
+  sfb          0.00%
+  leap         2.99%
+  roll_in     11.31%
+  roll_out    12.79%
+  alt         70.08%
+  rolls       24.11%
+  trigram (default fingers):
+    alternate      44.53%
+    inroll         18.08%
+    outroll        19.74%
+    onehand         1.42%
+    redirect        1.34%
+    redirect_weak   1.27%
+    sfb_tri        13.62%
+    other           0.00%
+
+=== annealBEST ;stckzdaiwnlprhyeguobfvmjqx,./ ===
+  repeat       2.82%
+  sfb          0.00%
+  leap         4.03%
+  roll_in     16.02%
+  roll_out     8.19%
+  alt         68.94%
+  rolls       24.21%
+  trigram (default fingers):
+    alternate      42.88%
+    inroll         25.95%
+    outroll        13.60%
+    onehand         1.62%
+    redirect        1.50%
+    redirect_weak   1.17%
+    sfb_tri        13.27%
+    other           0.00%
+

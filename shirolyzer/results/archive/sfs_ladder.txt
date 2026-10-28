@@ -1,0 +1,19 @@
+A2 — SFS distance ladder (raw iweb samples, cfge layout fingers,
+standard columnar map, repeats a==b excluded, valid-char runs)
+scanned 431,245,024 run-chars in 288s
+
+ gap    same-finger          pairs     SFS%
+   1     24,160,999    254,954,972    9.477
+   2     16,996,403    182,869,403    9.294
+   3     11,628,148    128,234,222    9.068
+   4     21,642,272    235,784,313    9.179
+(gap 4+ folded into 4)
+
+all-gap SFS%  : 9.282   [74,427,822/801,842,910]
+oxey decay ladder (r=1/7 normalized over gaps 1-4): 9.446%
+
+SFB cross-check (cfge punct positions):
+  bigram denom (pairs in valid runs) : 4.550%   [15,517,186/341,073,092]  (doc keycraft-style 4.48)
+  monogram denom, letters only       : 3.709%
+  monogram denom, letters+space      : 3.060%  (closest to genkey Total; doc genkey-style 3.624)
+  monogram denom, letters+space+punct: 2.985%

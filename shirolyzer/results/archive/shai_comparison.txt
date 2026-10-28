@@ -1,0 +1,18 @@
+A1 — Shai iWeb corpus vs Norvig (our objective, letters-only a-z)
+layout                     shai  rank   norvig nrank  layout-str
+cfgE_semiQ (winner)      4.4404     1   4.3877     1  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+cfgG_semiP (alt)         4.4751     2   4.4010     2  faiojwlrn;hgpeyvtcmsbqxuzkd,./
+cfgD_slashQ              4.7039     3   4.6034     3  /aiojvlnrwsfpeygtcm;xbquzkd,.h
+cfgF_aposQ               4.7039     4   4.6034     4  'aiojvlnrwsfpeygtcm;xbquzkd,.h
+Graphite                 5.6890     5   5.6280     6  bldwz'foujnrtsgyhaeiqxmcvkp.-/
+Sturdy                   5.6937     6   5.5756     5  vmlcpxfoujsrtdy.naeizkqgwbh';,
+Gallium                  5.7128     7   5.6597     7  bldcvjfou,nrtsgyhaeixqmwzkp';.
+Colemak                  5.7202     8   5.6822     9  qwfpgjluy;arstdhneiozxcvbkm,./
+Colemak-DH               5.7223     9   5.6700     8  qwfpbjluy;arstgmneiozxcdvkh,./
+Canary                   5.8183    10   5.9287    11  wlypkzxou;crstbfneiajvdgqmh/,.
+Semimak                  5.8265    11   5.6999    10  flhvzqwuoysrntkcdeaix'bmjpg/,/
+QWERTY                   8.6953    12   8.7119    12  qwertyuiopasdfghjkl;zxcvbnm,./
+
+shai top4: cfgE_semiQ (winner), cfgG_semiP (alt), cfgD_slashQ, cfgF_aposQ
+norvig top4: cfgE_semiQ (winner), cfgG_semiP (alt), cfgD_slashQ, cfgF_aposQ
+exact rank matches: 6/12

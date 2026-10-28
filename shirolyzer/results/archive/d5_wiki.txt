@@ -1,0 +1,14 @@
+D5 — Wikipedia (200 featured articles) third-source check
+articles 200  2876740 letters  6131 trigram types
+
+layout           wiki     iweb  layout
+cfgE           4.4095   4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+cfgE-punct     4.4205   4.4573  .aiozvlnrbhgpeymtcwsfjxu/kd,;q
+cfgG           4.4510   4.4010  faiojwlrn;hgpeyvtcmsbqxuzkd,./
+hybrid-35      4.5010   4.5035  ;aemjwcioksfgnhptubrqzylxvd,./
+hybrid-80      4.7939   4.9111  ;eiowgcnrvszpafmtbhljkyuxqd,./
+Sturdy         5.6351   5.5756  vmlcpxfoujsrtdy.naeizkqgwbh';,
+Graphite       5.7555   5.6280  bldwz'foujnrtsgyhaeiqxmcvkp.-/
+Colemak-DH     5.7578   5.6700  qwfpbjluy;arstgmneiozxcdvkh,./
+Gallium        5.7980   5.6597  bldcvjfou,nrtsgyhaeixqmwzkp';.
+QWERTY         8.7924   8.7119  qwertyuiopasdfghjkl;zxcvbnm,./

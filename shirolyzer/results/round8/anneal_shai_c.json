@@ -1,0 +1,233 @@
+{
+ "primary": "/home/akai/git/layout-opencode-investigation/corpus/shai/",
+ "secondary": "/home/akai/git/layout-opencode-investigation/corpus/spanish/",
+ "primary_sacrifice": 1e-05,
+ "secondary_scale": 0.0006230948547536181,
+ "results": [
+  {
+   "start": "shai_best",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "old_shai_alt1",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "old_shai_alt2",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "rand8718",
+   "quench": 3.2937301802857823,
+   "anneal": 3.1762644460271305,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "rand8721",
+   "quench": 3.215261145686474,
+   "anneal": 3.1670987321062283,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "ILS1:shai_best",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "ILS2:rand8717",
+   "quench": 3.169045360947748,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "ILS3:rand8725",
+   "quench": 3.1725594228926726,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "ILS4:chat_best",
+   "quench": 3.1730692248079335,
+   "anneal": 3.168539437777759,
+   "final": 3.168539437777759,
+   "primary": 3.1685395769381017,
+   "spanish": 3.3525331985641063,
+   "layout": ";nshvkgoifrlctwyeupadxbmzjq,./"
+  },
+  {
+   "start": "rand8717",
+   "quench": 3.1696533522120824,
+   "anneal": 3.1696533522120824,
+   "final": 3.169045360947748,
+   "primary": 3.1690455690382664,
+   "spanish": 3.242832347340864,
+   "layout": ";trhxzgoipndlswyeucafkbmvjq,./"
+  },
+  {
+   "start": "rand8725",
+   "quench": 3.2087230780718317,
+   "anneal": 3.1735466098489935,
+   "final": 3.1725594228926726,
+   "primary": 3.172560132185003,
+   "spanish": 3.2721956718550675,
+   "layout": ";tncxzpoifrdlswyehuamkgbvjq,./"
+  },
+  {
+   "start": "chat_best",
+   "quench": 3.1765006927480792,
+   "anneal": 3.173775482663559,
+   "final": 3.1730692248079335,
+   "primary": 3.173069753780408,
+   "spanish": 3.276920092930295,
+   "layout": ";tscwxgoiyrdlnhfeupamkvbzjq,./"
+  },
+  {
+   "start": "rand8722",
+   "quench": 3.2626507835901815,
+   "anneal": 3.176153435999233,
+   "final": 3.1731747558732963,
+   "primary": 3.173175146766361,
+   "spanish": 3.2922644408202313,
+   "layout": ";ntcvkdoifrhgslyeupambwxzjq,./"
+  },
+  {
+   "start": "rand8724",
+   "quench": 3.205923469164665,
+   "anneal": 3.179017279308651,
+   "final": 3.1731888976906117,
+   "primary": 3.173189499076523,
+   "spanish": 3.240715477836543,
+   "layout": ";trcwxmoiksdlnpyehuafzgbvjq,./"
+  },
+  {
+   "start": "rand8723",
+   "quench": 3.191456659436659,
+   "anneal": 3.1831349990137845,
+   "final": 3.173691225263313,
+   "primary": 3.173692065274666,
+   "spanish": 3.2185991379696697,
+   "layout": ";trcmxlioksdgnpyeuhafzwvbjq,./"
+  },
+  {
+   "start": "rand8727",
+   "quench": 3.183264498933995,
+   "anneal": 3.180754556740392,
+   "final": 3.174196025960867,
+   "primary": 3.1741965152616247,
+   "spanish": 3.2574356051232467,
+   "layout": ";tngwxpoiksdlrcyehuafzmvbjq,./"
+  },
+  {
+   "start": "rand8728",
+   "quench": 3.174651394628505,
+   "anneal": 3.174651394628505,
+   "final": 3.174651394628505,
+   "primary": 3.1746522714273535,
+   "spanish": 3.3772738855325533,
+   "layout": ";tsgwxdoifrplncyeuhamkbvzjq,./"
+  },
+  {
+   "start": "rand8719",
+   "quench": 3.1757181078199,
+   "anneal": 3.1757181078199,
+   "final": 3.175113711245554,
+   "primary": 3.1751139710989307,
+   "spanish": 3.282975112145283,
+   "layout": ";htgxzpoiwrnlsfyecuambvdkjq,./"
+  },
+  {
+   "start": "rand8720",
+   "quench": 3.21580878533987,
+   "anneal": 3.1778105557779703,
+   "final": 3.1762764380751154,
+   "primary": 3.1762761413526133,
+   "spanish": 3.3607792936592196,
+   "layout": ";tshwxpaoyrdcnfjeugilkbmvzq,./"
+  },
+  {
+   "start": "rand8726",
+   "quench": 3.210861668308005,
+   "anneal": 3.1790039179936915,
+   "final": 3.1771152275321937,
+   "primary": 3.177115151981289,
+   "spanish": 3.397119161233609,
+   "layout": ";nshkzgoiwrlptvyecuadbfmxjq,./"
+  },
+  {
+   "start": "old_shai_lead",
+   "quench": 3.1779150571059374,
+   "anneal": 3.1779150571059374,
+   "final": 3.1779150571059374,
+   "primary": 3.1779155453313184,
+   "spanish": 3.361202139979654,
+   "layout": ";trlpxgoifsmcndyehuawkzbvjq,./"
+  },
+  {
+   "start": "cfgE",
+   "quench": 3.203435504498674,
+   "anneal": 3.1819301753075684,
+   "final": 3.179280024074367,
+   "primary": 3.1792808277725086,
+   "spanish": 3.311685297178757,
+   "layout": ";lrcbkpoifsndtmyehuagxwvzjq,./"
+  }
+ ],
+ "best_primary": {
+  "start": "shai_best",
+  "quench": 3.165795758207707,
+  "anneal": 3.165795758207707,
+  "final": 3.165795758207707,
+  "primary": 3.1657961487783046,
+  "spanish": 3.2743300305177305,
+  "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+ },
+ "best_near_tie": {
+  "start": "shai_best",
+  "quench": 3.165795758207707,
+  "anneal": 3.165795758207707,
+  "final": 3.165795758207707,
+  "primary": 3.1657961487783046,
+  "spanish": 3.2743300305177305,
+  "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+ },
+ "best_composite": {
+  "start": "shai_best",
+  "quench": 3.165795758207707,
+  "anneal": 3.165795758207707,
+  "final": 3.165795758207707,
+  "primary": 3.1657961487783046,
+  "spanish": 3.2743300305177305,
+  "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+ }
+}

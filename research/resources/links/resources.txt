@@ -1,0 +1,11 @@
+Resources
+Keyboard layout wiki - getting started | https://layouts.wiki/guides/start/intro/
+Cmini Browser - Our layout bot on the web | https://cminibrowser.com/
+Keyboard Layouts Doc - A very thorough document with in-depth explanations of typing and layout theory | https://docs.google.com/document/d/1W0jhfqJI2ueJ2FNseR4YAFpNfsUM-_FlREHbpNGmC2o
+Guide to alt layouts - A helpful introduction to alt layouts | https://getreuer.info/posts/keyboards/alt-layouts/
+Dreymar's Big Bag - A collection of modifications and other useful tricks | https://dreymar.colemak.org/
+gfruit's Words Filter - A simple yet incredibly useful tool for finding words with certain bigrams, characters, and fingers | https://gfruit.github.io/typing/words-filter.html
+Monkeytype Fingermap - Same as above, made by the creator of MonkeyType | https://fingermap.monkeytype.com/
+MSKLC Guide - Documentation for the Windows layout creator tool | https://msklc-guide.github.io/#2
+Emulayout - a tool to view, view stats of and try out any cmini or other layout quickly (including magic layouts!) https://emulayout.github.io/
+Keyboard Layout Tryout - tool for testing how layouts feel by converting text | https://keyboard-layout-try-out.pages.dev/

@@ -1,0 +1,24 @@
+R6 — scorer2 weight robustness sweep (quench + 20000 anneal from cfgE)
+baseline score 3.336711
+
+scenario                cfgE bestref        ref  quench  anneal  quench->anneal layout
+baseline              3.3367  3.1364   NEW_BEST  3.1683  3.1593  ;nrdgqpeixslctmuokhawfvbzyj,./
+sfb x1.5              3.3373  3.1365   NEW_BEST  3.1705  3.1502  ;tnsvkgaiyhcprdjefuolbwmzqx,./
+sfb x0.7              3.3335  3.1359   NEW_BEST  3.1628  3.1444  ;ntpvqdaiyshcrlgebuofkmwzjx,./
+rolls x1.5            3.2796  3.0693 annealBEST  3.0962  3.0687  ;tnhvzlaiyscprdkeguofbwmqjx,./
+rolls x0.5            3.3661  3.1930 annealBEST  3.2164  3.1931  ;ntcbkuoizslprhyegdafwvmjqx,./
+alt off               3.4967  3.3020   NEW_BEST  3.3389  3.3101  ;trdgjhoiyspcnlfekuambwvzqx,./
+alt x2                3.1767  2.9707   NEW_BEST  3.0071  2.9884  ;ntpwqgaikrhcsfzeyuodbmlvjx,./
+redirect x2           3.3686  3.1575   NEW_BEST  3.1984  3.1660  ;ntcwxpoiyrlmshjeugadbvfzqk,./
+redirect x0.5         3.3205  3.1254   NEW_BEST  3.1546  3.1546  ;aihxklnscofuegdrpmtybqzjwv,./
+sfs x2                3.3487  3.1471   NEW_BEST  3.1839  3.1485  ;ntlvkuoigshcrdyefpawxmbzjq,./
+sfs off               3.3080  3.1113   NEW_BEST  3.1535  3.1244  ;nspvqcaiyrlhtmkeguodbwfxjz,./
+balance off           3.2431  3.1283   NEW_BEST  3.1232  3.1232  ;iehkfsnrgoupabmtcdlyxqjzwv,./
+balance x3            3.5239  3.1525   NEW_BEST  3.1844  3.1844  ;aohkvlnscifxeudrpmtybzqjwg,./
+hand off              3.3360  3.1346   NEW_BEST  3.1676  3.1494  ;nshvkuaiyrlctwzegpodbmfxjq,./
+scissors x2           3.3450  3.1428   NEW_BEST  3.1849  3.1849  ;aohzgcnswifkeudrpltybxqjmv,./
+scissors off          3.3022  3.1154 annealBEST  3.1348  3.1220  ;trlzqdaiynphsckeguombwfvjx,./
+pessimistic joint     3.5184  3.2844   NEW_BEST  3.3355  3.2996  ;tndvzbeiyslprchoquafkgmwjx,./
+optimistic joint      3.0944  2.8951   NEW_BEST  2.9208  2.9208  ;aihzvlnscoupekdrgmtyfxqjbw,./
+
+restored baseline 3.336711 OK

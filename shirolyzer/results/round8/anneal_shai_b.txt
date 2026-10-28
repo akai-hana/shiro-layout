@@ -1,0 +1,25 @@
+primary=/home/akai/git/layout-opencode-investigation/corpus/shai/ secondary=/home/akai/git/layout-opencode-investigation/corpus/spanish/
+primary_sacrifice=1e-05 secondary_scale=0.000623095
+best_primary: comp=3.165796 primary=3.165796 spanish=3.274330 ;tspbxgoiwndhrlyecuafkvmzjq,./
+best_near_tie: comp=3.165796 primary=3.165796 spanish=3.274330 ;tspbxgoiwndhrlyecuafkvmzjq,./
+best_composite: comp=3.165796 primary=3.165796 spanish=3.274330 ;tspbxgoiwndhrlyecuafkvmzjq,./
+
+start                   final  primary  spanish  layout
+old_shai_alt1          3.1658   3.1658   3.2743  ;tspbxgoiwndhrlyecuafkvmzjq,./
+old_shai_alt2          3.1658   3.1658   3.2743  ;tspbxgoiwndhrlyecuafkvmzjq,./
+user0                  3.1658   3.1658   3.2743  ;tspbxgoiwndhrlyecuafkvmzjq,./
+rand3028               3.1658   3.1658   3.2743  ;tspbxgoiwndhrlyecuafkvmzjq,./
+ILS1:old_shai_alt1     3.1658   3.1658   3.2743  ;tspbxgoiwndhrlyecuafkvmzjq,./
+old_shai_lead          3.1690   3.1690   3.2428  ;trhxzgoipndlswyeucafkbmvjq,./
+rand3030               3.1690   3.1690   3.2428  ;trhxzgoipndlswyeucafkbmvjq,./
+ILS2:old_shai_lead     3.1690   3.1690   3.2428  ;trhxzgoipndlswyeucafkbmvjq,./
+rand3031               3.1706   3.1706   3.2690  ;tshxzpoiwrdlnfyecuamkbgvjq,./
+ILS3:rand3031          3.1706   3.1706   3.2690  ;tshxzpoiwrdlnfyecuamkbgvjq,./
+rand3032               3.1739   3.1739   3.3466  ;htpxzgoiwrndsmyecualbvfkjq,./
+ILS4:rand3032          3.1739   3.1739   3.3466  ;htpxzgoiwrndsmyecualbvfkjq,./
+chat_best              3.1765   3.1765   3.3936  ;thskxpoiwrdgnfyecualzvmbjq,./
+rand3033               3.1776   3.1776   3.3892  ;tshxzgoiwrpdnfyecualkbmvjq,./
+rand3026               3.1777   3.1777   3.4017  ;crhvxgoiknsltfyeduampbwzjq,./
+rand3027               3.1780   3.1780   3.4071  ;htckzpoiwrngsmyedualbvfxjq,./
+rand3029               3.1791   3.1791   3.3621  ;tncbxdoifsmprlyeuhawkgzvjq,./
+cfgE                   3.2034   3.2034   3.4421  ;iahkvpnrcoubegmsldtzyjxqwf,./

@@ -1,0 +1,498 @@
+[
+ {
+  "scenario": "baseline",
+  "mults": {},
+  "cfgE": 3.3367108396967993,
+  "refbest_val": 3.1363681481385965,
+  "refbest": "NEW_BEST",
+  "quench": 3.1682674332238463,
+  "quench_layout": ";aihxklnscofuegdrpmtybqzjwv,./",
+  "anneal": 3.159298663786399,
+  "anneal_layout": ";nrdgqpeixslctmuokhawfvbzyj,./",
+  "scores": {
+   "cfgE": 3.3367108396967993,
+   "cfgG": 3.34782183193903,
+   "annealBEST": 3.141103882517316,
+   "NEW_BEST": 3.1363681481385965,
+   "Sturdy": 3.562944890478466,
+   "Graphite": 3.4468363474816726,
+   "Gallium": 3.4452177821185073,
+   "Colemak-DH": 3.742155413422708,
+   "Canary": 3.693362867897496,
+   "Semimak": 3.504111573199456,
+   "QWERTY": 4.679356690491216
+  },
+  "secs": 9.018317937850952
+ },
+ {
+  "scenario": "sfb x1.5",
+  "mults": {
+   "sfb": 1.5
+  },
+  "cfgE": 3.3373437974569042,
+  "refbest_val": 3.136501855833005,
+  "refbest": "NEW_BEST",
+  "quench": 3.1705027769140033,
+  "quench_layout": ";aihxklnscofuegdrpmtybqjzwv,./",
+  "anneal": 3.150184214101653,
+  "anneal_layout": ";tnsvkgaiyhcprdjefuolbwmzqx,./",
+  "scores": {
+   "cfgE": 3.3373437974569042,
+   "cfgG": 3.350168224055182,
+   "annealBEST": 3.141977214205093,
+   "NEW_BEST": 3.136501855833005,
+   "Sturdy": 3.564157561863841,
+   "Graphite": 3.448215868100063,
+   "Gallium": 3.446551895432689,
+   "Colemak-DH": 3.7427919853447014,
+   "Canary": 3.6952546402159325,
+   "Semimak": 3.5131865188583795,
+   "QWERTY": 4.703055376510944
+  },
+  "secs": 12.148116111755371
+ },
+ {
+  "scenario": "sfb x0.7",
+  "mults": {
+   "sfb": 0.7
+  },
+  "cfgE": 3.333514645682002,
+  "refbest_val": 3.1359068930861462,
+  "refbest": "NEW_BEST",
+  "quench": 3.162839762097495,
+  "quench_layout": ";aihqklnscoupebdrgmtyfxzjwv,./",
+  "anneal": 3.1443835908427933,
+  "anneal_layout": ";ntpvqdaiyshcrlgebuofkmwzjx,./",
+  "scores": {
+   "cfgE": 3.333514645682002,
+   "cfgG": 3.343333596919362,
+   "annealBEST": 3.140048117560312,
+   "NEW_BEST": 3.1359068930861462,
+   "Sturdy": 3.5606521938385565,
+   "Graphite": 3.4453777943025474,
+   "Gallium": 3.443876454203043,
+   "Colemak-DH": 3.740274496883604,
+   "Canary": 3.690141626042655,
+   "Semimak": 3.496883582622006,
+   "QWERTY": 4.659466232444654
+  },
+  "secs": 9.199432373046875
+ },
+ {
+  "scenario": "rolls x1.5",
+  "mults": {
+   "rolls": 1.5
+  },
+  "cfgE": 3.279643480561632,
+  "refbest_val": 3.06927112893077,
+  "refbest": "annealBEST",
+  "quench": 3.0962364851369584,
+  "quench_layout": ";aihqklnswoupebdrgctyfxjzvm,./",
+  "anneal": 3.0686512780638813,
+  "anneal_layout": ";tnhvzlaiyscprdkeguofbwmqjx,./",
+  "scores": {
+   "cfgE": 3.279643480561632,
+   "cfgG": 3.2937295815717813,
+   "annealBEST": 3.06927112893077,
+   "NEW_BEST": 3.074693065366227,
+   "Sturdy": 3.4931648241079083,
+   "Graphite": 3.3887806141292875,
+   "Gallium": 3.386661685891919,
+   "Colemak-DH": 3.6825131393326993,
+   "Canary": 3.6122776448194864,
+   "Semimak": 3.4442073015328374,
+   "QWERTY": 4.562059984310055
+  },
+  "secs": 9.407989978790283
+ },
+ {
+  "scenario": "rolls x0.5",
+  "mults": {
+   "rolls": 0.5
+  },
+  "cfgE": 3.3660656278566545,
+  "refbest_val": 3.1929684908370244,
+  "refbest": "annealBEST",
+  "quench": 3.2163984152650347,
+  "quench_layout": ";aohzglnscifkeudrpmtybxqjwv,./",
+  "anneal": 3.193130420404019,
+  "anneal_layout": ";ntcbkuoizslprhyegdafwvmjqx,./",
+  "scores": {
+   "cfgE": 3.3660656278566545,
+   "cfgG": 3.377468063038867,
+   "annealBEST": 3.1929684908370244,
+   "NEW_BEST": 3.192971454655032,
+   "Sturdy": 3.599504252530007,
+   "Graphite": 3.473214027463333,
+   "Gallium": 3.472125381725804,
+   "Colemak-DH": 3.7714484858445436,
+   "Canary": 3.744006142829038,
+   "Semimak": 3.545274400090707,
+   "QWERTY": 4.752894620815767
+  },
+  "secs": 9.146692276000977
+ },
+ {
+  "scenario": "alt off",
+  "mults": {
+   "alt": 0.0
+  },
+  "cfgE": 3.496690228510634,
+  "refbest_val": 3.301997197560845,
+  "refbest": "NEW_BEST",
+  "quench": 3.338895432884903,
+  "quench_layout": ";aohzgcnswifkeudrpltybxqjvm,./",
+  "anneal": 3.310122354859093,
+  "anneal_layout": ";trdgjhoiyspcnlfekuambwvzqx,./",
+  "scores": {
+   "cfgE": 3.496690228510634,
+   "cfgG": 3.506279547102591,
+   "annealBEST": 3.3045372231007004,
+   "NEW_BEST": 3.301997197560845,
+   "Sturdy": 3.714081215910159,
+   "Graphite": 3.6094161626533996,
+   "Gallium": 3.6077975972902343,
+   "Colemak-DH": 3.8779808934870124,
+   "Canary": 3.839379275883714,
+   "Semimak": 3.661635033518463,
+   "QWERTY": 4.800899688897348
+  },
+  "secs": 6.138084650039673
+ },
+ {
+  "scenario": "alt x2",
+  "mults": {
+   "alt": 2.0
+  },
+  "cfgE": 3.176731450882965,
+  "refbest_val": 2.970739098716348,
+  "refbest": "NEW_BEST",
+  "quench": 3.0071290151118006,
+  "quench_layout": ";aihxklnscofuegdrpmtybqzjwv,./",
+  "anneal": 2.9884413774748677,
+  "anneal_layout": ";ntpwqgaikrhcsfzeyuodbmlvjx,./",
+  "scores": {
+   "cfgE": 3.176731450882965,
+   "cfgG": 3.1893641167754674,
+   "annealBEST": 2.9776705419339318,
+   "NEW_BEST": 2.970739098716348,
+   "Sturdy": 3.4118085650467735,
+   "Graphite": 3.2842565323099464,
+   "Gallium": 3.2826379669467807,
+   "Colemak-DH": 3.6063299333584045,
+   "Canary": 3.54734645991128,
+   "Semimak": 3.346588112880449,
+   "QWERTY": 4.557813692085083
+  },
+  "secs": 9.340218782424927
+ },
+ {
+  "scenario": "redirect x2",
+  "mults": {
+   "redirect": 2.0
+  },
+  "cfgE": 3.3685829303136328,
+  "refbest_val": 3.1574791435614578,
+  "refbest": "NEW_BEST",
+  "quench": 3.1984059300783105,
+  "quench_layout": ";aohzgcnswifkeudrpltybxqjvm,./",
+  "anneal": 3.1660152559794663,
+  "anneal_layout": ";ntcwxpoiyrlmshjeugadbvfzqk,./",
+  "scores": {
+   "cfgE": 3.3685829303136328,
+   "cfgG": 3.381492153134588,
+   "annealBEST": 3.162845428689049,
+   "NEW_BEST": 3.1574791435614578,
+   "Sturdy": 3.606098370442938,
+   "Graphite": 3.465311882590331,
+   "Gallium": 3.4622713966749172,
+   "Colemak-DH": 3.8230730417503267,
+   "Canary": 3.7362645518876687,
+   "Semimak": 3.5452551762701385,
+   "QWERTY": 4.737349322026469
+  },
+  "secs": 6.092133522033691
+ },
+ {
+  "scenario": "redirect x0.5",
+  "mults": {
+   "redirect": 0.5
+  },
+  "cfgE": 3.3205134461644854,
+  "refbest_val": 3.125389298618781,
+  "refbest": "NEW_BEST",
+  "quench": 3.1545907169172005,
+  "quench_layout": ";aihxklnscofuegdrpmtybqzjwv,./",
+  "anneal": 3.1545907169172005,
+  "anneal_layout": ";aihxklnscofuegdrpmtybqzjwv,./",
+  "scores": {
+   "cfgE": 3.3205134461644854,
+   "cfgG": 3.3306374068497817,
+   "annealBEST": 3.1294920194897635,
+   "NEW_BEST": 3.125389298618781,
+   "Sturdy": 3.5405828714433083,
+   "Graphite": 3.437062056780241,
+   "Gallium": 3.436116875216024,
+   "Colemak-DH": 3.698569030150704,
+   "Canary": 3.6715705339173765,
+   "Semimak": 3.4831220926061506,
+   "QWERTY": 4.645719908357767
+  },
+  "secs": 6.094127893447876
+ },
+ {
+  "scenario": "sfs x2",
+  "mults": {
+   "sfs": 2.0
+  },
+  "cfgE": 3.3487254191177933,
+  "refbest_val": 3.1471161831632037,
+  "refbest": "NEW_BEST",
+  "quench": 3.1839362425451596,
+  "quench_layout": ";aohkplnscifxeudrgmtybzqjwv,./",
+  "anneal": 3.148482893079685,
+  "anneal_layout": ";ntlvkuoigshcrdyefpawxmbzjq,./",
+  "scores": {
+   "cfgE": 3.3487254191177933,
+   "cfgG": 3.3608231832616373,
+   "annealBEST": 3.1512887455256573,
+   "NEW_BEST": 3.1471161831632037,
+   "Sturdy": 3.5721916134611056,
+   "Graphite": 3.4536915403478963,
+   "Gallium": 3.4513449495006876,
+   "Colemak-DH": 3.7600636743470153,
+   "Canary": 3.705516269858167,
+   "Semimak": 3.514628707963268,
+   "QWERTY": 4.734629233590139
+  },
+  "secs": 6.07427191734314
+ },
+ {
+  "scenario": "sfs off",
+  "mults": {
+   "sfs": 0.0
+  },
+  "cfgE": 3.307972075417687,
+  "refbest_val": 3.1112766735639767,
+  "refbest": "NEW_BEST",
+  "quench": 3.153487433141512,
+  "quench_layout": ";ardwkptsfioueghlbcnyqjxzmv,./",
+  "anneal": 3.1243720093503673,
+  "anneal_layout": ";nspvqcaiyrlhtmkeguodbwfxjz,./",
+  "scores": {
+   "cfgE": 3.307972075417687,
+   "cfgG": 3.310346282421752,
+   "annealBEST": 3.115142996171129,
+   "NEW_BEST": 3.1112766735639767,
+   "Sturdy": 3.5436843176398103,
+   "Graphite": 3.4244706958450246,
+   "Gallium": 3.425077743637203,
+   "Colemak-DH": 3.7037839186194166,
+   "Canary": 3.669576825337867,
+   "Semimak": 3.48262564064277,
+   "QWERTY": 4.583486145970642
+  },
+  "secs": 9.159902095794678
+ },
+ {
+  "scenario": "balance off",
+  "mults": {
+   "balance": 0.0
+  },
+  "cfgE": 3.2431213862074655,
+  "refbest_val": 3.128282521217359,
+  "refbest": "NEW_BEST",
+  "quench": 3.1232334957045547,
+  "quench_layout": ";iehkfsnrgoupabmtcdlyxqjzwv,./",
+  "anneal": 3.1232334957045547,
+  "anneal_layout": ";iehkfsnrgoupabmtcdlyxqjzwv,./",
+  "scores": {
+   "cfgE": 3.2431213862074655,
+   "cfgG": 3.2685358830077185,
+   "annealBEST": 3.130866859496776,
+   "NEW_BEST": 3.128282521217359,
+   "Sturdy": 3.4055346771131783,
+   "Graphite": 3.3255708428207535,
+   "Gallium": 3.303378303449203,
+   "Colemak-DH": 3.5498026993648577,
+   "Canary": 3.38880203597679,
+   "Semimak": 3.3766256417178195,
+   "QWERTY": 3.688052173108413
+  },
+  "secs": 6.07039737701416
+ },
+ {
+  "scenario": "balance x3",
+  "mults": {
+   "balance": 3.0
+  },
+  "cfgE": 3.523889746675467,
+  "refbest_val": 3.152539401981072,
+  "refbest": "NEW_BEST",
+  "quench": 3.1844434679053273,
+  "quench_layout": ";aohkvlnscifxeudrpmtybzqjwg,./",
+  "anneal": 3.1844434679053273,
+  "anneal_layout": ";aohkvlnscifxeudrpmtybzqjwg,./",
+  "scores": {
+   "cfgE": 3.523889746675467,
+   "cfgG": 3.5063937298016525,
+   "annealBEST": 3.161577928558396,
+   "NEW_BEST": 3.152539401981072,
+   "Sturdy": 3.877765317209041,
+   "Graphite": 3.689367356803511,
+   "Gallium": 3.728896739457116,
+   "Colemak-DH": 4.126860841538409,
+   "Canary": 4.302484531738908,
+   "Semimak": 3.759083436162729,
+   "QWERTY": 6.661965725256822
+  },
+  "secs": 15.20396614074707
+ },
+ {
+  "scenario": "hand off",
+  "mults": {
+   "hand": 0.0
+  },
+  "cfgE": 3.3359938209989957,
+  "refbest_val": 3.134627727576075,
+  "refbest": "NEW_BEST",
+  "quench": 3.1675798673133464,
+  "quench_layout": ";aihxklnscofuegdrpmtybqzjwv,./",
+  "anneal": 3.14941961522253,
+  "anneal_layout": ";nshvkuaiyrlctwzegpodbmfxjq,./",
+  "scores": {
+   "cfgE": 3.3359938209989957,
+   "cfgG": 3.3449315721246595,
+   "annealBEST": 3.1405510865272133,
+   "NEW_BEST": 3.134627727576075,
+   "Sturdy": 3.5574008046658436,
+   "Graphite": 3.4467265896830908,
+   "Gallium": 3.4451080243199255,
+   "Colemak-DH": 3.7413092152952756,
+   "Canary": 3.6854899747073735,
+   "Semimak": 3.502462924648177,
+   "QWERTY": 4.66499539809076
+  },
+  "secs": 9.043780088424683
+ },
+ {
+  "scenario": "scissors x2",
+  "mults": {
+   "scissors": 2.0
+  },
+  "cfgE": 3.345008334449661,
+  "refbest_val": 3.1428312087282104,
+  "refbest": "NEW_BEST",
+  "quench": 3.1849231863719605,
+  "quench_layout": ";aohzgcnswifkeudrpltybxqjmv,./",
+  "anneal": 3.1849231863719605,
+  "anneal_layout": ";aohzgcnswifkeudrpltybxqjmv,./",
+  "scores": {
+   "cfgE": 3.345008334449661,
+   "cfgG": 3.3563949584240604,
+   "annealBEST": 3.1498153317430586,
+   "NEW_BEST": 3.1428312087282104,
+   "Sturdy": 3.5770680651294517,
+   "Graphite": 3.454996845429817,
+   "Gallium": 3.450251533450447,
+   "Colemak-DH": 3.7539560040560076,
+   "Canary": 3.7031444748324334,
+   "Semimak": 3.5372526812634106,
+   "QWERTY": 4.735925475607937
+  },
+  "secs": 9.203967094421387
+ },
+ {
+  "scenario": "scissors off",
+  "mults": {
+   "scissors": 0.0
+  },
+  "cfgE": 3.302176839087178,
+  "refbest_val": 3.115416299367578,
+  "refbest": "annealBEST",
+  "quench": 3.134801286042767,
+  "quench_layout": ";aihxvdsrcoubegmnpltykzjqwf,./",
+  "anneal": 3.1219798883268206,
+  "anneal_layout": ";trlzqdaiynphsckeguombwfvjx,./",
+  "scores": {
+   "cfgE": 3.302176839087178,
+   "cfgG": 3.3014277755543295,
+   "annealBEST": 3.115416299367578,
+   "NEW_BEST": 3.120234735520694,
+   "Sturdy": 3.514655004848593,
+   "Graphite": 3.410463693899518,
+   "Gallium": 3.414171920728391,
+   "Colemak-DH": 3.680268137150822,
+   "Canary": 3.658049136518063,
+   "Semimak": 3.430243127491475,
+   "QWERTY": 4.4686057034150615
+  },
+  "secs": 15.36768364906311
+ },
+ {
+  "scenario": "pessimistic joint",
+  "mults": {
+   "sfb": 1.5,
+   "rolls": 0.6,
+   "alt": 0.5,
+   "sfs": 1.5,
+   "redirect": 1.5,
+   "balance": 1.5,
+   "scissors": 1.5,
+   "continue": 1.5
+  },
+  "cfgE": 3.5184391997856865,
+  "refbest_val": 3.284353209282001,
+  "refbest": "NEW_BEST",
+  "quench": 3.3354572661668276,
+  "quench_layout": ";hiokbcnsvadqeugrpltyfxzjmw,./",
+  "anneal": 3.299625865119043,
+  "anneal_layout": ";tndvzbeiyslprchoquafkgmwjx,./",
+  "scores": {
+   "cfgE": 3.5184391997856865,
+   "cfgG": 3.5274576039392325,
+   "annealBEST": 3.2889045407110995,
+   "NEW_BEST": 3.284353209282001,
+   "Sturdy": 3.7810873904258355,
+   "Graphite": 3.6273960707568103,
+   "Gallium": 3.6333914594230268,
+   "Colemak-DH": 3.9905876093299977,
+   "Canary": 3.994843663061821,
+   "Semimak": 3.734124948834604,
+   "QWERTY": 5.411507081036575
+  },
+  "secs": 12.29729962348938
+ },
+ {
+  "scenario": "optimistic joint",
+  "mults": {
+   "sfb": 0.7,
+   "rolls": 1.4,
+   "alt": 2.0,
+   "sfs": 0.5,
+   "redirect": 0.5,
+   "scissors": 0.5
+  },
+  "cfgE": 3.094398011085948,
+  "refbest_val": 2.8951425678743554,
+  "refbest": "NEW_BEST",
+  "quench": 2.9208257024067,
+  "quench_layout": ";aihzvlnscoupekdrgmtyfxqjbw,./",
+  "anneal": 2.9208257024067,
+  "anneal_layout": ";aihzvlnscoupekdrgmtyfxqjbw,./",
+  "scores": {
+   "cfgE": 3.094398011085948,
+   "cfgG": 3.1054679994865664,
+   "annealBEST": 2.9000145177332843,
+   "NEW_BEST": 2.8951425678743554,
+   "Sturdy": 3.3126977886263416,
+   "Graphite": 3.2104742551598195,
+   "Gallium": 3.2118197533290576,
+   "Colemak-DH": 3.488091381520655,
+   "Canary": 3.43740834938894,
+   "Semimak": 3.237910374205109,
+   "QWERTY": 4.3324928099568485
+  },
+  "secs": 6.069222688674927
+ }
+]

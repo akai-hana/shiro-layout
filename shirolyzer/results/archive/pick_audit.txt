@@ -1,0 +1,68 @@
+# Pick audit — cfgE, round-6b model (X-W stagger favor -0.35,
+# M/R full-span symmetric 5.85, downward 1-row SFB 6.3, R/P
+# reverse full-span impossible)
+# bg count SIDE KEY1->KEY fing cost [flags]
+
+## top-60 corpus bigrams (all classes)
+th      149332 R J->A IP 1.88
+he      141061 X A->F PI 2.50
+in       98261 X E->I MM 1.88
+er       84940 X F->O IR 1.88
+an       84287 X W->I RM 1.88
+re       73214 R O->F RI 1.88
+on       65420 X R->I IM 2.02
+nd       63314 R I->M MI 2.40
+at       57913 X W->J RI 1.88
+en       56191 X F->I IM 1.88
+ed       54749 X F->M II 2.12
+es       49264 X F->; IP 1.88
+is       46890 X E->; MP 1.88
+it       44616 X E->J MI 1.88
+or       43949 X R->O IR 2.02
+ha       43901 X A->W PR 2.06
+to       43661 R J->R II 2.02
+ng       43592 R I->H MI 2.06
+te       43574 R J->F II 1.88
+of       43561 X R->S MR 2.29
+ti       42359 R J->E IM 1.88
+ou       42068 X R->V MI 2.25
+ar       40541 X W->O RR 1.88
+hi       39713 X A->E PR 2.28
+as       38714 X W->; RP 1.88
+st       38561 R ;->J PI 2.50
+nt       37377 R I->J MI 1.73
+se       37273 R ;->F PI 1.88
+al       33277 X W->U RM 2.08
+le       32914 R U->F MI 2.08
+me       31864 R L->F RI 2.07
+ve       31081 R Y->F II 2.24
+ro       29751 R O->R RI 2.02
+ne       29559 R I->F MI 1.88
+co       29224 R K->R MI 2.21
+de       28558 R M->F II 2.12
+ri       28443 R O->E RM 1.88
+ea       27585 X F->W IR 2.15
+ce       25430 R K->F MI 2.07
+io       25422 X E->R MI 1.91
+ll       24823 R U->U MM 3.00
+ra       23100 R O->W RR 1.88
+om       22777 X R->L IR 2.21
+be       22672 X Z->F PI 2.74
+ic       22553 X E->K MM 2.07
+ho       22545 X A->R PR 2.46
+li       22257 R U->E MM 2.08
+ma       21575 R L->W RR 2.07
+ch       21444 R K->A MP 2.07
+ur       20609 X V->O IR 2.12
+no       20297 R I->R MI 2.02
+la       20253 R U->W MR 2.08
+wa       20215 R P->W RR 2.08
+si       20007 R ;->E PM 1.88
+wh       19697 R P->A RP 2.08
+el       19612 X F->U IM 2.08
+ut       19414 X V->J II 2.12
+ss       19353 R ;->; PP 2.60
+us       19263 X V->; IP 2.12
+ad       19212 X W->M RI 2.12
+
+## flags: IMPOSSIBLE=0 SFB=0 HIGH=0

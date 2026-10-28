@@ -1,0 +1,114 @@
+[
+ {
+  "start": "rand4102",
+  "quench": 3.2033170382792546,
+  "anneal": 3.1505716093748575,
+  "final": 3.1502168963101327,
+  "primary": 3.150217204139956,
+  "layout": ";thskxpoiyrdgnwfeucalzmbvqj,./"
+ },
+ {
+  "start": "rand4105",
+  "quench": 3.156888399434169,
+  "anneal": 3.156525185004424,
+  "final": 3.1502168963101327,
+  "primary": 3.150217204139956,
+  "layout": ";thskxpoiyrdgnwfeucalzmbvqj,./"
+ },
+ {
+  "start": "ILS1:rand4102",
+  "quench": 3.1502168963101327,
+  "anneal": 3.1502168963101327,
+  "final": 3.1502168963101327,
+  "primary": 3.150217204139956,
+  "layout": ";thskxpoiyrdgnwfeucalzmbvqj,./"
+ },
+ {
+  "start": "ILS2:cfgE",
+  "quench": 3.1543316322164734,
+  "anneal": 3.1502168963101327,
+  "final": 3.1502168963101327,
+  "primary": 3.150217204139956,
+  "layout": ";thskxpoiyrdgnwfeucalzmbvqj,./"
+ },
+ {
+  "start": "ILS3:rand4104",
+  "quench": 3.154616340326421,
+  "anneal": 3.1502168963101327,
+  "final": 3.1502168963101327,
+  "primary": 3.150217204139956,
+  "layout": ";thskxpoiyrdgnwfeucalzmbvqj,./"
+ },
+ {
+  "start": "ILS4:NEW_BEST",
+  "quench": 3.154718941728838,
+  "anneal": 3.1502168963101327,
+  "final": 3.1502168963101327,
+  "primary": 3.150217204139956,
+  "layout": ";thskxpoiyrdgnwfeucalzmbvqj,./"
+ },
+ {
+  "start": "cfgE",
+  "quench": 3.206259582599881,
+  "anneal": 3.15491913057644,
+  "final": 3.1543316322164734,
+  "primary": 3.154332332771976,
+  "layout": ";thskxpoiwrdgncfeuyalzmbvqj,./"
+ },
+ {
+  "start": "rand4104",
+  "quench": 3.1786981883117154,
+  "anneal": 3.157941736870063,
+  "final": 3.154616340326421,
+  "primary": 3.1546168892079125,
+  "layout": ";thlpxdoiwnmcrsyeguafkvbzqj,./"
+ },
+ {
+  "start": "NEW_BEST",
+  "quench": 3.16676093493522,
+  "anneal": 3.1597619051748396,
+  "final": 3.154718941728838,
+  "primary": 3.1547191937573076,
+  "layout": ";thcwxpoiyrmdnsfeugalkvbzqj,./"
+ },
+ {
+  "start": "annealBEST",
+  "quench": 3.1583308154649425,
+  "anneal": 3.1577038612415094,
+  "final": 3.155066108289758,
+  "primary": 3.155066825889562,
+  "layout": ";thsbxcoiwndprlyeguafzvmkjq,./"
+ },
+ {
+  "start": "rand4100",
+  "quench": 3.1933930099732146,
+  "anneal": 3.15626553084003,
+  "final": 3.15626553084003,
+  "primary": 3.1562661789836475,
+  "layout": ";thlwxpoiyndcrsfeugamkvbzqj,./"
+ },
+ {
+  "start": "rand4103",
+  "quench": 3.165253890881162,
+  "anneal": 3.1608878032297145,
+  "final": 3.156436930051286,
+  "primary": 3.1564365065820725,
+  "layout": ";thskxpaoyrdgnfweucilqmbvjz,./"
+ },
+ {
+  "start": "rand4101",
+  "quench": 3.1768352397392534,
+  "anneal": 3.1612694213488974,
+  "final": 3.1612694213488974,
+  "primary": 3.1612690045410647,
+  "layout": ";thcfxpaoyrmdnsweugilkvbqjz,./"
+ },
+ {
+  "start": "PREV_BEST",
+  "quench": 3.1701368130864447,
+  "anneal": 3.1701368130864447,
+  "final": 3.1701368130864447,
+  "primary": 3.170136391336961,
+  "layout": ";htckxdaiprlynsgewuomfvbzqj,./"
+ }
+]

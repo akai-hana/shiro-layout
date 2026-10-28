@@ -1,0 +1,120 @@
+# D7 — Middle↔Index roll corridor hypothesis (user query)
+
+**Query:** can the layout be improved by exploiting the left hand's middle-index
+roll potential (QWERTY slots rt, rg, rf, tg, fv, gb, rv, tv, rb, tb, fb, vb),
+and would that reduce the awkward "nc" motion (right middle scissoring the right
+index under horizontal stagger)?
+
+**Verdict: NO — premise does not hold.** cfgE unchanged. The M↔I corridor is the
+*most* heavily exploited roll lane in the layout (9.29% of all bigram mass, all
+roll, zero scissors), and the residual cost inside it is 99% double-letters,
+which no placement can remove.
+
+---
+
+## 1. What the M↔I corridor actually carries
+
+Bigram mass on M↔I finger pairs (context-optimal fingering, corpus-wide):
+
+| | cluster mass | roll_in | roll_out | scissors |
+|---|---|---|---|---|
+| Left M↔I (cols 3–5: `i o j p` / `e y q u z`) | 3.22% | 2.22% (68.9%) | 1.00% | **0** |
+| Right M↔I (cols 6–8: `v l n` / `g t c k d`) | 5.06% | 4.57% (90.3%) | 0.49% | **0** |
+| **combined** | **8.29%** | **6.79%** | 1.49% | **0** |
+
+M→I roll_in alone is **9.29%** of all bigram mass. This is not an
+under-utilized corridor — it is the single largest roll lane in the layout.
+
+Both clusters are **100% roll with zero scissor cost** (scissor-weighted mass
+0.00000 on both). The design principle (arched middle reaches up to the top
+row so M and I are adjacent in column) already does exactly what the query
+proposes.
+
+## 2. The "nc" motion is a clean vertical, not a scissor
+
+`n`@I (right, top row) → `c`@K (right, home row) is **same-column, chebyshev 1**.
+Chosen fingering M→I, FORDER 2→3 = roll_in. Scissor cost **0.0**.
+
+On a real ANSI board the top row sits ~0.5 key-widths right of home, so `n`→`c`
+is a 0.5-width drift — a very slight diagonal, well inside normal roll
+tolerance. It is one of the cleaner motions in the layout (freq 0.41%).
+
+## 3. The modeling gap the query half-identifies (and why it doesn't bite)
+
+The model uses a **clean integer grid** (`fingers.py`: row 0/1/2, col 1..10) with
+**no per-column ANSI stagger offset**. So the query's intuition that
+"horizontal stagger" is under-modeled is *technically correct*. Audited against
+true ANSI x-offsets (top row drifts right, bottom row right):
+
+- 2.65% of M→I roll_in mass has >0.5 key-width horizontal drift in reality.
+- Biggest offenders: `ng` 1.095% (n@I→g@H is a 2.75-width lateral leap, not a
+  clean roll), `io` 0.638%, `pe` 0.437%, `qu` 0.115%, `pu` 0.101%.
+
+**But the fix is finger choice, not letter placement.** `n` and `g` each carry an
+index alt (n: I@0.15 via U-adjacency rules; g: on index rest column). Taking the
+index for both makes `ng` a clean same-column vertical instead of a lateral leap
+— and `n` is topmost on col 8 with index reachable, so it is index-comfortable.
+No letter swap is required, and the annealer already explores finger choice per
+bigram/trigram.
+
+## 4. Internal cost of the two zones = doubles, not placement
+
+Same-finger bigram mass *inside* each M/I zone (this is what "under-used roll
+potential" would be spending):
+
+| zone | internal SFB | composition |
+|---|---|---|
+| Right M/I (`v l n g t c k d ,`) | 0.999% | `ll` 0.623, `tt` 0.199, `nn` 0.085, `dd` 0.053, `gg` 0.023 |
+| Left M/I (`i o j p e y q u z`) | 0.670% | `ee` 0.368, `oo` 0.285, `ii` 0.015 |
+
+**~99% of it is double-letters** (`ll`, `tt`, `ee`, `oo`, `nn`, `dd`, `gg`) —
+the same finger re-striking the same key. No rearrangement of letters removes a
+double; only the letter frequency does. This is the floor.
+
+## 5. Why more roll is not free (the trade the query proposes is already taken)
+
+Roll reward is already the dominant shaping force:
+`W_ROLL_IN = -0.35`, `W_ROLL_OUT = -0.20`, `W_ROLL_LEAP = -0.10` vs
+`W_ALT = -0.12`, `W_SFB_* = 5–8`.
+
+Re-tuning to push *more* mass into M↔I rolls re-scores cfgE monotonically
+"better" (plain-Evaluator baseline 7.637 → 7.580 @2× → 7.512 @3× → 7.336 @5×),
+but this is a **weight artifact, not a real gain**: it rewards a corridor that is
+already 100% roll and 0 scissor, while taking mass from hand-alternation
+(`ne` 0.74% and `en` are the true workhorses) and from roll corridors elsewhere.
+The A4 / D4 experiments already established the layout sits on the knee of the
+roll⇄SFB⇄balance Pareto front; no dominance exists.
+
+## 6. Closure
+
+| claim | finding |
+|---|---|
+| left M↔I is under-utilized | **false** — 3.22% mass, 68.9% roll_in, 0 scissor |
+| exploiting it would reduce `nc` | **false** — `nc` is already a clean M→I vertical, cost 0 |
+| horizontal stagger is under-modeled | **true but harmless** — affects 2.65% mass, fixable by finger choice (`n`/`g` index alts), not letter swaps |
+| internal zone cost is placement error | **false** — 99% is double-letters |
+
+cfgE stands. No variant worth carrying.
+
+## Reproduce
+```bash
+cd analysis && python3 -c "
+import sys; sys.path.insert(0,'.')
+from fingers import KEYS, KEY_ORDER, FORDER
+from scorer import Corpus, get_tables
+lay=';aiojvlnrwhfpeygtcmsbxquzkd,./'
+ce=Corpus.load('../corpus/')
+BIG,TRI,BIG_F,TRI_F=get_tables()
+FID2={0:'P',1:'R',2:'M',3:'I',4:'T'}
+tot=sum(ce.B.values())
+for hand,cols in (('L',{3,4,5}),('R',{6,7,8})):
+    M={KEY_ORDER[i] for i in range(30) if KEYS[KEY_ORDER[i]].hand==hand
+       and KEYS[KEY_ORDER[i]].alts[0][0]=='M'}
+    I={KEY_ORDER[i] for i in range(30) if KEYS[KEY_ORDER[i]].hand==hand
+       and KEYS[KEY_ORDER[i]].alts[0][0]=='I'}
+    mi=sum(c for bg,c in ce.B.items() if len(bg)==2 and all(ch in lay for ch in bg)
+       and ((KEY_ORDER[lay.index(bg[0])] in M and KEY_ORDER[lay.index(bg[1])] in I)
+         or (KEY_ORDER[lay.index(bg[0])] in I and KEY_ORDER[lay.index(bg[1])] in M)))
+    print(hand,'M<->I cluster mass %.3f%%'%(100*mi/tot))
+"
+```

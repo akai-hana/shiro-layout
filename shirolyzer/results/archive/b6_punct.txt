@@ -1,0 +1,62 @@
+B6 — punct-aware 30-char search (Sigma = a-z + , . ; / ; ' excluded)
+
+--- static (seed states)
+cfgE (as-is)             punct 4.5526  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+cfgG                     punct 4.5920  faiojwlrn;hgpeyvtcmsbqxuzkd,./
+home-punct               punct 4.9474  ;aiojvlnrwhfpeygt,.sbxquzkdcm/
+index-punct              punct 5.1699  ;aiojvlnrwhfpeygtcmsbxquz,.kd/
+cfgE (as-is)             4.5526 -> quench 4.4652 -> anneal 4.4652  .aiozvlnrbhgpeymtcwsfjxu/kd,;q
+cfgG                     4.5920 -> quench 4.4652 -> anneal 4.4652  .aiozvlnrbhgpeymtcwsfjxu/kd,;q
+home-punct               4.9474 -> quench 4.4678 -> anneal 4.4678  .aiozvlnrbhpgeymtcwsfqju/kd,;x
+index-punct              5.1699 -> quench 4.4939 -> anneal 4.4939  .orijwlna,hgpeydtcbsfqzu/vmk;x
+random 0: anneal 4.5027 -> quench 4.4985  .aihzkceswrvunmgtpfoj;,lxbdy/q
+random 1: anneal 4.5236 -> quench 4.5228  btalfkcoiynvgrm,edpsxqwh./uz;j
+
+--- finals on both axes (letter-only = original objective)
+cfgE (as-is) -> anneal             punct  4.4652  letters  4.4573  punct keys: {',': 'RR@,', '.': 'LR@Q', ';': 'RP@.', '/': 'LI@B'}
+cfgG -> anneal                     punct  4.4652  letters  4.4573  punct keys: {',': 'RR@,', '.': 'LR@Q', ';': 'RP@.', '/': 'LI@B'}
+home-punct -> anneal               punct  4.4678  letters  4.4614  punct keys: {',': 'RR@,', '.': 'LR@Q', ';': 'RP@.', '/': 'LI@B'}
+index-punct -> anneal              punct  4.4939  letters  4.5162  punct keys: {',': 'RR@P', '.': 'LR@Q', ';': 'RP@.', '/': 'LI@B'}
+random 0                           punct  4.4985  letters  4.4407  punct keys: {',': 'LI@C', '.': 'LR@Q', ';': 'LR@X', '/': 'RP@.'}
+random 1                           punct  4.5228  letters  4.4624  punct keys: {',': 'RI@H', '.': 'LI@B', ';': 'RP@.', '/': 'RI@N'}
+cfgE (as-is)                       punct  4.5526  letters  4.3877  punct keys: {',': 'RR@,', '.': 'RP@.', ';': 'LR@Q', '/': 'RP@/'}
+cfgG                               punct  4.5920  letters  4.4010  punct keys: {',': 'RR@,', '.': 'RP@.', ';': 'RR@P', '/': 'RP@/'}
+home-punct                         punct  4.9474  letters  4.9291  punct keys: {',': 'RM@K', '.': 'RR@L', ';': 'LR@Q', '/': 'RP@/'}
+index-punct                        punct  5.1699  letters  5.4181  punct keys: {',': 'RI@N', '.': 'RI@M', ';': 'LR@Q', '/': 'RP@/'}
+
+BEST: cfgE (as-is) -> anneal  punct 4.4652  letters 4.4573  .aiozvlnrbhgpeymtcwsfjxu/kd,;q
+cfgE letters-only baseline 4.3877; cfgE punct-aware 4.5526
+
+--- ablation: punct FROZEN at cfgE positions, letters re-optimized
+punct-fixed 4.5526 -> 4.5387  layout ;anojvliswhfpeymtcgrbxquzkd,./
+punct-fixed letter-only 4.4125
+
+--- both-axis summary
+variant                                punct-price  letter-only
+cfgE as-is (baseline)                     4.5526      4.3877
+letters-only re-opt (punct frozen)        4.5387      4.4125
+full re-opt (letters+punct free)          4.4652      4.4573
+home-punct seed, no re-opt (Kuntem naive) 4.9474      4.9291
+index-punct seed, no re-opt               5.1699      5.4181
+
+--- findings
+1. cfgE's Kuntem exposure confirmed under the arch model: '.' and '/' both sit
+   on the right pinky ('.'/';' bottom + corner), carrying ~1.2% monogram mass
+   on top of 's'; the pair s. (0.90% of all pairs, 3rd-biggest punct bigram)
+   is a right-pinky SFB under cfgE.
+2. Punct pricing changes little on the letter side: punct-frozen re-opt gains
+   only -0.014 punct-axis -> cfgE's letters are already near-optimal once
+   punct mass is priced (English placement robust).
+3. The naive off-pinky swaps WITHOUT re-search cost +0.39/+0.62 punct-axis
+   (they evict c/m or k/d and leave them displaced) -> the Kuntem fix cannot
+   be done as a bare punct swap; it needs the joint re-search.
+4. Joint re-search (2 seeds -> identical optimum, stable): 4.4652 punct-axis
+   (-0.087 vs cfgE), relocating '.' to Q (left ring top), ';' to the pinky
+   bottom (rare char), '/' to B (left index), ',' stays right ring. The
+   s. pinky-SFB is killed by making s.-type pairs cross-hand alternation.
+5. Cost: English-only score rises to 4.4573 (+0.070 vs 4.3877). Tradeoff is
+   real and quantified: -0.087 punct-axis for +0.070 letter-axis. Ship as
+   optional cfgE-punct variant only if the '.'-on-Q reach (human judgment,
+   not priced beyond key effort) is acceptable; primary cfgE unchanged.
+6. Objective-decomposition note: of the -0.087 total, -0.014 comes from
+   letter re-placement and -0.073 from punct relocation.

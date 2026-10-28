@@ -1,0 +1,26 @@
+round-6 anneal campaign: 18 starts x 100000 iters + quench, ILS top-5
+NEW_BEST score (fixed) = 3.137943
+start                  quench   anneal    final  layout
+NEW_BEST               3.1377   3.1377   3.1377  ;stckqdaiwnlprhyeguomfvbzxj,./
+annealBEST             3.1377   3.1377   3.1377  ;stckqdaiwnlprhyeguomfvbzxj,./
+ILS1:NEW_BEST          3.1377   3.1377   3.1377  ;stckqdaiwnlprhyeguomfvbzxj,./
+ILS3:rand2006          3.1391   3.1377   3.1377  ;stckqdaiwnlprhyeguomfvbzxj,./
+ILS2:rand2007          3.1382   3.1378   3.1378  ;stckzdaiwnlprhyeguomfvbqxj,./
+rand2007               3.1629   3.1387   3.1382  ;stcbqdaiynlprhkeguowfvmzxj,./
+ILS4:rand2000          3.1396   3.1382   3.1382  ;stcbqdaiynlprhkeguowfvmzxj,./
+ILS5:rand2008          3.1396   3.1382   3.1382  ;stcbqdaiynlprhkeguowfvmzxj,./
+rand2006               3.1957   3.1431   3.1391  ;stdvkpaiyrhcnlqeguombwfzxj,./
+rand2000               3.1624   3.1436   3.1396  ;ntpbqdaiwshcrlyeguofzvmkxj,./
+rand2014               3.1458   3.1400   3.1396  ;ntpbqdaiwshcrlyeguofzvmkxj,./
+rand2008               3.1664   3.1455   3.1396  ;ntpbqdaiyshcrlkeguofvwmzxj,./
+rand2015               3.1472   3.1464   3.1396  ;ntpbqdaiyshcrlkeguofvwmzxj,./
+rand2009               3.1656   3.1408   3.1408  ;stcxkpaiwrldnhyeguomfvbqzj,./
+rand2004               3.1567   3.1422   3.1409  ;ntcwkpaiyrlmshqeguodbvfzxj,./
+rand2010               3.1450   3.1442   3.1421  ;stdzkpaiwrhcnlyeguombvfqxj,./
+rand2005               3.1677   3.1431   3.1422  ;trdgqhoiyspcnlfekuambwvzjx,./
+rand2012               3.1702   3.1491   3.1439  ;thcvkpaiyrdsnwqeguolbmfzxj,./
+rand2003               3.1441   3.1441   3.1440  ;rshbqdaiynlptckeguofwvmzxj,./
+rand2001               3.1658   3.1475   3.1449  ;tncvqhoiysglrdfekuawbmpzjx,./
+rand2011               3.1486   3.1462   3.1462  ;thswxpoiyrdgnczeufalkvmbqj,./
+rand2002               3.1466   3.1466   3.1466  ;thcbzsaiyrpdnlgekuomwvfqxj,./
+rand2013               3.1820   3.1470   3.1469  ;nshkzcaiwrlptmyeguodbvfqxj,./

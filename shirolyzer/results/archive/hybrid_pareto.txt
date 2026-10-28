@@ -1,0 +1,66 @@
+B8 — hybrid EN+ES blended search (side layouts; EN primary)
+blend = (1-w)*EN + w*ES on normalized L/B/T
+
+w=0.0    EN  4.388  ES  5.483  (62s)  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+w=0.2    EN  4.457  ES  5.644  (74s)  ;aiojvlrnwhgpeymtcbsfqxuzkd,./
+w=0.35   EN  4.503  ES  4.535  (64s)  ;aemjwcioksfgnhptubrqzylxvd,./
+w=0.5    EN  4.775  ES  4.722  (59s)  ;oaczvdinwtfmebhrupskyxgqjl,./
+w=0.65   EN  4.858  ES  4.584  (80s)  ;oackzuirfsvpebmndhtxywgqjl,./
+w=0.8    EN  4.911  ES  4.357  (75s)  ;eiowgcnrvszpafmtbhljkyuxqd,./
+
+--- Pareto view (EN score, ES score; lower both better)
+  ref cfgE (EN primary)    EN  4.388  ES  5.483
+  ref cfgG                 EN  4.401  ES  5.510
+  ref Sturdy               EN  5.576  ES  6.377
+  ref Graphite             EN  5.628  ES  7.244
+  ref Gallium              EN  5.660  ES  7.074
+  ref Colemak-DH           EN  5.670  ES  8.056
+  ref Canary               EN  5.929  ES  6.602
+  ref Semimak              EN  5.700  ES  7.216
+  ref QWERTY               EN  8.712  ES 10.109
+
+     w      EN     dEN      ES     dES  layout
+  0.00   4.388  +0.000   5.483  +0.000  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+  0.20   4.457  +0.070   5.644  +0.161  ;aiojvlrnwhgpeymtcbsfqxuzkd,./
+  0.35   4.503  +0.116   4.535  -0.948  ;aemjwcioksfgnhptubrqzylxvd,./
+  0.50   4.775  +0.387   4.722  -0.761  ;oaczvdinwtfmebhrupskyxgqjl,./
+  0.65   4.858  +0.470   4.584  -0.898  ;oackzuirfsvpebmndhtxywgqjl,./
+  0.80   4.911  +0.523   4.357  -1.125  ;eiowgcnrvszpafmtbhljkyuxqd,./
+
+--- Pareto frontier among blended candidates
+  w=0.0   frontier   EN  4.388  ES  5.483  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+  w=0.2   DOMINATED  EN  4.457  ES  5.644  ;aiojvlrnwhgpeymtcbsfqxuzkd,./
+  w=0.35  frontier   EN  4.503  ES  4.535  ;aemjwcioksfgnhptubrqzylxvd,./
+  w=0.5   DOMINATED  EN  4.775  ES  4.722  ;oaczvdinwtfmebhrupskyxgqjl,./
+  w=0.65  DOMINATED  EN  4.858  ES  4.584  ;oackzuirfsvpebmndhtxywgqjl,./
+  w=0.8   frontier   EN  4.911  ES  4.357  ;eiowgcnrvszpafmtbhljkyuxqd,./
+
+--- candidates by EN-loss budget (vs cfgE EN 4.3877)
+  EN loss <= 0.1: w=0.0  EN 4.388 (+0.000)  ES 5.483 (+0.000)
+  EN loss <= 0.2: w=0.35  EN 4.503 (+0.116)  ES 4.535 (-0.948)
+  EN loss <= 0.3: w=0.35  EN 4.503 (+0.116)  ES 4.535 (-0.948)
+  EN loss <= 0.5: w=0.35  EN 4.503 (+0.116)  ES 4.535 (-0.948)
+
+--- findings (B8)
+1. Control: w=0 reproduces cfgE exactly (4.388/5.483) -> pipeline valid.
+2. Frontier collapses to 3 points: w=0 (cfgE), w=0.35 (knee), w=0.8
+   (ES-heavy). w=0.2/0.5/0.65 dominated under uniform 6-restart protocol;
+   dominated points are retained for honesty (anneal noise possible).
+3. KNEE w=0.35  ;aemjwcioksfgnhptubrqzylxvd,./
+   EN 4.503 (+0.116 vs cfgE)  ES 4.535 (-0.948 vs cfgE, -17%)
+   -> Pareto-DOMINATES every community reference on BOTH axes
+      (best ref EN Sturdy 5.576, best ref ES Sturdy 6.377).
+   Costs 0.12 EN points to nearly halve the ES penalty.
+4. ES-heavy w=0.8  ;eiowgcnrvszpafmtbhljkyuxqd,./  EN 4.911  ES 4.357
+   also beats all refs both axes; additional -0.18 ES for +0.41 EN.
+5. Blend objective note: trigram term blends linearly (verified exact);
+   balance/hand penalties are quadratic in the blended usage, so the
+   blend score is NOT a convex combination of pure scores (e.g. cfgE
+   pen: EN 0.020, ES 0.965, blended 0.043) — the evaluator correctly
+   models one typist's combined stream. This allows blend-optima that
+   are dominated on pure axes (w=0.2), reported as such.
+6. Recommendation: cfgE stays the installed EN primary (unchanged).
+   For bilingual use, ship w=0.35 as the side layout 'hybrid-35';
+   w=0.8 only if ES frequency dominates. All candidates keep the same
+   30-key alphabet (26 letters + , . ; /) — Spanish accents, ñ and
+   ¿¡ remain outside the modeled alphabet (unfixed, by design).

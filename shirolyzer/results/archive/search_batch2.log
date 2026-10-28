@@ -1,0 +1,98 @@
+
+=== cfgD_slashQ dead={',': ',', '.': '.', ';': ';', '/': 'Q'} ===
+  restart  0: 4.6334 (8s) /tirvbcoaksgpnmyedf;jqwlxzu,.h  [warm]
+  restart  1: 4.6308 (8s) /tecvzriakofpsgmnub;qjydwxl,.h  [warm]
+  restart  2: 4.6290 (8s) /aeczxlinvofutgwrmp;qbydkjs,.h  [warm]
+  restart  3: 4.6204 (8s) /aecjzsirwofutgmnvp;qbydkxl,.h  [warm]
+  restart  4: 4.6294 (8s) /anrvwlioysfctpzemg;xqbdkju,.h  [warm]
+  restart  5: 4.6257 (8s) /tnlbjoiaksgcrmyepf;xqvdwzu,.h  [warm]
+  restart  6: 4.6064 (8s) /aiokvlnrwsfgeymtcp;xbjuzqd,.h
+  restart  7: 4.6034 (8s) /aiojvlnrwsfpeygtcm;xbquzkd,.h
+  restart  8: 4.6342 (8s) /tirvkcoabsfpnmyedg;jqwlxzu,.h
+  restart  9: 4.6257 (8s) /tnlbjoiaksgcrmyepf;xqvdwzu,.h
+  restart 10: 4.6034 (8s) /aiojvlnrwsfpeygtcm;xbquzkd,.h
+  restart 11: 4.6202 (8s) /aecjzrisvofutgmnpw;qbydkxl,.h
+  restart 12: 4.6308 (8s) /oecqxriazswgtpmnuf;jybdkvl,.h
+  restart 13: 4.6034 (8s) /aiojvlnrwsfpeygtcm;xbquzkd,.h
+  restart 14: 4.6446 (8s) /aeuzqriobsfpnmgtcy;jxwlvkd,.h
+  restart 15: 4.6309 (8s) /arokvcitjsfgeymndp;xbquzwl,.h
+  restart 16: 4.6429 (8s) /aepxvlioysfurwmtcg;jkbnzqd,.h
+  restart 17: 4.6294 (8s) /anrvwlioysfctpzemg;xqbdkju,.h
+  restart 18: 4.6051 (8s) /aioxvlnrwsfpeygtcm;jbquzkd,.h
+  restart 19: 4.6295 (8s) /anrvwlioysfctpjemg;xqbdkzu,.h
+  BEST cfgD_slashQ: 4.6034 /aiojvlnrwsfpeygtcm;xbquzkd,.h
+
+=== cfgE_semiQ dead={',': ',', '.': '.', ';': 'Q', '/': '/'} ===
+  restart  0: 4.4189 (8s) ;aecjvliryofptgmnuwsqxbdkzh,./  [warm]
+  restart  1: 4.4155 (8s) ;ailvqcenysfurmgtpwozjkhxbd,./  [warm]
+  restart  2: 4.4248 (8s) ;aepzvlirwofunbgtcmsqkyhxjd,./  [warm]
+  restart  3: 4.4304 (8s) ;tnlvjoiabhpcrmyegfskqwdxzu,./  [warm]
+  restart  4: 4.4398 (8s) ;eirkwcaoyhzunmgtpvsbjflxqd,./  [warm]
+  restart  5: 4.4368 (8s) ;anlbxoriwhfmtgyecpsvjkdqzu,./  [warm]
+  restart  6: 4.4169 (8s) ;arhkqceiysfunmgtpwozjvlxbd,./
+  restart  7: 4.4409 (8s) ;tickjonabhgdrmyepfsxqvlwzu,./
+  restart  8: 4.4334 (8s) ;tacbvlirwopdeymnufsqjkgzxh,./
+  restart  9: 4.4321 (8s) ;anrvwlioyhfptmzecgsbxkdqju,./
+  restart 10: 4.3877 (8s) ;aiojvlnrwhfpeygtcmsbxquzkd,./
+  restart 11: 4.4304 (8s) ;tnlvjoiabhpcrmyegfskqwdxzu,./
+  restart 12: 4.4408 (8s) ;aidvxpeoyrfctglnuwsjqbmkzh,./
+  restart 13: 4.4361 (8s) ;ticxkueaysvdrmpngfozqwljbh,./
+  restart 14: 4.4313 (8s) ;aeuqwliobsfpnmgtcyrxjvhzkd,./
+  restart 15: 4.4249 (8s) ;aidvqcenysfutglrpwozjbmkxh,./
+  restart 16: 4.4386 (8s) ;nrlwxhiabspctgyedfozkvmqju,./
+  restart 17: 4.4344 (8s) ;tidvkhanbsgcrmyepfojqwlxzu,./
+  restart 18: 4.4249 (8s) ;aidvqcenysfutglrpwozjbmkxh,./
+  restart 19: 4.4572 (8s) ;oeuzvlnrwhdpiygtcfsbqxajkm,./
+  BEST cfgE_semiQ: 4.3877 ;aiojvlnrwhfpeygtcmsbxquzkd,./
+
+=== cfgF_aposQ dead={',': ',', '.': '.', ';': ';', "'": 'Q'} ===
+  restart  0: 4.6034 (8s) 'aiojvlnrwsfpeygtcm;xbquzkd,.h  [warm]
+  restart  1: 4.6202 (8s) 'aecjzrisvofutgmnpw;qbydkxl,.h  [warm]
+  restart  2: 4.6075 (8s) 'aiokvlnrwsfgeymtcp;xbquzjd,.h  [warm]
+  restart  3: 4.6294 (8s) 'anrvwlioysfctpzemg;xqbdkju,.h  [warm]
+  restart  4: 4.6239 (8s) 'aeczjsirwofutpmnvg;qbydkxl,.h  [warm]
+  restart  5: 4.6461 (8s) 'tnlwzoiaksgcrmyepf;jqbdvxu,.h  [warm]
+  restart  6: 4.6212 (8s) 'aeczjsirwofutgmnvp;qbydkxl,.h
+  restart  7: 4.6042 (8s) 'aiokvlnrwsfpeygtcm;xbjuzqd,.h
+  restart  8: 4.6042 (8s) 'aiokvlnrwsfpeygtcm;xbjuzqd,.h
+  restart  9: 4.6051 (8s) 'aiojvlnrwsfpeygtcm;qbxuzkd,.h
+  restart 10: 4.6304 (8s) 'oecqzriaxswptgmnuf;jybdkvl,.h
+  restart 11: 4.6299 (8s) 'aeczjsiryoputgmnvw;qfkdbxl,.h
+  restart 12: 4.6429 (8s) 'aepxvlioysfurwmtcg;jkbnzqd,.h
+  restart 13: 4.6034 (8s) 'aiojvlnrwsfpeygtcm;xbquzkd,.h
+  restart 14: 4.6317 (8s) 'anrvwlioysfctpzemg;xkqdbju,.h
+  restart 15: 4.6632 (8s) 'eirvfcaobszunmgtpy;jqwlxkd,.h
+  restart 16: 4.6042 (8s) 'aiokvlnrwsfpeygtcm;xbjuzqd,.h
+  restart 17: 4.6639 (9s) 'eirvfcaoysqunmgtpb;jzwlxkd,.h
+  restart 18: 4.6431 (15s) 'aeuzvlioysfpnwmtcg;jkbrxqd,.h
+  restart 19: 4.6042 (9s) 'aiokvlnrwsfpeygtcm;xbjuzqd,.h
+  BEST cfgF_aposQ: 4.6034 'aiojvlnrwsfpeygtcm;xbquzkd,.h
+
+=== cfgG_semiP dead={',': ',', '.': '.', ';': 'P', '/': '/'} ===
+  restart  0: 4.4459 (8s) bnidvkhat;spcrmyegfozqwlxju,./  [warm]
+  restart  1: 4.4010 (8s) faiojwlrn;hgpeyvtcmsbqxuzkd,./  [warm]
+  restart  2: 4.4205 (9s) yrilvqcea;swunmgtpfojkxhzbd,./  [warm]
+  restart  3: 4.4260 (8s) yoilwzuea;rgctmpnvfsxqkdjbh,./  [warm]
+  restart  4: 4.4277 (8s) yneczvdia;owprlgtufsqjkhxbm,./  [warm]
+  restart  5: 4.4295 (8s) wrilvzuea;smctgpnyfojxkdqbh,./
+  restart  6: 4.4121 (8s) yoecqvlia;swgtpmnufrjzbdkxh,./
+  restart  7: 4.4091 (8s) wirojvlna;hpceygtmfsbxquzkd,./
+  restart  8: 4.4278 (8s) yieuxblra;omgtvpncfsqjwdkzh,./
+  restart  9: 4.4205 (8s) yrilvqcea;swunmgtpfojkxhzbd,./
+  restart 10: 4.4056 (8s) wiroxvlna;hpmeygtcfsbzqujkd,./
+  restart 11: 4.4257 (8s) woihbvlna;spmeygtcfrxqjuzkd,./
+  restart 12: 4.4280 (8s) yoeujblia;swpnmgtcfrxzkhvqd,./
+  restart 13: 4.4010 (8s) faiojwlrn;hgpeyvtcmsbqxuzkd,./
+  restart 14: 4.4010 (8s) faiojwlrn;hgpeyvtcmsbqxuzkd,./
+  restart 15: 4.4470 (8s) yoirxzuea;dgctmpnvfswqkljbh,./
+  restart 16: 4.4010 (15s) faiojwlrn;hgpeyvtcmsbqxuzkd,./
+  restart 17: 4.4512 (11s) yrilvwcae;sfmnpgtujozxkhqbd,./
+  restart 18: 4.4378 (8s) yoalwvrit;dgcekmnpbsfxjuzqh,./
+  restart 19: 4.4383 (8s) faidwvlrt;ogmeypncbsqjkuxzh,./
+  BEST cfgG_semiP: 4.4010 faiojwlrn;hgpeyvtcmsbqxuzkd,./
+
+=== summary ===
+4.3877  cfgE_semiQ     ;aiojvlnrwhfpeygtcmsbxquzkd,./
+4.4010  cfgG_semiP     faiojwlrn;hgpeyvtcmsbqxuzkd,./
+4.6034  cfgD_slashQ    /aiojvlnrwsfpeygtcm;xbquzkd,.h
+4.6034  cfgF_aposQ     'aiojvlnrwsfpeygtcm;xbquzkd,.h

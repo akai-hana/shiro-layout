@@ -1,0 +1,55 @@
+==============================================================================
+SPANISH ANALYSIS (English remains primary; keystones pinned)
+==============================================================================
+
+-- 1. layout scores under Spanish (lower = better) --
+layout           ES score EN score
+WINNER (cfgE)       5.483    4.388
+alt cfgG            5.510    4.401
+Gallium             7.074    5.660
+Colemak-DH          8.056    5.670
+Canary              6.602    5.929
+Sturdy              6.377    5.576
+Semimak             7.216    5.700
+Colemak             8.101    5.682
+QWERTY             10.109    8.712
+
+-- 2. letter sensitivity under Spanish (median relocation cost) --
+ltr   ES%   EN%  medEN  medES  tier change
+e   13.18 12.48  1.147  0.910  K->C
+s    7.38  6.59  0.822  0.627  
+a   12.99  8.03  0.673  1.431  C->K
+t    4.25  9.07  0.595  0.122  C->F
+h    1.09  5.80  0.435 -0.000  C->F
+n    6.85  7.26  0.431  0.230  C->M
+r    6.35  6.09  0.412  0.360  
+i    6.23  7.20  0.412  0.231  C->M
+o    9.44  7.62  0.288  0.309  
+z    0.39  0.07  0.214  0.266  
+c    3.93  2.85  0.199  0.135  
+x    0.12  0.19  0.179  0.366  M->C
+l    5.68  3.91  0.176  0.096  M->F
+d    4.95  4.25  0.175  0.136  
+q    1.37  0.09  0.172  0.051  M->F
+j    0.53  0.13  0.168  0.160  
+u    4.37  2.73  0.161  0.110  M->F
+b    1.62  1.44  0.137  0.070  M->F
+m    2.77  2.50  0.137  0.205  
+f    0.64  2.38  0.116  0.181  F->M
+k    0.03  0.65  0.116  0.047  
+w    0.05  1.99  0.100  0.162  F->M
+g    1.11  1.91  0.086  0.067  
+v    1.07  1.03  0.069  0.106  
+p    2.41  1.95  0.067  0.073  
+y    1.19  1.78  0.063  0.073  
+
+-- 3. pinned annealing: frozen letters aehinorst --
+   free letters: bcdfgjklmpquvwxyz
+   [EN objective] pinned-optimal fringe: 4.3877  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+   [ES objective] pinned-optimal fringe: 4.5773  ;aiozjunryhxgeqdtmpslkfbwvc,./
+
+-- 4. summary --
+   EN winner under EN: 4.3877 | under ES: 5.4826
+   EN-pinned fringe  under EN: 4.3877 | under ES: 5.4826
+   ES-pinned fringe  under EN: 4.9778 | under ES: 4.5773
+   fringe moves EN-pinned -> ES-pinned: b: Z->V; c: K->M; d: M->H; f: S->C; g: H->D; j: T->Y; k: N->X; l: U->Z; m: L->K; p: D->L; q: C->G; u: V->U; v: Y->N; w: P->B; x: X->S; y: G->P; z: B->T

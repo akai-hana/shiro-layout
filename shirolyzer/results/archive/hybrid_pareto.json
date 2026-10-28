@@ -1,0 +1,90 @@
+{
+ "results": [
+  {
+   "w": 0.0,
+   "layout": ";aiojvlnrwhfpeygtcmsbxquzkd,./",
+   "blend_score": 4.387726696836196,
+   "EN": 4.387726696836196,
+   "ES": 5.482640256681804,
+   "dominated": false
+  },
+  {
+   "w": 0.2,
+   "layout": ";aiojvlrnwhgpeymtcbsfqxuzkd,./",
+   "blend_score": 4.40954230445386,
+   "EN": 4.457319219253753,
+   "ES": 5.64391995237915,
+   "dominated": true
+  },
+  {
+   "w": 0.35,
+   "layout": ";aemjwcioksfgnhptubrqzylxvd,./",
+   "blend_score": 4.421378109050345,
+   "EN": 4.503460943800587,
+   "ES": 4.535071871177191,
+   "dominated": false
+  },
+  {
+   "w": 0.5,
+   "layout": ";oaczvdinwtfmebhrupskyxgqjl,./",
+   "blend_score": 4.426657390527979,
+   "EN": 4.774645787063559,
+   "ES": 4.721737599578215,
+   "dominated": true
+  },
+  {
+   "w": 0.65,
+   "layout": ";oackzuirfsvpebmndhtxywgqjl,./",
+   "blend_score": 4.413224172143143,
+   "EN": 4.857820128382976,
+   "ES": 4.584222256414984,
+   "dominated": true
+  },
+  {
+   "w": 0.8,
+   "layout": ";eiowgcnrvszpafmtbhljkyuxqd,./",
+   "blend_score": 4.391654635985734,
+   "EN": 4.9111081315763805,
+   "ES": 4.357344231675124,
+   "dominated": false
+  }
+ ],
+ "refs": {
+  "cfgE (EN primary)": [
+   4.387726696836196,
+   5.482640256681804
+  ],
+  "cfgG": [
+   4.401012512159958,
+   5.510027506524047
+  ],
+  "Sturdy": [
+   5.575647495446038,
+   6.376786163400889
+  ],
+  "Graphite": [
+   5.62795659914499,
+   7.24376981168791
+  ],
+  "Gallium": [
+   5.659663381727922,
+   7.074268949553389
+  ],
+  "Colemak-DH": [
+   5.670025237807377,
+   8.056409898775303
+  ],
+  "Canary": [
+   5.928715911156708,
+   6.601647199357378
+  ],
+  "Semimak": [
+   5.69994675387133,
+   7.216145445733987
+  ],
+  "QWERTY": [
+   8.711871892570874,
+   10.108956725017947
+  ]
+ }
+}

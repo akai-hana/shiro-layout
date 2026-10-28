@@ -1,0 +1,63 @@
+        L hand           R hand
+top :  ; a i o j  |  v l n r w
+home:  h f p e y  |  g t c m s
+bot :  b x q u z  |  k d , . /
+rest:  A W E F     J I O ;   (pinky ring mid idx | idx mid ring pinky)
+
+== bigram categories (% of letter bigrams, alt-optimized) ==
+  sfb                0.02
+  scissor_IM_hsb     0.69
+  scissor_IM_fsb     0.00
+  scissor_MR         0.72
+  scissor_RP         0.00
+  roll_in           12.05
+  roll_out           4.06
+  leap              14.46
+  alt               66.59
+  repeat             2.82
+  SFB (default fingering only): 3.53%
+  SFB unavoidable even w/alts : 0.02%
+
+== worst bigrams (cost under alts | cost default | fingering) ==
+  hb  n=    150  alts=10.86 (PP)
+  bh  n=      3  alts=10.86 (PP)
+  kg  n=     21  alts=10.70 (II)
+  gk  n=      6  alts=10.70 (II)
+  tk  n=     11  alts= 9.70 (II)
+  kt  n=     20  alts= 9.70 (II)
+  mw  n=     13  alts= 8.34 (MR)
+  wm  n=      9  alts= 8.19 (RM)
+  tg  n=     72  alts= 8.00 (II)
+  gt  n=    511  alts= 8.00 (II)
+  yz  n=     27  alts= 6.89 (IM)
+  zy  n=     32  alts= 6.74 (MI)
+  xx  n=    103  alts= 6.72 (RR)
+  gd  n=     63  alts= 6.69 (IM)
+  dg  n=    884  alts= 6.54 (MI)
+  kd  n=      4  alts= 6.49 (IM)
+  zu  n=    169  alts= 6.44 (MI)
+  uz  n=    705  alts= 6.34 (MI)
+  dk  n=     86  alts= 6.34 (MI)
+  xf  n=     14  alts= 6.17 (MR)
+
+== top scissors (weight=cost*n | user tolerance) ==
+  po  n= 11871 cost=0.63 IM-HSB(prefer-avoid)   (MI)
+  op  n=  7323 cost=0.63 IM-HSB(prefer-avoid)   (IM)
+  cl  n=  5453 cost=0.63 IM-HSB(prefer-avoid)   (MI)
+  pa  n= 11631 cost=0.21 R-M(INTOLERANT)        (MR)
+  ap  n=  8239 cost=0.21 R-M(INTOLERANT)        (RM)
+  cr  n=  4931 cost=0.21 R-M(INTOLERANT)        (MR)
+  rc  n=  4011 cost=0.21 R-M(INTOLERANT)        (RM)
+  dg  n=   884 cost=0.90 IM-HSB(prefer-avoid)   (MI)
+  lc  n=   600 cost=0.63 IM-HSB(prefer-avoid)   (IM)
+  eq  n=  1151 cost=0.08 IM-HSB(prefer-avoid)   (IM)
+  gd  n=    63 cost=0.90 IM-HSB(prefer-avoid)   (IM)
+  xh  n=   122 cost=0.30 P-R(INTOLERANT)        (RP)
+  mw  n=    13 cost=2.52 R-M(INTOLERANT)        (MR)
+  wm  n=     9 cost=2.52 R-M(INTOLERANT)        (RM)
+  total scissor weight 22987 over 14 bigram types
+
+== usage (default fingers x letter freq) ==
+  LI: 17.16%  LM: 16.89%  LP:  7.24%  LR: 10.61%  RI: 15.87%  RM: 15.06%  RP:  6.59%  RR: 10.58%  handL: 51.89%  handR: 48.11%
+
+wrote results/analysis.json

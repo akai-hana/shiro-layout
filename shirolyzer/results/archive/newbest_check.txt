@@ -1,0 +1,8 @@
+round-7 floor check (scorer2, round-6b model)
+cfgE           score=3.336710840  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+annealBEST     score=3.141103883  ;stckzdaiwnlprhyeguobfvmjqx,./
+NEW_BEST_old   score=3.137526782  ;stckqdaiwnlprhyeguomfvbzxj,./
+NEW_BEST       score=3.136368148  ;stpbqdaiynhcrmkeguowvflzxj,./
+ALT_2008       score=3.136512747  ;stpbzdaiynhcrmkeguowvflqxj,./
+NEW_BEST_old   quench=3.137526782 fixpoint=True  ;stckqdaiwnlprhyeguomfvbzxj,./
+NEW_BEST       quench=3.136368148 fixpoint=True  ;stpbqdaiynhcrmkeguowvflzxj,./

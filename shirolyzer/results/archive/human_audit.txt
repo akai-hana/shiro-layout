@@ -1,0 +1,202 @@
+Human-observation audit — cfgE `;aiojvlnrwhfpeygtcmsbxquzkd,./`
+objective baseline 4.3877   (tri-cost 4.3677)
+
+Layout (KEY_ORDER, row-grouped):
+  Q=; W=a E=i R=o T=j Y=v U=l I=n O=r P=w
+  A=h S=f D=p F=e G=y H=g J=t K=c L=m ;=s
+  Z=b X=x C=q V=u B=z N=k M=d ,=, .=. /=/
+
+== 1. Key-level load (shared punct incl) ==
+key  char finger          load%
+F    e    LI              12.48
+J    t    RI               9.07
+W    a    LR               8.03
+R    o    LM               7.62
+I    n    RM               7.26
+E    i    LM               7.20
+;    s    RP               6.59
+O    r    RR               6.09
+A    h    LP               5.80
+M    d    RI               4.25
+U    l    RM               3.91
+K    c    RM               2.85
+V    u    LI               2.73
+L    m    RR               2.50
+S    f    LR               2.38
+P    w    RR               1.99
+D    p    LM               1.95
+H    g    RI               1.91
+G    y    LI               1.78
+Z    b    LP               1.44
+Y    v    RM               1.03
+N    k    RI               0.65
+X    x    LR               0.19
+T    j    LM               0.13
+C    q    LI               0.09
+B    z    LI               0.07
+Q    ;    LR               0.00
+,    ,    RR               0.00
+.    .    RP               0.00
+/    /    RP               0.00
+
+per finger-group load% (letters+punct):
+  LI index   17.16
+  LM middle  16.89
+  RI index   15.87
+  RM middle  15.06
+  LR ring    10.61
+  RR ring    10.58
+  LP pinky    7.24
+  RP pinky    6.59
+
+== 2. Common letters off the strong positions ==
+letters >1.5% freq, with row+finger; lateral=top-outer / bottom-outer
+ch   freq% key  finger     row    note
+e    12.48 F    LI         home   
+t     9.07 J    RI         home   
+a     8.03 W    LR         top    top-pinky/ring
+o     7.62 R    LM         top    
+n     7.26 I    RM         top    
+i     7.20 E    LM         top    
+s     6.59 ;    RP         home   pinky>3%
+r     6.09 O    RR         top    top-pinky/ring
+h     5.80 A    LP         home   pinky>3%
+d     4.25 M    RI         bot    
+l     3.91 U    RM         top    
+c     2.85 K    RM         home   
+u     2.73 V    LI         bot    
+m     2.50 L    RR         home   
+f     2.38 S    LR         home   
+w     1.99 P    RR         top    TOP-LATERAL top-pinky/ring
+p     1.95 D    LM         home   
+g     1.91 H    RI         home   
+y     1.78 G    LI         home   
+
+== 3. SFBs: standard-finger view (the human's first look) ==
+top same-FINGER bigrams (standard fingering), with our alt-rescue cost:
+pair    std% keys       note
+in      2.47 E-I        same-row
+on      1.64 R-I        same-row
+ed      1.37 F-M        
+te      1.09 J-F        same-row
+ar      1.02 W-O        same-row
+co      0.73 K-R        
+de      0.72 M-F        
+io      0.64 E-R        adjacent same-row
+ra      0.58 O-W        same-row
+ic      0.57 E-K        
+li      0.56 U-E        same-row
+ma      0.54 L-W        
+no      0.51 I-R        same-row
+wa      0.51 P-W        same-row
+ut      0.49 V-J        
+sh      0.44 ;-A        same-row
+lo      0.42 U-R        same-row
+il      0.42 E-U        same-row
+nc      0.41 I-K        
+ol      0.38 R-U        same-row
+(sum all std-SFB 22.41%)
+
+== 4. Redirect audit (trigram-based) ==
+redirect 40.06%   weak-redirect(no index) 12.06%
+top weak-redirect trigrams:
+  was  0.403%
+  con  0.334%
+  com  0.235%
+  rin  0.234%
+  rom  0.224%
+  fro  0.221%
+  ich  0.211%
+  man  0.198%
+  pro  0.192%
+  pri  0.162%
+  ica  0.158%
+  lin  0.136%
+  ran  0.129%
+  now  0.127%
+  can  0.126%
+
+== 5. Same-finger skipgrams (SFS1, default fingering) ==
+SFS1 total 28.78% of trigrams
+top offenders:
+  the  3.530%
+  ion  0.765%
+  ent  0.623%
+  his  0.522%
+  ere  0.498%
+  for  0.488%
+  con  0.334%
+  ted  0.327%
+  you  0.272%
+  rea  0.253%
+  eve  0.249%
+  oun  0.249%
+  ght  0.226%
+  rom  0.224%
+  est  0.223%
+
+== 6. Feel-swap candidates, ranked by objective cost ==
+(every 1-swap scored on the real objective; report cheapest;
+ the machine floor means min cost is +0.001 — these are FLAT-region
+ moves a human makes for a reason the objective cannot see)
+
+cheapest 12 single swaps (all cost ~+0.0007-0.002, i.e. free):
+  qx  d=+0.0007  ;aiojvlnrwhfpeygtcmsbqxuzkd,./
+  jq  d=+0.0011  ;aioqvlnrwhfpeygtcmsbxjuzkd,./
+  jz  d=+0.0013  ;aiozvlnrwhfpeygtcmsbxqujkd,./
+  jx  d=+0.0018  ;aioxvlnrwhfpeygtcmsbjquzkd,./
+  qz  d=+0.0020  ;aiojvlnrwhfpeygtcmsbxzuqkd,./
+  jk  d=+0.0048  ;aiokvlnrwhfpeygtcmsbxquzjd,./
+  xz  d=+0.0054  ;aiojvlnrwhfpeygtcmsbzquxkd,./
+  cl  d=+0.0060  ;aiojvcnrwhfpeygtlmsbxquzkd,./
+  kq  d=+0.0061  ;aiojvlnrwhfpeygtcmsbxkuzqd,./
+  kx  d=+0.0065  ;aiojvlnrwhfpeygtcmsbkquzxd,./
+  in  d=+0.0082  ;anojvlirwhfpeygtcmsbxquzkd,./
+  gm  d=+0.0086  ;aiojvlnrwhfpeymtcgsbxquzkd,./
+
+annotated candidates (why a human would make the move):
+  jq   d=+0.0011  j off top-inner index
+  jx   d=+0.0018  j<->x: J is inner-index-top (stretch), X is bot-middle ring
+  qz   d=+0.0020  q<->z: Q on hardest bot-inner-index, Z on pinky (Gallium J<->Z logic)
+  bv   d=+0.0146  b off bot-pinky
+  wy   d=+0.0242  w off top-outer pinky
+  vw   d=+0.0253  w off top-outer pinky (P), v off Y
+  by   d=+0.0326  b off bot-pinky
+  bx   d=+0.0335  b off Z (bot pinky) - B freq 1.5% on pinky is Kuntem-flagged
+  qv   d=+0.0374  q off C to share roll with v-block
+  vy   d=+0.0485  y off T (top-inner index) / v off Y (top-inner index)
+  pw   d=+0.0487  w off top-outer pinky
+  bp   d=+0.0508  b<->p: B 1.5% bot-pinky, P rare top-pinky
+  bj   d=+0.0526  b off bot pinky
+  jy   d=+0.0553  y<->j (Gallium J<->Z logic family): Y 1.6% vs J ~0.15%
+  wx   d=+0.0637  w off top-outer pinky, x off X (bot-middle, low-freq slot)
+  bz   d=+0.0789  b<->z (Gallium-style rare-swap): B 1.5% on pinky vs Z rare
+  qw   d=+0.0835  q<->w: Q off bot-inner index, W off top-outer pinky
+  bm   d=+0.0963  b<->m: B 1.5% on bot-pinky vs M rare on bot-inner index
+  qu   d=+0.1034  rare-q next-to-u (QU cross-hand vs same-key adjacency)
+  uw   d=+0.1064  w off top-outer pinky
+  bu   d=+0.1609  b off bot-pinky
+  fq   d=+0.1722  q off bot-inner index onto F (home index)
+  cx   d=+0.2000  x off X (ring bottom) onto C (index bottom-inner)
+  rw   d=+0.2583  w<->r (Canary WR scissor logic: W on top-outer pinky)
+  hw   d=+0.5768  w<->h: W off top-outer pinky, H off A (pinky home)
+  eq   d=+0.6518  q off bot-inner index onto E (top middle)
+  ow   d=+0.6696  w<->o: W off top-outer pinky, O off top-inner ring
+  br   d=+1.1134  b off bot-pinky
+  aw   d=+1.2232  w<->a: W off top-outer pinky
+  bn   d=+1.3360  b off bot-pinky
+  bo   d=+1.6949  b off bot-pinky
+  bs   d=+1.7349  b off bot-pinky
+  bi   d=+1.7580  b off bot-pinky
+  qs   d=+1.9516  q<->s: Q on bot-inner index (hard), S on home pinky
+  bt   d=+2.2815  b off bot-pinky
+  ab   d=+2.4738  b off bot-pinky
+  be   d=+5.3639  b off bot-pinky
+
+== 7. Verdict ==
+Every 1-swap costs >= +0.0007 (machine floor). No swap IMPROVES the
+objective. But a handful sit in the FLAT region (+0.001..+0.002)
+where a human reason (pinky-lateral load, Kuntem pinky>3%,
+Gallium-style rare-swap) can justify the move at ~0 score cost.
+Recommended candidates if the user wants a human-tuned variant:
+  (none adopted here — user decides)

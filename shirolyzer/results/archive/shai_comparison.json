@@ -1,0 +1,72 @@
+{
+ "shai": {
+  "cfgE_semiQ (winner)": 4.440449429382033,
+  "cfgG_semiP (alt)": 4.475104103092151,
+  "cfgD_slashQ": 4.703889967790927,
+  "cfgF_aposQ": 4.703889967790927,
+  "Sturdy": 5.693655959074956,
+  "Graphite": 5.688986965887947,
+  "Colemak-DH": 5.722344559393316,
+  "Colemak": 5.720168129703368,
+  "Semimak": 5.8264670866605215,
+  "Gallium": 5.7128188887088625,
+  "Canary": 5.818255843165396,
+  "QWERTY": 8.69533135224988
+ },
+ "norvig": {
+  "cfgE_semiQ (winner)": 4.387726696836196,
+  "cfgG_semiP (alt)": 4.401012512159958,
+  "cfgD_slashQ": 4.603390794731592,
+  "cfgF_aposQ": 4.603390794731592,
+  "Sturdy": 5.575647495446038,
+  "Graphite": 5.62795659914499,
+  "Colemak-DH": 5.670025237807377,
+  "Colemak": 5.682211985898346,
+  "Semimak": 5.69994675387133,
+  "Gallium": 5.659663381727922,
+  "Canary": 5.928715911156708,
+  "QWERTY": 8.711871892570874
+ },
+ "shai_rank": {
+  "cfgE_semiQ (winner)": 1,
+  "cfgG_semiP (alt)": 2,
+  "cfgD_slashQ": 3,
+  "cfgF_aposQ": 4,
+  "Graphite": 5,
+  "Sturdy": 6,
+  "Gallium": 7,
+  "Colemak": 8,
+  "Colemak-DH": 9,
+  "Canary": 10,
+  "Semimak": 11,
+  "QWERTY": 12
+ },
+ "norvig_rank": {
+  "cfgE_semiQ (winner)": 1,
+  "cfgG_semiP (alt)": 2,
+  "cfgD_slashQ": 3,
+  "cfgF_aposQ": 4,
+  "Sturdy": 5,
+  "Graphite": 6,
+  "Gallium": 7,
+  "Colemak-DH": 8,
+  "Colemak": 9,
+  "Semimak": 10,
+  "Canary": 11,
+  "QWERTY": 12
+ },
+ "layouts": {
+  "cfgE_semiQ (winner)": ";aiojvlnrwhfpeygtcmsbxquzkd,./",
+  "cfgG_semiP (alt)": "faiojwlrn;hgpeyvtcmsbqxuzkd,./",
+  "cfgD_slashQ": "/aiojvlnrwsfpeygtcm;xbquzkd,.h",
+  "cfgF_aposQ": "'aiojvlnrwsfpeygtcm;xbquzkd,.h",
+  "Sturdy": "vmlcpxfoujsrtdy.naeizkqgwbh';,",
+  "Graphite": "bldwz'foujnrtsgyhaeiqxmcvkp.-/",
+  "Colemak-DH": "qwfpbjluy;arstgmneiozxcdvkh,./",
+  "Colemak": "qwfpgjluy;arstdhneiozxcvbkm,./",
+  "Semimak": "flhvzqwuoysrntkcdeaix'bmjpg/,/",
+  "Gallium": "bldcvjfou,nrtsgyhaeixqmwzkp';.",
+  "Canary": "wlypkzxou;crstbfneiajvdgqmh/,.",
+  "QWERTY": "qwertyuiopasdfghjkl;zxcvbnm,./"
+ }
+}

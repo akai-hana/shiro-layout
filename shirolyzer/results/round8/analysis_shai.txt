@@ -1,0 +1,137 @@
+layout: ;tspbxgoiwndhrlyecuafkvmzjq,./
+grid (QWERTY order, left/right split 5+5):
+  ;tspb | xgoiw
+  ndhrl | yecua
+  fkvmz | jq,./
+composite=3.165795758 primary=3.165796149 spanish=3.274330031
+
+== bigram categories (% of letter bigrams, chosen fingering) ==
+  sfb                0.04
+  scissor_IM_hsb     0.00
+  scissor_IM_fsb     0.04
+  scissor_MR         4.24
+  scissor_RP         0.14
+  roll_in           14.81
+  roll_out           9.52
+  leap               4.88
+  alt               67.92
+  repeat             2.83
+  SFB (default fingers only): 3.38%
+  SFB (chosen fingers):       0.04%
+
+== worst bigrams (chosen cost, fingering, count) ==
+  tk  n=    2628   10.43  RR
+  kt  n=   11748   10.43  RR
+  xq  n=     651    9.50  IM
+  qx  n=      53    9.50  MI
+  wj  n=     242    9.19  RI
+  jw  n=     307    9.09  IR
+  yj  n=     517    8.74  II
+  lm  n=   83892    8.74  II
+  zt  n=     560    8.73  MR
+  tz  n=   11163    8.73  RM
+  tm  n=   95503    8.49  RI
+  ml  n=   17137    8.44  II
+  jy  n=     136    8.44  II
+  wq  n=      60    8.43  RM
+  qw  n=     218    8.43  MR
+  mt  n=    9063    8.39  IR
+  vt  n=    1370    8.33  MR
+  tv  n=   17218    8.33  RM
+  vl  n=    2245    6.69  MI
+  lv  n=   92587    6.69  IM
+
+== scissors (weight=cost*n, kind, fingering) ==
+  th  n=10712957  cost= 0.21  RM   RM
+  ic  n= 1939154  cost= 0.21  RM   RM
+  lv  n=   92587  cost= 3.60  MI   IM
+  ci  n=  720418  cost= 0.21  RM   MR
+  ht  n=  466311  cost= 0.21  RM   MR
+  nk  n=  268519  cost= 0.30  PR   PR
+  kn  n=  187508  cost= 0.30  PR   RP
+  hb  n=   18315  cost= 2.52  MI   MI
+  bh  n=    3448  cost= 2.52  MI   IM
+  vl  n=    2245  cost= 3.60  MI   MI
+  tv  n=   17218  cost= 0.30  RM   RM
+  wu  n=    1752  cost= 2.52  RM   RM
+  uw  n=    1707  cost= 2.52  RM   MR
+  tz  n=   11163  cost= 0.30  RM   RM
+  xq  n=     651  cost= 3.60  MI   IM
+
+== trigram patterns (chosen fingering, % of trigrams) ==
+  alternate         41.38
+  inroll            27.08
+  outroll           18.51
+  total_rolls       45.59
+  onehand            3.10
+  redirect           2.69
+  redirect_weak      0.40
+  total_redirects    3.09
+  sfb_tri            6.84
+  other              0.00
+
+== finger load (% of all strokes) ==
+  actual chosen fingers:
+    L: P= 8.35%  R=12.37%  M=11.99%  I=17.58%
+    R: P= 8.09%  R=13.84%  M=12.86%  I=14.90%
+  default-finger letter load:
+    L: P= 9.17%  R=13.72%  M=14.98%  I=14.16%
+    R: P= 8.17%  R=12.13%  M=13.34%  I=14.33%
+
+== alpha fingering guide (actual trigram DP) ==
+  a@;  default P  P=95.8% R=4.2%
+      alt R: ica:410268, aga:175426, eac:161027, acc:159995, cau:142007
+  b@T  default M  I=56.8% M=43.2%
+      alt I: but:431250, abo:259408, bou:245239, bee:161576, bec:157878
+  c@K  default M  M=64.0% I=19.3% R=16.7%
+      alt I: con:697704, com:696870, ica:410268, cou:351503, cor:165882
+      alt R: can:533220, act:390828, cal:356613, ack:287075, ach:240913
+  d@S  default R  R=88.4% M=11.5% I=0.1%
+      alt M: ted:621904, ard:306692, ord:210288, dit:136244, dat:126758
+      alt I: thd:7236, dst:5948, dns:1033, tsd:989, nsd:765
+  e@J  default I  I=97.7% M=2.3%
+      alt M: hey:340373, ery:273072, yea:202082, que:138295, equ:133213
+  f@Z  default P  P=100.0%
+  g@U  default M  M=93.5% I=6.0% R=0.4%
+      alt I: oug:279648, goo:114984, gai:88804, goi:68665, agi:44957
+      alt R: ago:36528, goe:15637, oga:8266, xyg:2728, jog:874
+  h@D  default M  M=88.6% I=11.4%
+      alt I: his:818180, sho:309454, has:298654, she:250430, hes:216911
+  i@O  default R  R=89.3% M=10.7%
+      alt M: wit:845206, ica:410268, wil:395665, ies:364316, whi:329329
+  j@N  default I  I=100.0%
+  k@X  default R  R=94.7% I=5.1% M=0.2%
+      alt I: tak:158879, ket:95468, kit:18459, kat:11933, kst:4853
+      alt M: kev:3167, vok:2720, kov:1957, vik:1215, vak:657
+  l@G  default I  I=100.0%
+  m@V  default I  I=91.1% M=8.9%
+      alt M: rom:452209, mor:321561, mer:234773, mar:205559, rem:156278
+  n@A  default P  P=98.0% R=2.0%
+      alt R: fin:233766, inf:117296, nfo:93886, fun:82072, onf:59668
+  o@I  default M  M=96.6% R=3.4%
+      alt R: ong:220008, gro:131118, log:111040, ogr:95580, rog:83005
+  p@R  default M  M=50.0% I=49.6% R=0.5%
+      alt I: app:572366, ppe:264836, spe:252303, ppo:229040, pos:218750
+      alt R: rsp:8625, inp:7075, unp:6769, npu:6253, pfu:6201
+  q@M  default I  I=99.0% M=1.0%
+      alt M: raq:2206, laq:849, faq:596, ysq:479, paq:339
+  r@F  default I  I=94.2% M=5.8%
+      alt M: orm:244110, lar:196973, ral:196830, erv:177286, rel:165633
+  s@E  default M  M=94.0% R=6.0%
+      alt R: ons:623390, ins:296499, ans:212559, ens:206060, nst:184833
+  t@W  default R  R=99.6% I=0.4% M=0.0%
+      alt I: nst:184833, tdo:7811, utd:7323, idt:5112, rnt:2093
+      alt M: ktk:1
+  u@L  default R  R=93.9% I=5.1% M=1.0%
+      alt I: usi:197562, uni:194571, uri:136332, uti:125562, iou:104142
+      alt M: cau:142007, uca:32129, eau:30834, uag:13865, acu:13137
+  v@C  default I  I=76.2% M=23.8%
+      alt M: ver:934355, vel:192925, rov:154497, rev:104693, riv:104439
+  w@P  default R  R=100.0%
+  x@Y  default M  M=82.8% I=17.2%
+      alt I: xpl:41531, xtr:35354, box:28991, oxi:17514, xpo:15544
+  y@H  default I  I=100.0%
+  z@B  default I  I=85.0% M=15.0%
+      alt M: liz:46077, riz:26537, raz:11632, zzl:8786, laz:6768
+
+wrote /home/akai/git/layout-opencode-investigation/results/round8/analysis_shai.txt and .json

@@ -1,0 +1,326 @@
+{
+ "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./",
+ "grid": [
+  ";tspbxgoiw",
+  "ndhrlyecua",
+  "fkvmzjq,./"
+ ],
+ "scores": {
+  "composite": 3.165795758207707,
+  "raw": 3.1601746314124886,
+  "balance": 0.005621126795218612,
+  "primary": 3.1657961487783046,
+  "primary_raw": 3.1601745414414375,
+  "primary_balance": 0.0056216073368671,
+  "spanish": 3.2743300305177305,
+  "spanish_raw": 3.169171736506082,
+  "spanish_balance": 0.10515829401164885
+ },
+ "probes": {
+  "O-L": {
+   "seq": [
+    "O",
+    "L"
+   ],
+   "cost": 2.2150000000000003,
+   "fingers": [
+    "M",
+    "I"
+   ]
+  },
+  "L-O": {
+   "seq": [
+    "L",
+    "O"
+   ],
+   "cost": 2.0799999999999996,
+   "fingers": [
+    "R",
+    "M"
+   ]
+  },
+  "K-J-M hey": {
+   "seq": [
+    "K",
+    "J",
+    "M"
+   ],
+   "cost": 3.4850000000000003,
+   "fingers": [
+    "R",
+    "M",
+    "I"
+   ]
+  },
+  "F-J-M ney": {
+   "seq": [
+    "F",
+    "J",
+    "M"
+   ],
+   "cost": 3.465,
+   "fingers": [
+    "I",
+    "M",
+    "I"
+   ]
+  },
+  "M-J yea": {
+   "seq": [
+    "M",
+    "J"
+   ],
+   "cost": 2.585,
+   "fingers": [
+    "I",
+    "M"
+   ]
+  },
+  "M-J-I yea": {
+   "seq": [
+    "M",
+    "J",
+    "I"
+   ],
+   "cost": 8.965,
+   "fingers": [
+    "I",
+    "I",
+    "M"
+   ]
+  },
+  "H-T-J exp": {
+   "seq": [
+    "H",
+    "T",
+    "J"
+   ],
+   "cost": 5.72,
+   "fingers": [
+    "I",
+    "I",
+    "I"
+   ]
+  },
+  "H-W-J ext": {
+   "seq": [
+    "H",
+    "W",
+    "J"
+   ],
+   "cost": 3.4299999999999997,
+   "fingers": [
+    "I",
+    "R",
+    "M"
+   ]
+  },
+  "I-U-J age": {
+   "seq": [
+    "I",
+    "U",
+    "J"
+   ],
+   "cost": 2.5349999999999997,
+   "fingers": [
+    "R",
+    "M",
+    "I"
+   ]
+  },
+  "N-L-J equ": {
+   "seq": [
+    "N",
+    "L",
+    "J"
+   ],
+   "cost": 4.175,
+   "fingers": [
+    "I",
+    "R",
+    "M"
+   ]
+  },
+  "V-G-J ble": {
+   "seq": [
+    "V",
+    "G",
+    "J"
+   ],
+   "cost": 9.32,
+   "fingers": [
+    "I",
+    "I",
+    "I"
+   ]
+  },
+  "C-O-R vid": {
+   "seq": [
+    "C",
+    "O",
+    "R"
+   ],
+   "cost": 6.64,
+   "fingers": [
+    "I",
+    "R",
+    "I"
+   ]
+  },
+  "R-O-C div": {
+   "seq": [
+    "R",
+    "O",
+    "C"
+   ],
+   "cost": 6.64,
+   "fingers": [
+    "I",
+    "R",
+    "I"
+   ]
+  },
+  "K-I": {
+   "seq": [
+    "K",
+    "I"
+   ],
+   "cost": 1.9650000000000003,
+   "fingers": [
+    "I",
+    "M"
+   ]
+  }
+ },
+ "checks": [
+  {
+   "name": "repeated keys use one finger",
+   "pass": true,
+   "detail": "26/26"
+  },
+  {
+   "name": "O->L has L index",
+   "pass": true,
+   "detail": "got MI want MI"
+  },
+  {
+   "name": "K-J-M = ring/middle/index",
+   "pass": true,
+   "detail": "got RMI want RMI"
+  },
+  {
+   "name": "F-J-M = index/middle/index",
+   "pass": true,
+   "detail": "got IMI want IMI"
+  },
+  {
+   "name": "L->O keeps L index within 0.2",
+   "pass": true,
+   "detail": "top RM / best L-index 2.215"
+  },
+  {
+   "name": "M-J-I first two strokes index",
+   "pass": true,
+   "detail": "got IIM"
+  },
+  {
+   "name": "H-T-J exp blocks J middle",
+   "pass": true,
+   "detail": "got III"
+  },
+  {
+   "name": "I-U-J age blocks J middle",
+   "pass": true,
+   "detail": "got RMI"
+  },
+  {
+   "name": "V-G-J forces V/G index",
+   "pass": true,
+   "detail": "got III"
+  },
+  {
+   "name": "C-O-R vid endpoints index",
+   "pass": true,
+   "detail": "got IRI"
+  },
+  {
+   "name": "R-O-C div endpoints index",
+   "pass": true,
+   "detail": "got IRI"
+  },
+  {
+   "name": "L index only with O key (bigram)",
+   "pass": true,
+   "detail": "all non-O bigram neighbours"
+  }
+ ],
+ "scan": {
+  "bigram_types": 676,
+  "bigram_tokens": 327253737,
+  "alt_bigram_tokens": 34804916,
+  "sfb_types": 6,
+  "sfb_tokens": 116058,
+  "impossible_types": 0,
+  "impossible_tokens": 0,
+  "trigram_types": 15437,
+  "trigram_tokens": 240524895,
+  "sfs_types": 514,
+  "sfs_tokens": 1743852,
+  "sfs_far_tokens": 98915,
+  "half_sfb_types": 473,
+  "half_sfb_tokens": 415132,
+  "alt_gate_violations": {}
+ },
+ "finger_load": {
+  "L": [
+   0.1762386540887745,
+   0.2636715906957985,
+   0.28800517520103336,
+   0.27208458001439373
+  ],
+  "R": [
+   0.1704009817169433,
+   0.25287730380360335,
+   0.27798107642330133,
+   0.2987406380561519
+  ]
+ },
+ "corpus_scores": {
+  "shai": {
+   "shai_best": 3.1657961487783046,
+   "r7_best": 3.225648071227596,
+   "r6_best": 3.2059974100117072,
+   "old_shai_lead": 3.222834130323345,
+   "old_shai_alt1": 3.1932596363760997,
+   "old_shai_alt2": 3.1791181899982996,
+   "chat_best": 3.2065013908717797,
+   "cfgE": 3.454663482208136,
+   "qwerty": 4.704424636929886,
+   "Graphite": 3.48679438318064,
+   "Colemak": 3.6707644365622527,
+   "Colemak-DH": 3.688144007856309,
+   "Canary": 3.678353722879894,
+   "Sturdy": 3.5576253108969964,
+   "Gallium": 3.4735380509153977,
+   "Semimak": 3.5547547787993143
+  },
+  "spanish": {
+   "shai_best": 3.2743300305177305,
+   "r7_best": 3.281345132538376,
+   "r6_best": 3.2937411550297617,
+   "old_shai_lead": 3.2821162422687644,
+   "old_shai_alt1": 3.1803723900869563,
+   "old_shai_alt2": 3.335672808611413,
+   "chat_best": 3.4413902450589293,
+   "cfgE": 3.8071022068658413,
+   "qwerty": 4.7676644304100675,
+   "Graphite": 3.806996882477091,
+   "Colemak": 4.009968466286245,
+   "Colemak-DH": 3.9663606319414075,
+   "Canary": 3.629850742150138,
+   "Sturdy": 3.637047121021259,
+   "Gallium": 3.7722880224253723,
+   "Semimak": 3.7998263312167575
+  }
+ }
+}

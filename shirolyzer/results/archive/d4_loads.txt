@@ -1,0 +1,9 @@
+D4 — load-target penalties + balance Pareto
+
+lam=0.5: penalized 6.8301  original 4.7598  load_dev 4.1408  ;ilukbprcqhfaeydtnosxjvgzwm,./
+lam=1.5: penalized 10.6666  original 4.9840  load_dev 3.7884  ;piuxvclmzhoaefdtnsrjqkwybg,./
+lam=3.0: penalized 16.2995  original 5.0896  load_dev 3.7366  ;vigkfclpqhaoeudtnsrzxwyjbm,./
+
+W_BALANCE=0.0: objective 4.3492  original 4.7970  ;aioxgsnrvhfpeymtcwljqbuzkd,./
+W_BALANCE=3.0: objective 4.3978  original 4.3889  ;aiojvlnrwhfpeygtcmsbkxuzqd,./
+W_BALANCE=5.0: objective 4.4097  original 4.3889  ;aiojvlnrwhfpeygtcmsbkxuzqd,./

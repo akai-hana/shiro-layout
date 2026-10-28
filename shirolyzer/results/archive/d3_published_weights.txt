@@ -1,0 +1,27 @@
+D3 — field ranking under keycraft published weights (keysolve rates; load-dev terms omitted)
+
+== keycraft weights.txt ==
+   1.  +3.2785  Sturdy
+   2.  +3.0518  Gallium
+   3.  +3.0279  Canary
+   4.  +2.9667  Graphite
+   5.  +2.6646  Semimak
+   6.  +2.6282  Colemak-DH
+   7.  +2.5511  Colemak
+   8.  +2.1466  cfgG_semiP (alt)
+   9.  +2.1026  cfgE_semiQ (ours)
+  10.  +1.1909  QWERTY
+
+== keycraft weights2.txt ==
+   1.  +2.2331  Sturdy
+   2.  +2.1571  Gallium
+   3.  +2.1029  Graphite
+   4.  +1.9938  Canary
+   5.  +1.7928  Semimak
+   6.  +1.5464  Colemak-DH
+   7.  +1.4940  Colemak
+   8.  +1.3253  cfgG_semiP (alt)
+   9.  +1.2795  cfgE_semiQ (ours)
+  10.  +0.3249  QWERTY
+
+(cfgE rank under each system: keycraft weights.txt -> 9, keycraft weights2.txt -> 9)

@@ -1,0 +1,24 @@
+A4 — weight robustness sweep (quench + 8k anneal from cfgE)
+baseline score 4.3877 confirmed
+
+scenario                cfgE bestref        ref  quench  anneal  quench->anneal layout
+baseline              4.3877  4.4010       cfgG  4.3877  4.3877  cfgE-stable
+sfb x1.5              4.3894  4.4023       cfgG  4.3894  4.3894  cfgE-stable
+sfb x0.7              4.3865  4.4000       cfgG  4.3865  4.3865  cfgE-stable
+rolls x1.5            4.3239  4.3423       cfgG  4.3140  4.3140  ;anojvlirwhfpeygtcmsbxquzkd,./
+rolls x0.5            4.4507  4.4590       cfgG  4.4507  4.4507  cfgE-stable
+alt off               4.5477  4.5595       cfgG  4.5242  4.5242  ;arokvlinwhfgeymtcpsbjxuzqd,./
+alt x2                4.2277  4.2426       cfgG  4.2277  4.2277  cfgE-stable
+redirect x2           4.4062  4.4219       cfgG  4.4062  4.4062  cfgE-stable
+redirect x0.5         4.3781  4.3903       cfgG  4.3769  4.3769  ;anojvlirwhfpeygtcmsbxquzkd,./
+sfs x2                4.4095  4.4229       cfgG  4.4095  4.4095  cfgE-stable
+sfs off               4.3592  4.3739       cfgG  4.3592  4.3592  cfgE-stable
+balance off           4.3685  4.3904       cfgG  4.3492  4.3492  ;aioxgsnrvhfpeymtcwljqbuzkd,./
+balance x3            4.4263  4.4223       cfgG  4.4067  4.4067  ;aiojvlnrwhfpeygtcmsbkxuzqd,./
+hand off              4.3870  4.3981       cfgG  4.3870  4.3870  cfgE-stable
+scissors x2           4.3974  4.4121       cfgG  4.3974  4.3974  cfgE-stable
+scissors off          4.3755  4.3869       cfgG  4.3755  4.3755  cfgE-stable
+pessimistic joint     4.5558  4.5611       cfgG  4.5541  4.5541  ;aioxvlnrwhfpeygtcmsbkquzjd,./
+optimistic joint      4.1475  4.1649       cfgG  4.1475  4.1475  cfgE-stable
+
+restored baseline 4.3877 OK

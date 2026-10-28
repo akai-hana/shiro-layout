@@ -1,0 +1,18 @@
+calibrated anneal: primary=chat_write, secondary=code+spanish w=1e-05
+secondary scale=5.07237e-06
+NEW_BEST composite=3.226318 primary=3.226319
+start                  quench   anneal    final  primary  layout
+rand4102               3.2033   3.1506   3.1502   3.1502  ;thskxpoiyrdgnwfeucalzmbvqj,./
+rand4105               3.1569   3.1565   3.1502   3.1502  ;thskxpoiyrdgnwfeucalzmbvqj,./
+ILS1:rand4102          3.1502   3.1502   3.1502   3.1502  ;thskxpoiyrdgnwfeucalzmbvqj,./
+ILS2:cfgE              3.1543   3.1502   3.1502   3.1502  ;thskxpoiyrdgnwfeucalzmbvqj,./
+ILS3:rand4104          3.1546   3.1502   3.1502   3.1502  ;thskxpoiyrdgnwfeucalzmbvqj,./
+ILS4:NEW_BEST          3.1547   3.1502   3.1502   3.1502  ;thskxpoiyrdgnwfeucalzmbvqj,./
+cfgE                   3.2063   3.1549   3.1543   3.1543  ;thskxpoiwrdgncfeuyalzmbvqj,./
+rand4104               3.1787   3.1579   3.1546   3.1546  ;thlpxdoiwnmcrsyeguafkvbzqj,./
+NEW_BEST               3.1668   3.1598   3.1547   3.1547  ;thcwxpoiyrmdnsfeugalkvbzqj,./
+annealBEST             3.1583   3.1577   3.1551   3.1551  ;thsbxcoiwndprlyeguafzvmkjq,./
+rand4100               3.1934   3.1563   3.1563   3.1563  ;thlwxpoiyndcrsfeugamkvbzqj,./
+rand4103               3.1653   3.1609   3.1564   3.1564  ;thskxpaoyrdgnfweucilqmbvjz,./
+rand4101               3.1768   3.1613   3.1613   3.1613  ;thcfxpaoyrmdnsweugilkvbqjz,./
+PREV_BEST              3.1701   3.1701   3.1701   3.1701  ;htckxdaiprlynsgewuomfvbzqj,./

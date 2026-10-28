@@ -1,0 +1,1 @@
+make a script that takes the computed layout off of the analyzer and automatically makes a xkb script to install it here

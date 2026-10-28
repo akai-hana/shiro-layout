@@ -1,0 +1,27 @@
+round-7 anneal campaign: 19 starts x 100000 iters + quench, ILS top-5
+NEW_BEST score (fixed) = 3.137527
+start                  quench   anneal    final  layout
+rand2005               3.1902   3.1385   3.1364  ;stpbqdaiynhcrmkeguowvflzxj,./
+rand2010               3.1365   3.1365   3.1364  ;stpbqdaiynhcrmkeguowvflzxj,./
+ILS1:rand2005          3.1364   3.1364   3.1364  ;stpbqdaiynhcrmkeguowvflzxj,./
+rand2008               3.1661   3.1421   3.1365  ;stpbzdaiynhcrmkeguowvflqxj,./
+ILS2:rand2008          3.1365   3.1365   3.1365  ;stpbzdaiynhcrmkeguowvflqxj,./
+ILS3:rand2014          3.1372   3.1371   3.1371  ;ntpbqdaiyshcrlkeguofvwmzxj,./
+rand2014               3.1457   3.1395   3.1372  ;ntpbzdaiwshcrlyeguofkvmqxj,./
+ILS4:NEW_BEST          3.1375   3.1372   3.1372  ;ntpbzdaiwshcrlyeguofkvmqxj,./
+NEW_BEST               3.1375   3.1375   3.1375  ;stckqdaiwnlprhyeguomfvbzxj,./
+PREV_BEST              3.1375   3.1375   3.1375  ;stckqdaiwnlprhyeguomfvbzxj,./
+annealBEST             3.1375   3.1375   3.1375  ;stckqdaiwnlprhyeguomfvbzxj,./
+rand2006               3.1938   3.1382   3.1380  ;stcbqdaiynlprhkeguowfvmzxj,./
+ILS5:rand2006          3.1380   3.1380   3.1380  ;stcbqdaiynlprhkeguowfvmzxj,./
+rand2013               3.1876   3.1484   3.1380  ;stcbqdaiynlprhkeguofwvmzxj,./
+rand2007               3.1902   3.1451   3.1406  ;stcxkpaiwrldnhyeguomfvbqzj,./
+rand2000               3.1449   3.1433   3.1410  ;thsvqdaiyncprlkeguofbwmzxj,./
+rand2009               3.1497   3.1433   3.1419  ;trdgqhoiyspcnlfekuambwvzjx,./
+rand2003               3.1427   3.1427   3.1425  ;rshbqdaiynlptckeguofmvwzxj,./
+rand2002               3.1733   3.1446   3.1426  ;thskzdaiwncprlyeguofbvmqxj,./
+rand2001               3.1789   3.1452   3.1433  ;trdpzhaiysmcnlgekuofbwvqxj,./
+rand2004               3.1495   3.1437   3.1435  ;thsbqcaiwndprlyeguofxvmkzj,./
+rand2011               3.1495   3.1437   3.1435  ;thsbqcaiwndprlyeguofxvmkzj,./
+rand2015               3.1468   3.1459   3.1450  ;ntpvqhoiyslcrdfekuagbwmzjx,./
+rand2012               3.1685   3.1685   3.1685  ;iohkgdsnvaubefcrpltqyzxjwm,./

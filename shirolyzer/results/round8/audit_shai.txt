@@ -1,0 +1,223 @@
+layout: ;tspbxgoiwndhrlyecuafkvmzjq,./
+grid (QWERTY order, left/right split 5+5):
+  ;tspb | xgoiw
+  ndhrl | yecua
+  fkvmz | jq,./
+composite=3.165795758 (raw=3.160174631 balance=0.005621127)
+primary=3.165796149 (raw=3.160174541 balance=0.005621607)
+spanish=3.274330031 (raw=3.169171737 balance=0.105158294)
+primary_sacrifice=1e-05 secondary_scale=0.000623095
+
+=== questionnaire hard probes (physical keys; * = non-default finger) ===
+  OL:
+       2.215  O:M* -> L:I*
+       2.230  O:M* -> L:R
+       8.490  O:R -> L:R
+       8.980  O:M* -> L:M*
+      11.090  O:R -> L:M*
+      11.400  O:R -> L:I*
+  LO:
+       2.080  L:R -> O:M*
+       2.215  L:I* -> O:M*
+       8.190  L:R -> O:R
+       8.680  L:M* -> O:M*
+      11.240  L:M* -> O:R
+      11.400  L:I* -> O:R
+  KJM:
+       3.485  K:R* -> J:M* -> M:I
+       6.806  K:I* -> J:M* -> M:I
+       8.775  K:M -> J:M* -> M:I
+       9.505  K:M -> J:I -> M:I
+      10.040  K:R* -> J:I -> M:I
+      14.780  K:I* -> J:I -> M:I
+  FJM:
+       3.465  F:I -> J:M* -> M:I
+       3.905  F:M* -> J:M* -> M:I
+       9.420  F:I -> J:I -> M:I
+       9.860  F:M* -> J:I -> M:I
+      15.610  F:I -> J:I -> M:M*
+      16.050  F:M* -> J:I -> M:M*
+  MJ:
+       2.585  M:I -> J:M*
+       8.240  M:I -> J:I
+      14.730  M:M* -> J:I
+      20.850  M:M* -> J:M*
+  MJI:
+       8.965  M:I -> J:I -> I:M
+       9.450  M:I -> J:I -> I:R*
+      16.240  M:M* -> J:I -> I:R*
+      19.255  M:M* -> J:I -> I:M
+      29.865  M:I -> J:M* -> I:R*
+      33.585  M:I -> J:M* -> I:M
+  HTJ:
+       5.720  H:I -> T:I* -> J:I
+       5.860  H:I -> T:M -> J:I
+      15.690  H:I -> T:I* -> J:M*
+      15.830  H:I -> T:M -> J:M*
+  HWJ:
+       3.430  H:I -> W:R -> J:M*
+       4.360  H:I -> W:I* -> J:M*
+       5.460  H:I -> W:R -> J:I
+       6.390  H:I -> W:I* -> J:I
+      15.670  H:I -> W:M* -> J:M*
+      17.700  H:I -> W:M* -> J:I
+  IUJ:
+       2.535  I:R* -> U:M -> J:I
+       7.925  I:M -> U:M -> J:I
+       9.405  I:M -> U:I* -> J:I
+       9.840  I:R* -> U:I* -> J:I
+      13.200  I:M -> U:R* -> J:I
+      17.215  I:R* -> U:I* -> J:M*
+  NLJ:
+       4.175  N:I -> L:R -> J:M*
+       6.530  N:I -> L:R -> J:I
+       6.905  N:I -> L:M* -> J:I
+       9.663  N:I -> L:M* -> J:M*
+      26.490  N:I -> L:I* -> J:I
+      31.576  N:I -> L:I* -> J:M*
+  VGJ:
+       9.320  V:I -> G:I -> J:I
+      15.705  V:I -> G:M* -> J:I
+      16.935  V:M* -> G:I -> J:I
+      21.790  V:I -> G:I -> J:M*
+      28.175  V:I -> G:M* -> J:M*
+      29.405  V:M* -> G:I -> J:M*
+  COR:
+       6.640  C:I -> O:R -> R:I*
+       6.800  C:I -> O:R -> R:M
+       6.880  C:I -> O:M* -> R:I*
+       7.030  C:I -> O:R -> R:R*
+       7.040  C:I -> O:M* -> R:M
+       7.270  C:I -> O:M* -> R:R*
+  ROC:
+       6.640  R:I* -> O:R -> C:I
+       6.800  R:M -> O:R -> C:I
+       6.880  R:I* -> O:M* -> C:I
+       7.030  R:R* -> O:R -> C:I
+       7.040  R:M -> O:M* -> C:I
+       7.270  R:R* -> O:M* -> C:I
+  KI:
+       1.965  K:I* -> I:M
+       2.000  K:R* -> I:M
+       8.190  K:M -> I:M
+       8.410  K:R* -> I:R*
+      11.050  K:M -> I:R*
+      11.450  K:I* -> I:R*
+
+=== hard checks ===
+  [PASS] repeated keys use one finger — 26/26
+  [PASS] O->L has L index — got MI want MI
+  [PASS] K-J-M = ring/middle/index — got RMI want RMI
+  [PASS] F-J-M = index/middle/index — got IMI want IMI
+  [PASS] L->O keeps L index within 0.2 — top RM / best L-index 2.215
+  [PASS] M-J-I first two strokes index — got IIM
+  [PASS] H-T-J exp blocks J middle — got III
+  [PASS] I-U-J age blocks J middle — got RMI
+  [PASS] V-G-J forces V/G index — got III
+  [PASS] C-O-R vid endpoints index — got IRI
+  [PASS] R-O-C div endpoints index — got IRI
+  [PASS] L index only with O key (bigram) — all non-O bigram neighbours
+
+=== corpus-wide scan (Shai, weighted) ===
+bigrams: 676 types / 327253737 tokens
+  alt fingering: 177 types / 34804916 tokens (10.64%)
+  SFB: 6 types / 116058 tokens (0.04%)
+  impossible: 0 types / 0 tokens (0.00%)
+  top SFBs:
+    lm    83892  G->V II  cost=8.74
+    ml    17137  V->G II  cost=8.44
+    kt    11748  X->W RR  cost=10.43
+    tk     2628  W->X RR  cost=10.43
+    yj      517  H->N II  cost=8.74
+    jy      136  N->H II  cost=8.44
+trigrams: 15437 types / 240524895 tokens
+  SFS: 514 types / 1743852 tokens (0.73%; far 98915)
+  half-SFB: 473 types / 415132 tokens (0.17%)
+  top SFS:
+    mpl n=  245302  VRG II  dist=1.12
+    ely n=  190661  JGH II  dist=1.00
+    wou n=  179366  PIL RR  dist=1.25
+    mil n=  163677  VOG II  dist=1.12
+    mal n=  117714  V;G II  dist=1.12
+    lem n=   94722  GJV II  dist=1.12
+    owi n=   69778  IPO MM  dist=1.00
+    wea n=   57215  PJ; RR  dist=1.03
+    lim n=   56893  GOV II  dist=1.12
+    mpr n=   55440  VRF II  dist=1.12
+  top half-SFB:
+    oje n=   40029  INJ II
+    alm n=   38626  ;GV II
+    oye n=   37047  IHJ II
+    bje n=   33300  TNJ II
+    lmo n=   27816  GVI II
+    ley n=   27614  GJH II
+    ilm n=   25983  OGV II
+    bey n=   12842  TJH II
+    eyo n=   12065  JHI II
+    lme n=   10132  GVJ II
+  alt-gate violations: none
+  actual alt strokes: 56346459 / 721574685 (7.81%)
+  top actual alt contexts (trigram table):
+    D:M->I around OE  n=979176
+    C:I->M around JF  n=934355
+    O:R->M around PW  n=845592
+    K:M->I around IA  n=799140
+    K:M->I around IV  n=697537
+    K:M->R around ;W  n=626169
+    E:M->R around IA  n=623812
+    S:R->M around WJ  n=622835
+    R:M->I around ;R  n=596232
+    K:M->R around ;A  n=539227
+    V:I->M around FI  n=452209
+    T:M->I around LW  n=431250
+    K:M->I around IL  n=423162
+    ;:P->R around OK  n=414164
+    K:M->I around O;  n=414164
+    O:R->M around K;  n=413974
+    O:R->M around PG  n=398279
+    D:M->I around ;E  n=378049
+    O:R->M around JE  n=371272
+    K:M->R around ;G  n=363040
+  alt use by key (share of trigram strokes):
+    T:  56.8%  (5250115/9244739)
+    R:  50.0%  (8222032/16431978)
+    K:  36.0%  (9392420/26098206)
+    C:  23.8%  (2472206/10366266)
+    Y:  17.2%  (303521/1768816)
+    B:  15.0%  (145598/968369)
+    S:  11.6%  (2660956/22942259)
+    D:  11.4%  (3422390/29997222)
+    O:  10.7%  (6804151/63756202)
+    V:   8.9%  (1675435/18905711)
+    U:   6.5%  (958192/14847121)
+    L:   6.1%  (1589670/26058930)
+
+=== composite score decomposition ===
+  raw trigram cost = 3.160174631; balance penalty = 0.005621127
+  finger load (default fingers, Shai letter freq):
+    L: P= 17.6%  R= 26.4%  M= 28.8%  I= 27.2%
+    R: P= 17.0%  R= 25.3%  M= 27.8%  I= 29.9%
+
+=== corpus sensitivity (calibrated scorer2, total score) ===
+  shai         best=shai_best      3.165796  shai_best=3.165796  rank=1/16  delta=+0.000000
+  spanish      best=old_shai_alt1  3.180372  shai_best=3.274330  rank=2/16  delta=+0.093958
+
+=== reference scores on Shai primary ===
+  shai_best      comp=3.165795758 primary=3.165796149 spanish=3.274330031  ;tspbxgoiwndhrlyecuafkvmzjq,./
+  r7_best        comp=3.225647776 primary=3.225648071 spanish=3.281345133  ;stpbqdaiynhcrmkeguowvflzxj,./
+  r6_best        comp=3.205997092 primary=3.205997410 spanish=3.293741155  ;stckqdaiwnlprhyeguomfvbzxj,./
+  old_shai_lead  comp=3.222833534 primary=3.222834130 spanish=3.282116242  ;trdpzgaifsmcnlxehuowkvbjqy,./
+  old_shai_alt1  comp=3.193258885 primary=3.193259636 spanish=3.180372390  ;tncbxgaifsdprlkehuowzvmjqy,./
+  old_shai_alt2  comp=3.179118280 primary=3.179118190 spanish=3.335672809  ;thsbxcoiwndprlyeguafkvmzqj,./
+  chat_best      comp=3.206501906 primary=3.206501391 spanish=3.441390245  ;thskxpoiyrdgnwfeucalzmbvqj,./
+  cfgE           comp=3.454665442 primary=3.454663482 spanish=3.807102207  ;aiojvlnrwhfpeygtcmsbxquzkd,./
+  qwerty         comp=4.704423414 primary=4.704424637 spanish=4.767664430  qwertyuiopasdfghjkl;zxcvbnm,./
+  Graphite       comp=3.486795903 primary=3.486794383 spanish=3.806996882  bldwz'foujnrtsgyhaeiqxmcvkp.-/
+  Colemak        comp=3.670765348 primary=3.670764437 spanish=4.009968466  qwfpgjluy;arstdhneiozxcvbkm,./
+  Colemak-DH     comp=3.688144203 primary=3.688144008 spanish=3.966360632  qwfpbjluy;arstgmneiozxcdvkh,./
+  Canary         comp=3.678351758 primary=3.678353723 spanish=3.629850742  wlypkzxou;crstbfneiajvdgqmh/,.
+  Sturdy         comp=3.557625322 primary=3.557625311 spanish=3.637047121  vmlcpxfoujsrtdy.naeizkqgwbh';,
+  Gallium        comp=3.473539615 primary=3.473538051 spanish=3.772288022  bldcvjfou,nrtsgyhaeixqmwzkp';.
+  Semimak        comp=3.554756248 primary=3.554754779 spanish=3.799826331  flhvzqwuoysrntkcdeaix'bmjpg/,/
+
+wrote /home/akai/git/layout-opencode-investigation/results/round8/audit_shai.txt and /home/akai/git/layout-opencode-investigation/results/round8/audit_shai.json  (2.6s)

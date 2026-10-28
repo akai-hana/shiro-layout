@@ -1,0 +1,6 @@
+# Pick audit — NEW_BEST ;thskxpoiyrdgnwfeucalzmbvqj,./, round-6b model
+# bg count SIDE KEY1->KEY fing cost [flags]
+
+
+## flags: IMPOSSIBLE=0 SFB=0 HIGH=0
+## full-set flags: IMPOSSIBLE=0 SFB=1 HIGH=14

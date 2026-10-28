@@ -1,0 +1,197 @@
+{
+ "primary": "/home/akai/git/layout-opencode-investigation/corpus/shai/",
+ "secondary": "/home/akai/git/layout-opencode-investigation/corpus/spanish/",
+ "primary_sacrifice": 1e-05,
+ "secondary_scale": 0.0006230948547536181,
+ "results": [
+  {
+   "start": "old_shai_alt1",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "old_shai_alt2",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "user0",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "ILS1:old_shai_alt1",
+   "quench": 3.165795758207707,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "ILS2:old_shai_lead",
+   "quench": 3.169045360947748,
+   "anneal": 3.165795758207707,
+   "final": 3.165795758207707,
+   "primary": 3.1657961487783046,
+   "spanish": 3.2743300305177305,
+   "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  },
+  {
+   "start": "old_shai_lead",
+   "quench": 3.1779150571059374,
+   "anneal": 3.175427817162111,
+   "final": 3.169045360947748,
+   "primary": 3.1690455690382664,
+   "spanish": 3.242832347340864,
+   "layout": ";trhxzgoipndlswyeucafkbmvjq,./"
+  },
+  {
+   "start": "rand1919",
+   "quench": 3.252525822120279,
+   "anneal": 3.1796311012427267,
+   "final": 3.17133487234992,
+   "primary": 3.171335416296307,
+   "spanish": 3.2683313831224643,
+   "layout": ";trcwxpoiksdlnfyehuamzgbvjq,./"
+  },
+  {
+   "start": "ILS3:rand1919",
+   "quench": 3.17133487234992,
+   "anneal": 3.17133487234992,
+   "final": 3.17133487234992,
+   "primary": 3.171335416296307,
+   "spanish": 3.2683313831224643,
+   "layout": ";trcwxpoiksdlnfyehuamzgbvjq,./"
+  },
+  {
+   "start": "rand1922",
+   "quench": 3.177921162527496,
+   "anneal": 3.177784407285062,
+   "final": 3.1715079733855376,
+   "primary": 3.17150832243927,
+   "spanish": 3.2857927930676625,
+   "layout": ";tncvxpoiksdlrwyehuafzgmbjq,./"
+  },
+  {
+   "start": "ILS4:rand1922",
+   "quench": 3.1715079733855376,
+   "anneal": 3.1715079733855376,
+   "final": 3.1715079733855376,
+   "primary": 3.17150832243927,
+   "spanish": 3.2857927930676625,
+   "layout": ";tncvxpoiksdlrwyehuafzgmbjq,./"
+  },
+  {
+   "start": "rand1923",
+   "quench": 3.1833444013205034,
+   "anneal": 3.1738260072805655,
+   "final": 3.171703118303996,
+   "primary": 3.1717034396459494,
+   "spanish": 3.3026401707414297,
+   "layout": ";ntwvxgiakrhcsfyeluodbmpzjq,./"
+  },
+  {
+   "start": "rand1918",
+   "quench": 3.216517749181871,
+   "anneal": 3.178094180183506,
+   "final": 3.172525542355185,
+   "primary": 3.1725260252525223,
+   "spanish": 3.3785214712017533,
+   "layout": ";trcvxdoiksplnfyeuhawbgmzjq,./"
+  },
+  {
+   "start": "rand1920",
+   "quench": 3.207321826916192,
+   "anneal": 3.174946021512167,
+   "final": 3.174946021512167,
+   "primary": 3.174945882205152,
+   "spanish": 3.366671568913239,
+   "layout": ";thcxzgoifrdsnwyeupalkvmbjq,./"
+  },
+  {
+   "start": "chat_best",
+   "quench": 3.1765006927480792,
+   "anneal": 3.1765006927480792,
+   "final": 3.1765006927480792,
+   "primary": 3.1765003277601123,
+   "spanish": 3.3935897076496997,
+   "layout": ";thskxpoiwrdgnfyecualzvmbjq,./"
+  },
+  {
+   "start": "rand1921",
+   "quench": 3.1783126821458714,
+   "anneal": 3.1783126821458714,
+   "final": 3.1767894868133473,
+   "primary": 3.176790097821783,
+   "spanish": 3.28360934537208,
+   "layout": ";srhpkgoiwnlctmyeduabxfvzjq,./"
+  },
+  {
+   "start": "rand1917",
+   "quench": 3.2485929072299418,
+   "anneal": 3.1796917803747413,
+   "final": 3.1796917803747413,
+   "primary": 3.1796913038840193,
+   "spanish": 3.3714945581222646,
+   "layout": ";htckxpaoyrndswjeugilbvmfzq,./"
+  },
+  {
+   "start": "rand1924",
+   "quench": 3.1878598136802583,
+   "anneal": 3.1820852411458453,
+   "final": 3.1808262823704783,
+   "primary": 3.1808269061004757,
+   "spanish": 3.287587568890681,
+   "layout": ";trcwkgoifhmdnsyeupalbvzjxq,./"
+  },
+  {
+   "start": "cfgE",
+   "quench": 3.203435504498674,
+   "anneal": 3.203435504498674,
+   "final": 3.203435504498674,
+   "primary": 3.203434810812958,
+   "spanish": 3.4420879843848966,
+   "layout": ";iahkvpnrcoubegmsldtzyjxqwf,./"
+  }
+ ],
+ "best_primary": {
+  "start": "old_shai_alt1",
+  "quench": 3.165795758207707,
+  "anneal": 3.165795758207707,
+  "final": 3.165795758207707,
+  "primary": 3.1657961487783046,
+  "spanish": 3.2743300305177305,
+  "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+ },
+ "best_near_tie": {
+  "start": "old_shai_alt1",
+  "quench": 3.165795758207707,
+  "anneal": 3.165795758207707,
+  "final": 3.165795758207707,
+  "primary": 3.1657961487783046,
+  "spanish": 3.2743300305177305,
+  "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+ },
+ "best_composite": {
+  "start": "old_shai_alt1",
+  "quench": 3.165795758207707,
+  "anneal": 3.165795758207707,
+  "final": 3.165795758207707,
+  "primary": 3.1657961487783046,
+  "spanish": 3.2743300305177305,
+  "layout": ";tspbxgoiwndhrlyecuafkvmzjq,./"
+ }
+}
