@@ -1,0 +1,473 @@
+config A:all  (explicit alt-licence table: [('C', 'M'), ('G', 'M'), ('J', 'M'), ('L', 'I'), ('M', 'M'), ('V', 'M'), ('W', 'M'), ('X', 'M')])
+=== questionnaire hard probes (physical keys; * = non-default finger) ===
+  OL:
+       4.577  O:M* -> L:I*
+       4.777  O:M* -> L:R
+       8.490  O:R -> L:R
+       9.556  O:M* -> L:M*
+      11.647  O:R -> L:I*
+  LO:
+       4.577  L:I* -> O:M*
+       4.627  L:R -> O:M*
+       8.190  L:R -> O:R
+       9.256  L:M* -> O:M*
+      11.647  L:I* -> O:R
+  KJM:
+       9.861  K:R* -> J:M* -> M:I
+       9.914  K:M -> J:I -> M:I
+      11.208  K:M -> J:M* -> M:I
+      14.488  K:R* -> J:I -> M:I
+      14.837  K:I* -> J:I -> M:I
+  FJM:
+       5.804  F:I -> J:M* -> M:I
+       6.764  F:M* -> J:M* -> M:I
+       9.420  F:I -> J:I -> M:I
+      10.379  F:M* -> J:I -> M:I
+      16.604  F:I -> J:I -> M:M*
+  MJ:
+       4.924  M:I -> J:M*
+       8.240  M:I -> J:I
+      15.724  M:M* -> J:I
+      21.286  M:M* -> J:M*
+  MJI:
+       9.625  M:I -> J:I -> I:M
+      15.800  M:I -> J:I -> I:R*
+      20.249  M:M* -> J:I -> I:M
+      24.277  M:I -> J:M* -> I:R*
+      24.584  M:I -> J:M* -> I:M
+  HTJ:
+       5.862  H:I -> T:M -> J:I
+       5.898  H:I -> T:I* -> J:I
+      16.656  H:I -> T:M -> J:M*
+      16.692  H:I -> T:I* -> J:M*
+      19.000  H:M* -> T:M -> J:I
+  HWJ:
+       4.254  H:I -> W:R -> J:M*
+       5.460  H:I -> W:R -> J:I
+       7.199  H:M* -> W:R -> J:M*
+      17.023  H:I -> W:M* -> J:M*
+      18.229  H:I -> W:M* -> J:I
+  IUJ:
+       5.192  I:R* -> U:M -> J:I
+       9.547  I:M -> U:M -> J:I
+       9.587  I:M -> U:I* -> J:I
+      11.187  I:R* -> U:I* -> J:I
+      18.779  I:R* -> U:R* -> J:I
+  NLJ:
+       4.745  N:I -> L:R -> J:M*
+       6.530  N:I -> L:R -> J:I
+       6.864  N:I -> L:M* -> J:I
+       8.492  N:M* -> L:R -> J:M*
+       9.720  N:I -> L:M* -> J:M*
+  VGJ:
+       9.320  V:I -> G:I -> J:I
+      17.832  V:M* -> G:I -> J:I
+      18.310  V:I -> G:M* -> J:I
+      18.692  V:M* -> G:I -> J:M*
+      19.169  V:I -> G:M* -> J:M*
+  COR:
+       6.792  C:I -> O:R -> R:I*
+       6.842  C:I -> O:R -> R:M
+       7.561  C:I -> O:M* -> R:I*
+       7.612  C:I -> O:M* -> R:M
+      15.401  C:I -> O:R -> R:R*
+  ROC:
+       6.792  R:I* -> O:R -> C:I
+       6.842  R:M -> O:R -> C:I
+       7.561  R:I* -> O:M* -> C:I
+       7.612  R:M -> O:M* -> C:I
+      15.401  R:R* -> O:R -> C:I
+  KI:
+       3.556  K:I* -> I:M
+       3.967  K:R* -> I:M
+       8.190  K:M -> I:M
+       9.156  K:R* -> I:R*
+      12.216  K:I* -> I:R*
+  WD:
+       2.397  W:R -> D:M
+       2.447  W:R -> D:I*
+       9.278  W:R -> D:R*
+      14.765  W:M* -> D:I*
+      21.259  W:M* -> D:M
+  DW:
+       2.371  D:M -> W:R
+       2.447  D:I* -> W:R
+       8.978  D:R* -> W:R
+      14.765  D:I* -> W:M*
+      20.959  D:M -> W:M*
+  AS:
+       2.568  A:P -> S:R
+       2.799  A:R* -> S:M*
+       3.724  A:R* -> S:I*
+       4.022  A:M* -> S:I*
+       8.049  A:R* -> S:R
+  SA:
+       2.278  S:R -> A:P
+       2.949  S:M* -> A:R*
+       3.724  S:I* -> A:R*
+       4.022  S:I* -> A:M*
+       8.049  S:R -> A:R*
+  XA:
+       3.449  X:I* -> A:R*
+       3.607  X:M* -> A:R*
+       3.875  X:I* -> A:M*
+       3.895  X:M* -> A:P
+       9.289  X:R -> A:R*
+  AX:
+       3.449  A:R* -> X:I*
+       3.735  A:R* -> X:M*
+       3.875  A:M* -> X:I*
+       3.895  A:P -> X:M*
+       9.589  A:R* -> X:R
+  UJ:
+       3.547  U:M -> J:I
+       4.927  U:I* -> J:M*
+       8.592  U:I* -> J:I
+       9.360  U:M -> J:M*
+      11.649  U:R* -> J:I
+  UH:
+       2.090  U:M -> H:I
+       3.550  U:R* -> H:I
+       4.955  U:R* -> H:M*
+       8.792  U:I* -> H:I
+       9.580  U:M -> H:M*
+  XW:
+       4.396  X:I* -> W:M*
+      10.430  X:R -> W:R
+      11.553  X:I* -> W:R
+      15.146  X:R -> W:M*
+      23.261  X:M* -> W:M*
+  SW:
+       4.386  S:I* -> W:M*
+       8.190  S:R -> W:R
+       9.156  S:M* -> W:M*
+      11.642  S:I* -> W:R
+      12.801  S:M* -> W:R
+  WXF:
+      11.396  W:M* -> X:I* -> F:I
+      11.880  W:R -> X:R -> F:I
+      12.901  W:R -> X:R -> F:M*
+      16.601  W:M* -> X:R -> F:I
+      18.553  W:R -> X:I* -> F:I
+  FXW:
+      11.580  F:I -> X:R -> W:R
+      11.696  F:I -> X:I* -> W:M*
+      12.561  F:M* -> X:R -> W:R
+      16.596  F:I -> X:R -> W:M*
+      18.853  F:I -> X:I* -> W:R
+  QS:
+       2.674  Q:M* -> S:I*
+       2.724  Q:R -> S:I*
+       3.201  Q:R -> S:M*
+       8.690  Q:R -> S:R
+       9.183  Q:M* -> S:M*
+  SQ:
+       2.674  S:I* -> Q:M*
+       2.724  S:I* -> Q:R
+       3.032  S:M* -> Q:R
+       8.390  S:R -> Q:R
+       8.883  S:M* -> Q:M*
+  OK:
+       2.591  O:R -> K:M
+       2.668  O:M* -> K:I*
+       3.184  O:R -> K:I*
+       8.687  O:R -> K:R*
+       9.259  O:M* -> K:M
+  KO:
+       2.618  K:M -> O:R
+       2.668  K:I* -> O:M*
+       3.184  K:I* -> O:R
+       8.387  K:R* -> O:R
+       8.959  K:M -> O:M*
+  K;:
+       2.617  K:M -> ;:P
+       2.667  K:R* -> ;:P
+       3.099  K:M -> ;:R*
+       3.370  K:I* -> ;:R*
+       3.869  K:I* -> ;:P
+  ;K:
+       2.617  ;:P -> K:M
+       2.843  ;:P -> K:R*
+       3.062  ;:R* -> K:M
+       3.370  ;:R* -> K:I*
+       3.869  ;:P -> K:I*
+  AE:
+       2.300  A:P -> E:M
+       2.777  A:R* -> E:M
+       2.784  A:P -> E:R*
+       9.550  A:M* -> E:M
+       9.629  A:R* -> E:R*
+  EA:
+       2.300  E:M -> A:P
+       2.737  E:R* -> A:P
+       2.813  E:M -> A:R*
+       9.850  E:M -> A:M*
+       9.929  E:R* -> A:R*
+  TG:
+       3.722  T:M -> G:I
+       8.938  T:I* -> G:I
+      21.391  T:M -> G:M*
+      27.127  T:I* -> G:M*
+  GT:
+       3.722  G:I -> T:M
+       8.638  G:I -> T:I*
+      21.091  G:M* -> T:M
+      27.127  G:M* -> T:I*
+  YU:
+       2.474  Y:M -> U:R*
+       2.599  Y:I* -> U:M
+       3.376  Y:I* -> U:R*
+       7.604  Y:M -> U:M
+       7.766  Y:I* -> U:I*
+  UY:
+       2.324  U:R* -> Y:M
+       2.599  U:M -> Y:I*
+       3.376  U:R* -> Y:I*
+       7.604  U:M -> Y:M
+       7.766  U:I* -> Y:I*
+  DA:
+       2.617  D:M -> A:P
+       2.999  D:M -> A:R*
+       3.296  D:I* -> A:R*
+       3.347  D:R* -> A:P
+       3.869  D:I* -> A:P
+  AD:
+       2.617  A:P -> D:M
+       2.962  A:R* -> D:M
+       3.296  A:R* -> D:I*
+       3.557  A:P -> D:R*
+       3.869  A:P -> D:I*
+  FS:
+       2.340  F:I -> S:R
+       2.683  F:I -> S:M*
+       3.099  F:M* -> S:R
+       7.497  F:I -> S:I*
+       8.346  F:M* -> S:M*
+  SF:
+       2.340  S:R -> F:I
+       2.683  S:M* -> F:I
+       3.062  S:R -> F:M*
+       7.497  S:I* -> F:I
+       8.346  S:M* -> F:M*
+  OJ:
+       2.150  O:R -> J:I
+       2.705  O:M* -> J:I
+       3.379  O:R -> J:M*
+       9.929  O:M* -> J:M*
+  JO:
+       2.150  J:I -> O:R
+       2.705  J:I -> O:M*
+       3.244  J:M* -> O:R
+       9.629  J:M* -> O:M*
+
+=== hard checks ===
+  [PASS] repeated keys use one finger  26/26
+  [PASS] O->L has L index  MI
+  [PASS] K-J-M = ring/middle/index  RMI
+  [PASS] F-J-M = index/middle/index  IMI
+  [PASS] L->O keeps L index within 0.2  top IM / best L-index 4.577 vs 4.577
+  [PASS] M-J-I first two strokes index  IIM
+  [PASS] H-T-J blocks J middle  IMI
+  [PASS] I-U-J blocks J middle  RMI
+  [PASS] V-G-J forces V/G index  III
+  [PASS] C-O-R endpoints index  IRI
+  [PASS] R-O-C endpoints index  IRI
+  [PASS] L index only with O key (bigram)  all non-O neighbours
+
+=== 2026-10-27 answers ===
+  [PASS] W->D ring/middle (th)  RM
+  [PASS] D->W middle/ring is cheaper than W->D  MR
+  [PASS] A->S pinky/ring (2026-10-29 correction)  PR
+  [PASS] S->A ring/pinky  RP
+  [PASS] X->A index/ring first and cheaper than middle/ring; ring X + pinky A impossible  IR RI
+  [PASS] Q-S = middle/index, S-Q = index/middle  MI IM
+  [PASS] O->K ring/middle, K->O middle/ring  RM MR
+  [PASS] K->; middle/pinky, ;->K pinky/middle  MP PM
+  [PASS] A->E pinky/middle, E->A middle/pinky  PM MP
+  [PASS] defaults first: both keys at rest -> rest fingers (24 pairs)  24/24
+  [PASS] U->J, U->H middle on U  MI MI
+  [PASS] X->W and S->W index/middle  IM IM
+  [PASS] wxf = MII  MII
+  [PASS] fxw does not use the M/R full-span scissor  IRR
+  [PASS] T->G middle/index, G->T index/middle  MI IM
+  [PASS] YU and RT/TR ring-middle / middle-ring on both hands (Y->U MR, U->Y RM, R->T RM, T->R MR)  MR RM RM MR
+  [PASS] D->A middle/pinky, A->D pinky/middle  MP PM
+  [PASS] F->S index/ring, S->F ring/index; O->J ring/index, J->O index/ring  IR RI RI IR
+  [PASS] X->A order: index/ring < middle/ring < index/middle < any pinky fingering; index/pinky never  IR 3.45 MR 3.61 IM 3.88 MP 3.90 IP 14.08
+  [PASS] index + pinky needs >= 1.9 key widths between the keys (pattern)  all such pairs impossible
+  [PASS] 2026-10-29: ;->U PM, U->; MP; T->F IM, F->T MI; ;->L PR, L->; RP  PM MP IM MI PR RP
+  [PASS] ;-U with ring + middle is borderline impossible (>= 5)  9.12 9.12
+  [PASS] A->S PR and the ring/pinky pair is not scissor-penalised away (S->A RP)  PR RP
+  [PASS] isolated key -> your default fingermap (all 30 keys + ;)  all keys
+  [PASS] A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)  symmetric
+probes+checks: 37/37
+
+=== every ruling (legacy + round 8) ===
+  [PASS] bi_OL            O->L want MI got MI (2.58; target 2.58)
+  [PASS] bi_LO            L->O want IM got IM (2.58; target 2.58)
+  [PASS] bi_XQ            X->Q want IM got IM (1.62; target 1.62)
+  [PASS] bi_QX            Q->X want MI got MI (1.62; target 1.62)
+  [PASS] bi_SW            S->W want IM got IM (2.39; target 2.39)
+  [PASS] bi_WS            W->S want MI got MI (2.39; target 2.39)
+  [PASS] bi_XS            X->S want IM got IM (1.59; target 1.59)
+  [PASS] bi_SX            S->X want MI got MI (1.59; target 1.59)
+  [PASS] bi_XW            X->W want IM got IM (2.40; target 2.40)
+  [PASS] bi_WX            W->X want MI got MI (2.40; target 2.40)
+  [PASS] bi_O,            O->, want MI got MI (2.55; target 2.55)
+  [PASS] bi_,O            ,->O want IM got IM (2.55; target 2.55)
+  [PASS] bi_L,            L->, want MI got MI (0.88; target 0.88)
+  [PASS] bi_,L            ,->L want IM got IM (0.88; target 0.88)
+  [PASS] bi_SQ            S->Q want IM got IM (0.67; target 0.67)
+  [PASS] bi_QS            Q->S want MI got MI (0.67; target 0.67)
+  [PASS] bi_WQ            W->Q want MR got MR (0.73; target 0.73)
+  [PASS] bi_QW            Q->W want RM got RM (0.58; target 0.58)
+  [PASS] bi_O.            O->. want RP got RP (0.72; target 0.72)
+  [PASS] bi_.O            .->O want PR got PR (0.75; target 0.75)
+  [PASS] bi_FX            F->X want IR got IR (0.58; target 0.58)
+  [PASS] bi_XF            X->F want RI got RI (0.58; target 0.58)
+  [PASS] bi_UM            U->M want MI got MI (3.66; target 3.66)
+  [PASS] bi_MU            M->U want IM got IM (3.66; target 3.66)
+  [PASS] bi_RV            R->V want MI got MI (1.57; target 1.57)
+  [PASS] bi_VR            V->R want IM got IM (1.57; target 1.57)
+  [PASS] bi_IM            I->M want MI got MI (1.52; target 1.52)
+  [PASS] bi_MI            M->I want IM got IM (1.52; target 1.52)
+  [PASS] bi_WA            W->A want RP got RP (-0.14; target -0.14)
+  [PASS] bi_AW            A->W want PR got PR (0.06; target 0.06)
+  [PASS] tri_WXF          W->X->F want MII got MII (8.40; target 8.40)
+  [PASS] tri_QFB          Q->F->B want PMI got PMI (3.57; target 3.57)
+  [PASS] ord_IM_XW_UM     order 1.52 < 2.40 < 3.66
+  [PASS] ord_RP_dir       order -0.14 < 0.06
+  [PASS] ord_RM_dir       order 0.03 < 0.18
+  [PASS] ord_leap         order 0.28 < 0.34 < 0.50
+  [PASS] tie_MI_sym       tie 0.28 vs 0.28
+  [PASS] ladder           tiers -0.18--0.18 | 0.28-0.29 | 0.31-0.31 | 0.77-0.92 | 2.06-2.59 | 5.51-5.51
+  [PASS] inf_LM,R         ('L', 'M', ',', 'R') pair cost 11.43 (need >= 8.0)
+  [PASS] inf_OM,R         ('O', 'M', ',', 'R') pair cost 10.79 (need >= 8.0)
+  [PASS] inf_SRWM         ('S', 'R', 'W', 'M') pair cost 10.91 (need >= 8.0)
+  [PASS] inf_SMWR         ('S', 'M', 'W', 'R') pair cost 10.41 (need >= 8.0)
+  [PASS] inf_XRSM         ('X', 'R', 'S', 'M') pair cost 11.39 (need >= 8.0)
+  [PASS] inf_XMSR         ('X', 'M', 'S', 'R') pair cost 8.00 (need >= 8.0)
+  [PASS] inf_XIFM         ('X', 'I', 'F', 'M') pair cost 12.00 (need >= 8.0)
+  [PASS] inf_XRQP         ('X', 'R', 'Q', 'P') pair cost 12.00 (need >= 8.0)
+  [PASS] inf_QPXR         ('Q', 'P', 'X', 'R') pair cost 12.00 (need >= 8.0)
+  [PASS] inf_XIWR         ('X', 'I', 'W', 'R') pair cost 9.02 (need >= 8.0)
+  [PASS] inf_ORcM         ('O', 'R', ',', 'M') pair cost 12.00 (need >= 8.0)
+  [PASS] feas_OMLR        ('O', 'M', 'L', 'R') pair cost 1.82 (need < 7)
+  [PASS] feas_UMMI        ('U', 'M', 'M', 'I') pair cost 3.22 (need < 7)
+  [PASS] feas_IMKI        ('I', 'M', 'K', 'I') pair cost 1.26 (need < 7)
+  [PASS] feas_WRAP        ('W', 'R', 'A', 'P') pair cost -0.14 (need < 7)
+  [PASS] feas_OR.P        ('O', 'R', '.', 'P') pair cost 0.26 (need < 7)
+  [PASS] key_Q            Q: want R got R (0.20; default 0.20)
+  [PASS] key_W            W: want R got R (0.00; default 0.00)
+  [PASS] key_E            E: want M got M (0.00; default 0.00)
+  [PASS] key_R            R: want M got M (0.20; default 0.20)
+  [PASS] key_T            T: want M got M (0.40; default 0.40)
+  [PASS] key_Y            Y: want M got M (0.40; default 0.40)
+  [PASS] key_U            U: want M got M (0.20; default 0.20)
+  [PASS] key_I            I: want M got M (0.00; default 0.00)
+  [PASS] key_O            O: want R got R (0.00; default 0.00)
+  [PASS] key_P            P: want R got R (0.20; default 0.20)
+  [PASS] key_A            A: want P got P (0.00; default 0.00)
+  [PASS] key_S            S: want R got R (0.19; default 0.19)
+  [PASS] key_D            D: want M got M (0.19; default 0.19)
+  [PASS] key_F            F: want I got I (0.00; default 0.00)
+  [PASS] key_G            G: want I got I (0.20; default 0.20)
+  [PASS] key_H            H: want I got I (0.20; default 0.20)
+  [PASS] key_J            J: want I got I (0.00; default 0.00)
+  [PASS] key_K            K: want M got M (0.19; default 0.19)
+  [PASS] key_L            L: want R got R (0.19; default 0.19)
+  [PASS] key_;            ;: want P got P (0.00; default 0.00)
+  [PASS] key_Z            Z: want P got P (0.24; default 0.24)
+  [PASS] key_X            X: want R got R (0.43; default 0.43)
+  [PASS] key_C            C: want I got I (0.24; default 0.24)
+  [PASS] key_V            V: want I got I (0.24; default 0.24)
+  [PASS] key_B            B: want I got I (0.44; default 0.44)
+  [PASS] key_N            N: want I got I (0.24; default 0.24)
+  [PASS] key_M            M: want I got I (0.24; default 0.24)
+  [PASS] key_,            ,: want R got R (0.33; default 0.33)
+  [PASS] key_.            .: want R got R (0.43; default 0.43)
+  [PASS] key_/            /: want P got P (0.24; default 0.24)
+  [PASS] r8_KJM           K->J->M want RMI got RMI (6.86; target 6.86)
+  [PASS] r8_FJM           F->J->M want IMI got IMI (2.80; target 2.80)
+  [PASS] r8_MJI           M-J-I legal 6.62 vs best-other 17.25
+  [PASS] r8_HTJ           H-T-J legal 2.86 vs best-other 13.66
+  [PASS] r8_IUJ           I-U-J legal 2.19 vs best-other 17.08
+  [PASS] r8_VGJ           V-G-J legal 6.32 vs best-other 14.83
+  [PASS] r8_COR           C-O-R legal 3.79 vs best-other 3.84
+  [PASS] r8_ROC           R-O-C legal 3.79 vs best-other 3.84
+  [PASS] r8_LO            L-O legal 2.58 vs best-other 2.63
+  [PASS] r8_CRrev_a       ('C', 'I', 'R', 'M') pair cost 3.00 (want 3.0-7.0)
+  [PASS] r8_CRrev_b       ('R', 'M', 'C', 'I') pair cost 3.00 (want 3.0-7.0)
+  [PASS] r9_WD_RM         W->D want RM got RM (0.40; target 0.40)
+  [PASS] r9_DW_MR         D->W want MR got MR (0.37; target 0.37)
+  [PASS] r9_ord_WD        order 0.37 < 0.40
+  [PASS] r9_inf_XRAP      ('X', 'R', 'A', 'P') pair cost 10.20 (need >= 8.0)
+  [PASS] r9_inf_APXR      ('A', 'P', 'X', 'R') pair cost 10.80 (need >= 8.0)
+  [PASS] r9_UJ            U->J want MI got MI (1.55; target 1.55)
+  [PASS] r9_JU            J->U want IM got IM (1.55; target 1.55)
+  [PASS] r9_UH            U->H want MI got MI (0.09; target 0.09)
+  [PASS] r9_HU            H->U want IM got IM (0.09; target 0.09)
+  [PASS] r9_XA_IR         X->A want IR got IR (1.45; target 1.45)
+  [PASS] r9_AX_RI         A->X want RI got RI (1.45; target 1.45)
+  [PASS] r9_ord_XA        order 1.45 < 1.61
+  [PASS] r9_OK_RM         O->K want RM got RM (0.59; target 0.59)
+  [PASS] r9_KO_MR         K->O want MR got MR (0.62; target 0.62)
+  [PASS] r9_K;_MP         K->; want MP got MP (0.62; target 0.62)
+  [PASS] r9_;K_PM         ;->K want PM got PM (0.62; target 0.62)
+  [PASS] r9_AE_PM         A->E want PM got PM (0.30; target 0.30)
+  [PASS] r9_EA_MP         E->A want MP got MP (0.30; target 0.30)
+  [PASS] rest_AW          A->W want PR got PR (0.06; target 0.06)
+  [PASS] rest_AE          A->E want PM got PM (0.30; target 0.30)
+  [PASS] rest_AF          A->F want PI got PI (0.50; target 0.50)
+  [PASS] rest_WA          W->A want RP got RP (-0.14; target -0.14)
+  [PASS] rest_WE          W->E want RM got RM (-0.35; target -0.35)
+  [PASS] rest_WF          W->F want RI got RI (0.15; target 0.15)
+  [PASS] rest_EA          E->A want MP got MP (0.30; target 0.30)
+  [PASS] rest_EW          E->W want MR got MR (-0.20; target -0.20)
+  [PASS] rest_EF          E->F want MI got MI (-0.18; target -0.18)
+  [PASS] rest_FA          F->A want IP got IP (0.50; target 0.50)
+  [PASS] rest_FW          F->W want IR got IR (0.15; target 0.15)
+  [PASS] rest_FE          F->E want IM got IM (-0.18; target -0.18)
+  [PASS] rest_;O          ;->O want PR got PR (0.04; target 0.04)
+  [PASS] rest_;I          ;->I want PM got PM (0.30; target 0.30)
+  [PASS] rest_;J          ;->J want PI got PI (0.50; target 0.50)
+  [PASS] rest_O;          O->; want RP got RP (-0.09; target -0.09)
+  [PASS] rest_OI          O->I want RM got RM (-0.35; target -0.35)
+  [PASS] rest_OJ          O->J want RI got RI (0.15; target 0.15)
+  [PASS] rest_I;          I->; want MP got MP (0.30; target 0.30)
+  [PASS] rest_IO          I->O want MR got MR (-0.20; target -0.20)
+  [PASS] rest_IJ          I->J want MI got MI (-0.27; target -0.27)
+  [PASS] rest_J;          J->; want IP got IP (0.50; target 0.50)
+  [PASS] rest_JO          J->O want IR got IR (0.15; target 0.15)
+  [PASS] rest_JI          J->I want IM got IM (-0.27; target -0.27)
+  [PASS] r10_inf_XIAP     ('X', 'I', 'A', 'P') pair cost 11.54 (need >= 8.0)
+  [PASS] r10_inf_APXI     ('A', 'P', 'X', 'I') pair cost 11.54 (need >= 8.0)
+  [PASS] r10_ord_XA_IM    order 1.45 < 1.88
+  [PASS] r10_XA_IM_top2   order 1.88 < 1.90
+  [PASS] r10_XA_MR_top2   order 1.61 < 1.90
+  [PASS] r10_TG_MI        T->G want MI got MI (1.72; target 1.72)
+  [PASS] r10_GT_IM        G->T want IM got IM (1.72; target 1.72)
+  [PASS] r11_ord_XA_MR_IM order 1.61 < 1.88
+  [PASS] r11_DA_MP        D->A want MP got MP (0.62; target 0.62)
+  [PASS] r11_AD_PM        A->D want PM got PM (0.62; target 0.62)
+  [PASS] r11_ord_DA       order 0.62 < 1.87
+  [PASS] r11_FS_IR        F->S want IR got IR (0.34; target 0.34)
+  [PASS] r11_SF_RI        S->F want RI got RI (0.34; target 0.34)
+  [PASS] r11_OJ_RI        O->J want RI got RI (0.15; target 0.15)
+  [PASS] r11_JO_IR        J->O want IR got IR (0.15; target 0.15)
+  [PASS] r11_RT_RM        R->T want RM got RM (0.32; target 0.32)
+  [PASS] r11_TR_MR        T->R want MR got MR (0.47; target 0.47)
+  [PASS] r12_YU_MR        Y->U want MR got MR (0.47; target 0.47)
+  [PASS] r12_UY_RM        U->Y want RM got RM (0.32; target 0.32)
+  [PASS] r13_AS_PR        A->S want PR got PR (0.57; target 0.57)
+  [PASS] r13_SA_RP        S->A want RP got RP (0.28; target 0.28)
+  [PASS] r13_;U_PM        ;->U want PM got PM (0.50; target 0.50)
+  [PASS] r13_U;_MP        U->; want MP got MP (0.50; target 0.50)
+  [PASS] r13_band_;RUM    (';', 'R', 'U', 'M') pair cost 5.96 (want 5.0-12.0)
+  [PASS] r13_band_URM;    ('U', 'M', ';', 'R') pair cost 5.96 (want 5.0-12.0)
+  [PASS] r13_TF_IM        T->F want IM got IM (2.87; target 2.87)
+  [PASS] r13_FT_MI        F->T want MI got MI (2.87; target 2.87)
+  [PASS] r13_;L_PR        ;->L want PR got PR (0.57; target 0.57)
+  [PASS] r13_L;_RP        L->; want RP got RP (0.28; target 0.28)
+rulings: 166/166
+anchor (not a ruling): 71/204 default-finger pairs more than 0.25 away from the shipped price
