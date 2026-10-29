@@ -1,8 +1,8 @@
 """Loss / evaluation of a comfort_geo.Model against rulings.RULINGS."""
 import os
-from pathlib import Path
 import numpy as np
 from . import comfort as cg
+from . import paths
 from .fingers import KI, FI, FINGERS, NF
 from . import rulings as RL
 from . import gates as GT
@@ -158,7 +158,7 @@ _AN = None
 def anchor_arrays():
     global _AN
     if _AN is None:
-        rows = _json.load(open(Path(__file__).resolve().parents[1] / "config" / "model" / "anchor_pairs.json"))
+        rows = _json.load(open(paths.MODEL_DIR / "anchor_pairs.json"))
         # default fingers the shipped model itself does not follow (see rulings._NOT_HONOURED)
         rows = [r for r in rows if not ({r[0], r[2]} & set("RTYX."))]
         # ring on the bottom row + pinky on the home row: impossible by the user's 2026-10-27 ruling

@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 
 from utils import comfort as cg
+from utils import paths
 from utils import scorer as SG
 from utils.search import LETTERS, Evaluator, dead_of, slots_of, quench, perturb
 DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
@@ -55,6 +56,8 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--layout", action="append", default=[],
                     help="additional starting layout (repeatable)")
+    ap.add_argument("--name", default=None,
+                    help="layout name used to derive default output paths")
     ap.add_argument("--primary-corpus", action="append", default=[])
     ap.add_argument("--secondary-corpus", action="append", default=[])
     ap.add_argument("--primary-sacrifice", type=float, default=0.00023,
@@ -64,17 +67,21 @@ def main():
     ap.add_argument("--ils", type=int, default=6)
     ap.add_argument("--seed", type=int)
     ap.add_argument("--time-budget", type=parse_budget)
-    ap.add_argument("--out", default="shirolyzer/results/compute.txt")
-    ap.add_argument("--out-json", default="shirolyzer/results/compute.json")
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
+    out_path = Path(args.out) if args.out else paths.result_path("compute", args.name)
+    out_json = (Path(args.out_json) if args.out_json
+                else paths.result_path("compute", args.name, suffix=".json"))
 
     started = time.time()
     if args.seed is None:
         args.seed = random.SystemRandom().randint(0, 2**31 - 1)
     print(f"seed={args.seed}", flush=True)
     rng = random.Random(args.seed)
-    primary_paths = args.primary_corpus or ["corpora/shai/parsed/"]
-    secondary_paths = args.secondary_corpus or ["corpora/spanish/parsed/"]
+    primary_paths = args.primary_corpus or [str(paths.CORPUS_ROOT / "shai" / "parsed")]
+    secondary_paths = (args.secondary_corpus
+                       or [str(paths.CORPUS_ROOT / "spanish" / "parsed")])
     primary_corpora = [SG.Corpus.load(p) for p in primary_paths]
     primary_corpus = primary_corpora[0]
     if len(primary_corpora) > 1:
@@ -219,9 +226,10 @@ def main():
         sec = r["secondary"]
         out_lines.append(f"{r['start']:24s} {r['primary']:10.6f} "
                          f"{(sec if sec is not None else float('nan')):10.6f}  {r['layout']}")
-    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.out).write_text("\n".join(out_lines) + "\n")
-    Path(args.out_json).write_text(json.dumps({
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("\n".join(out_lines) + "\n")
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps({
         "seed": args.seed,
         "primary_corpora": primary_paths,
         "secondary_corpora": secondary_paths,
@@ -234,7 +242,7 @@ def main():
     }, indent=1) + "\n")
     print(f"\nbest_primary: {best_primary['layout']} ({best_primary['primary']:.6f})")
     print(f"selected: {final['layout']}")
-    print(f"wrote {args.out} and {args.out_json} ({time.time() - started:.0f}s)")
+    print(f"wrote {out_path} and {out_json} ({time.time() - started:.0f}s)")
 
 
 if __name__ == "__main__":

@@ -2,6 +2,7 @@
 """Score reference layouts against a corpus with the calibrated model."""
 import argparse
 
+from utils import paths
 from utils import scorer as SG
 from utils.ansi import KEYS, KI
 
@@ -38,7 +39,7 @@ def score(layout, corpus, tables=None):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--primary-corpus", default="corpora/shai/parsed/")
+    ap.add_argument("--primary-corpus", default=str(paths.CORPUS_ROOT / "shai" / "parsed"))
     ap.add_argument("--refs", default=None,
                     help="TOML reference file (default: built-in list until K10)")
     args = ap.parse_args()

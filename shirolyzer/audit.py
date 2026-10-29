@@ -2,10 +2,10 @@
 """Questionnaire and ruling audit for the pattern model.
 
 usage: python3 shirolyzer/audit.py [--config A:all] [--out PATH]"""
-import argparse, sys, os, itertools
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import argparse, json
+from pathlib import Path
 import numpy as np
-from utils import comfort as cg, gates as GT, fitlib as FL, rulings as RL
+from utils import comfort as cg, gates as GT, fitlib as FL, paths, rulings as RL
 from utils import scorer as SG
 from utils.ansi import KEYS, KI, FINGERS, FI
 from utils.fingers import NF, DEFAULT_FINGER
@@ -14,6 +14,7 @@ ap = argparse.ArgumentParser(description=__doc__)
 ap.add_argument("config", nargs="?", default=None)
 ap.add_argument("--config", dest="cfg", default="A:all")
 ap.add_argument("--out", default=None)
+ap.add_argument("--out-json", default=None)
 args = ap.parse_args()
 cfgname = args.config or args.cfg
 model, gname = SG.load_model(cfgname)
@@ -133,6 +134,15 @@ for r, ok, l, txt in det:
     out(f"  [{'PASS' if ok else 'FAIL'}] {r.id:16s} {txt}")
 out(f"rulings: {sum(d[1] for d in det)}/{len(det)}")
 for d in anch: out(f"anchor (not a ruling): {d[3]}")
-out_path = args.out or os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", f"audit_{cfgname.replace(':','_')}.txt")
-os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
-open(out_path, "w").write("\n".join(lines))
+out_path = Path(args.out) if args.out else paths.result_path("audit", cfgname)
+out_json = (Path(args.out_json) if args.out_json
+            else paths.result_path("audit", cfgname, suffix=".json"))
+out_path.parent.mkdir(parents=True, exist_ok=True)
+out_json.parent.mkdir(parents=True, exist_ok=True)
+out_path.write_text("\n".join(lines) + "\n")
+out_json.write_text(json.dumps({
+    "config": cfgname,
+    "probe_checks": {"passed": sum(checks), "total": len(checks)},
+    "rulings": {"passed": sum(d[1] for d in det), "total": len(det)},
+    "anchors": [d[3] for d in anch],
+}, indent=1) + "\n")

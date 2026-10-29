@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from utils import comfort as cg
+from utils import paths
 from utils import scorer as SG
 from utils.ansi import KEYS, KI, H, CX, FI, ROWI
 from utils.fingers import DEFAULT_FINGER
@@ -201,14 +202,20 @@ def fingering_guide(layout, corpus, tables):
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--layout", default=DEFAULT_LAYOUT)
+    ap.add_argument("--name", default=None,
+                    help="layout name used to derive default output paths")
     ap.add_argument("--primary-corpus", action="append", default=[])
     ap.add_argument("--secondary-corpus", action="append", default=[])
-    ap.add_argument("--out", default="shirolyzer/results/analysis.txt")
-    ap.add_argument("--out-json", default="shirolyzer/results/analysis.json")
+    ap.add_argument("--out", default=None)
+    ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
     if len(args.layout) != 30:
         raise SystemExit("layout must be 30 characters")
-    primary = args.primary_corpus[0] if args.primary_corpus else "corpora/shai/parsed/"
+    out_path = Path(args.out) if args.out else paths.result_path("analysis", args.name)
+    out_json = (Path(args.out_json) if args.out_json
+                else paths.result_path("analysis", args.name, suffix=".json"))
+    primary = (args.primary_corpus[0] if args.primary_corpus
+               else str(paths.CORPUS_ROOT / "shai" / "parsed"))
     corpus = SG.Corpus.load(primary)
     tables = SG.get_tables()
     cats, worst, scissors = category_report(args.layout, corpus, tables)
@@ -258,9 +265,10 @@ def main():
         for f, tops in g["alt_contexts"].items():
             out("      alt %s: %s" % (f, ", ".join(f"{tg}:{n}" for tg, n in tops[:5])))
 
-    Path(args.out).parent.mkdir(parents=True, exist_ok=True)
-    Path(args.out).write_text("\n".join(lines) + "\n")
-    Path(args.out_json).write_text(json.dumps({
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    out_path.write_text("\n".join(lines) + "\n")
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(json.dumps({
         "layout": args.layout,
         "primary_score": primary_score,
         "primary_corpus": primary,
@@ -271,7 +279,7 @@ def main():
         "usage": use,
         "guide": guide,
     }, indent=1) + "\n")
-    print(f"\nwrote {args.out} and {args.out_json}")
+    print(f"\nwrote {out_path} and {out_json}")
 
 
 if __name__ == "__main__":

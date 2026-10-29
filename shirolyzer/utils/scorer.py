@@ -16,19 +16,19 @@ Config: SHIRO_GEO_CFG = "A:all" (only configuration: round-8 gates, W/X contexts
 """
 import json
 import os
-from pathlib import Path
 
 import numpy as np
 
 from . import comfort as cg
 from . import gates as GT
+from . import paths
 from .ansi import KEYS
 
 N, SPACE_ID, NK = 31, 30, 30
 SPACE = "@space"
 FID = {"P": 0, "R": 1, "M": 2, "I": 3, "T": 4}
 SPACE_EFFORT, PRESS = 0.6, 1.0
-MODEL_DIR = Path(__file__).resolve().parents[1] / "config" / "model"
+MODEL_DIR = paths.MODEL_DIR
 CONFIGS = {"A:all": ("A", "all", "theta_geo_A_all.json")}
 
 
