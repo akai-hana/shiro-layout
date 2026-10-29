@@ -1,11 +1,12 @@
 """Fit pattern parameters to all active rulings (gates as explicit +12 context table)."""
-import sys, os, json, time
+import sys, time
 
 import numpy as np
-from scipy.optimize import minimize, differential_evolution
+from scipy.optimize import minimize
 
 from ..utils import comfort as cg, fitlib as FL
 from . import fit2
+from .common import input_theta, output_theta
 
 REG = 0.02
 disallow = sys.argv[1] == "A"; gates = sys.argv[2]; tag = sys.argv[3]
@@ -21,7 +22,9 @@ for n, v in FREEZE.items():
 for n in ("e_lat2", "e_unl", "e_dn2", "e_ov", "e_nd", "e_nd_rest", "e_ndgap", "shift_disc", "nd_waive", "shift_thr"):
     hi[cg.PNAMES.index(n)] = min(hi[cg.PNAMES.index(n)], 1.0)
 f = lambda x: FL.total_loss(np.clip(x, lo, hi), cfg, reg=REG)
-th0 = fit2.load_theta(f"theta3_{tag}.json") if os.path.exists(f"theta3_{tag}.json") else fit2.load_theta("theta_A.json" if disallow else "theta_B.json")
+resume = output_theta(f"theta3_{tag}.json")
+th0 = fit2.load_theta(resume) if resume.exists() else fit2.load_theta(
+    input_theta("theta_A.json" if disallow else "theta_B.json"))
 th0 = np.clip(th0, lo, hi)
 best, bl = th0, f(th0)
 print("start", bl, flush=True)
@@ -34,7 +37,7 @@ for it in range(6):
         best, bl = np.clip(r.x, lo, hi), r.fun
     l, det = FL.total_loss(best, cfg, reg=REG, return_detail=True)
     print(f"it {it} loss {bl:.4f} fails {sum(not d[1] for d in det)}/{len(det)}  t={time.time()-t0:.0f}s", flush=True)
-    fit2.save_theta(best, f"theta3_{tag}.json")
+    fit2.save_theta(best, output_theta(f"theta3_{tag}.json"))
     if all(d[1] for d in det) and it >= 1:
         break
 for r_, ok, lo_, txt in det:

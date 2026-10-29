@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify reference scores, audit rulings, and the shipped-model baseline."""
+"""Verify reference scores and audit rulings against the stored baseline."""
 import argparse
 import json
 import subprocess
@@ -17,7 +17,6 @@ from ..utils.ansi import KEYS, KI
 MODEL = "theta_geo_A_all.json"
 BASELINE_FILE = paths.CONFIG_DIR / "score_baseline.json"
 AUDIT_CONFIG = "A:all"
-OLD_BASE = paths.SHIROLYZER_ROOT / "dev" / "oldbase.py"
 
 
 def reference_costs(layout, corpus, tables=None):
@@ -63,21 +62,12 @@ def audit_counts():
     return data["rulings"]
 
 
-def oldbase_counts():
-    with tempfile.TemporaryDirectory() as tmp:
-        subprocess.run([sys.executable, str(OLD_BASE)], cwd=tmp, check=True,
-                       stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
-        data = json.loads((Path(tmp) / "oldbase.json").read_text())
-    return {"passed": sum(bool(v[0]) for v in data.values()), "total": len(data)}
-
-
 def collect(corpus_path):
     corpus = SG.Corpus.load(corpus_path)
     tables = SG.get_tables()
     return {
         "model": MODEL,
         "audit": {"config": AUDIT_CONFIG, **audit_counts()},
-        "oldbase": oldbase_counts(),
         "references": {
             entry["name"]: reference_costs(entry["layout"], corpus, tables)
             for entry in R.load_references()
@@ -87,10 +77,10 @@ def collect(corpus_path):
 
 def compare(expected, actual, tolerance):
     errors = []
-    for key in ("audit", "oldbase"):
-        for field in ("passed", "total"):
-            if expected[key][field] != actual[key][field]:
-                errors.append(f"{key}.{field}: {expected[key][field]} != {actual[key][field]}")
+    for field in ("passed", "total"):
+        if expected["audit"][field] != actual["audit"][field]:
+            errors.append(
+                f"audit.{field}: {expected['audit'][field]} != {actual['audit'][field]}")
     if expected["model"] != actual["model"]:
         errors.append(f"model: {expected['model']} != {actual['model']}")
     expected_refs = expected.get("references", {})
@@ -131,8 +121,7 @@ def main(argv=None):
             print(f"FAIL {error}")
         raise SystemExit(1)
     print("baseline OK: audit "
-          f"{actual['audit']['passed']}/{actual['audit']['total']}, oldbase "
-          f"{actual['oldbase']['passed']}/{actual['oldbase']['total']}, "
+          f"{actual['audit']['passed']}/{actual['audit']['total']}, "
           f"{len(actual['references'])} references")
 
 

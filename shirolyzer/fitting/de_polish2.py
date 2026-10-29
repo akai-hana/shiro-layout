@@ -5,6 +5,7 @@ from scipy.optimize import differential_evolution
 
 from ..utils import comfort as cg, fitlib as FL
 from . import fit2
+from .common import input_theta, output_theta
 
 FREEZE = {"e_dn": 0.14, "e_up_I": 0.08, "e_up_P": 1.0, "e_lat": 0.20, "r_MI": -0.275, "r_RM_in": -0.35, "r_RM_out": -0.20,
           "r_PR_out": -0.14, "r_PR_in": 0.06, "leap2": 0.15, "leap3": 0.35, "leap_P": 0.15}
@@ -15,7 +16,7 @@ for n, v in FREEZE.items():
 for n in ("e_lat2", "e_unl", "e_dn2", "e_ov", "e_nd", "e_nd_rest", "e_ndgap", "shift_disc", "nd_waive", "shift_thr"):
     hi[cg.PNAMES.index(n)] = min(hi[cg.PNAMES.index(n)], 1.0)
 tag = sys.argv[1] if len(sys.argv) > 1 else "Aall"
-TH0 = np.clip(fit2.load_theta(f"theta3_{tag}.json"), lo, hi)
+TH0 = np.clip(fit2.load_theta(input_theta(f"theta3_{tag}.json")), lo, hi)
 FREE = [i for i in range(len(lo)) if hi[i] > lo[i]]
 
 
@@ -39,7 +40,7 @@ def main():
     _, det = FL.total_loss(t, CFG, reg=0.02, return_detail=True)
     print("DE", res.fun, "fails", sum(not d[1] for d in det), "t", round(time.time() - t0), flush=True)
     if res.fun < best:
-        fit2.save_theta(t, f"theta3_{tag}.json"); print("saved", flush=True)
+        fit2.save_theta(t, output_theta(f"theta3_{tag}.json")); print("saved", flush=True)
     for r_, ok, l_, txt in det:
         if not ok:
             print("FAIL", r_.id, txt)

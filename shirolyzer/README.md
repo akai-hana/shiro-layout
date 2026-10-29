@@ -76,8 +76,7 @@ for the way valid layouts are reported.
 | `shirolyzer/utils/` | Runtime model, corpus, search, and output modules |
 | `shirolyzer/tests/` | Unit and regression tests |
 | `shirolyzer/results/` | Local run outputs plus committed result reports |
-| `shirolyzer/dev/` | Fitting and shipped-model baseline development tools |
-| `shirolyzer/legacy/` | Archived pre-rewrite code; not imported at runtime |
+| `shirolyzer/fitting/` | Model-refitting development tools; not used at runtime |
 | `xkb/` | Generated symbols and the installer |
 
 `shirolyzer/results/` is gitignored except for explicitly added reports and

@@ -1,5 +1,5 @@
 """Cutting-plane fit: model must satisfy every ruling + every round-8 gate instance."""
-import sys, os, json, time, pickle
+import sys, json, time, pickle
 
 import numpy as np
 from scipy.optimize import minimize, differential_evolution
@@ -8,6 +8,7 @@ from ..utils import comfort as cg
 from ..utils import fitlib as FL
 from ..utils import gates as G
 from ..utils.gateset import GateSet
+from .common import input_theta, output_theta, work_dir
 
 REG = 0.02
 
@@ -62,11 +63,13 @@ if __name__ == "__main__":
     gate_name = sys.argv[2]            # all | no_WX | none
     tag = sys.argv[3]
     cfg = FL.Cfg(disallow=disallow, gates="all" if gate_name == "geo" else "no_WX")
-    th0 = load_theta("theta_A.json" if disallow else "theta_B.json")
+    th0 = load_theta(input_theta("theta_A.json" if disallow else "theta_B.json"))
     gs0 = None
-    if os.path.exists(f"theta_{tag}.json"):
-        th0 = load_theta(f"theta_{tag}.json"); gs0 = pickle.load(open(f"theta_{tag}_gs.pkl", "rb"))
+    resume = output_theta(f"theta_{tag}.json")
+    if resume.exists():
+        th0 = load_theta(resume); gs0 = pickle.load(open(output_theta(f"theta_{tag}_gs.pkl"), "rb"))
         print("resumed", len(gs0), flush=True)
     t = time.time()
-    th, gs = run(cfg, gate_name, th0, out=f"theta_{tag}", log=lambda s: print(s, flush=True), gs=gs0, rounds=30)
+    th, gs = run(cfg, gate_name, th0, out=work_dir() / f"theta_{tag}",
+                 log=lambda s: print(s, flush=True), gs=gs0, rounds=30)
     print("done", time.time() - t)

@@ -4,9 +4,10 @@ import numpy as np
 
 from ..utils import fitlib as FL, comfort as cg, gates as GT
 from . import fit2
+from .common import input_theta
 from collections import Counter
 tag, dis, gname = sys.argv[1], sys.argv[2]=="A", sys.argv[3]
-th = fit2.load_theta(f"theta3_{tag}.json"); cfg = FL.Cfg(dis, gname)
+th = fit2.load_theta(input_theta(f"theta3_{tag}.json")); cfg = FL.Cfg(dis, gname)
 l, det = FL.total_loss(th, cfg, return_detail=True)
 print("WITH explicit gate table :", sum(d[1] for d in det), "/", len(det))
 GT.set_explicit = lambda m: None; GT.EXPLICIT_MODE = "none"

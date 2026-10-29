@@ -20,8 +20,8 @@ XKB symbols and installer needed to try a generated arrangement on X11.
 The primary entry points are `shirolyzer/compute.py` and
 `shirolyzer/analyze.py`; the other commands are available through
 `python3 -m shirolyzer`.  Implementations live under `shirolyzer/commands/`.
-Archived pre-rewrite code remains under `shirolyzer/legacy/` for reference and
-is not used at runtime.
+Model-refitting tools live under `shirolyzer/fitting/` and are not used at
+runtime.
 
 ## Quick start
 
@@ -107,8 +107,7 @@ shirolyzer/commands/      Implementations of the CLI subcommands
 shirolyzer/config/        YAML config, references, theta, score baseline
 shirolyzer/tests/         Unit and regression tests
 shirolyzer/results/       Local outputs and committed result reports
-shirolyzer/dev/           Fitting and baseline development tools
-shirolyzer/legacy/        Archived pre-rewrite code
+shirolyzer/fitting/       Model-refitting development tools
 xkb/                      Generated symbols and installer
 research/                 Historical investigation reports
 ```

@@ -5,10 +5,6 @@
     "passed": 166,
     "total": 166
   },
-  "oldbase": {
-    "passed": 123,
-    "total": 168
-  },
   "references": {
     "qwerty": {
       "bigram": 2.4783997677093774,
