@@ -1,15 +1,18 @@
 # Shirolyzer Rewrite — Tasklist and Implementation Plan
 
 Source specification: `REWRITE_SPEC_LIST.txt` (must remain unchanged).
-Status: planning complete; round-8 geo code installed; implementation not started.
-Last planned: 2026-10-29.
+Status: rewrite complete; `corpus`, `core`, `config`, `xkb`, and `calibration` are merged to
+`main`; `docs` is the final branch.
+Last updated: 2026-10-29.
 
-Baseline as of 2026-10-29: `shirolyzer/` now contains the newer pattern-based round-8 geo
-analyzer (`comfort_geo.py`, `scorer_geo.py`, `gates.py`, `rulings.py`, `fitlib.py`,
+Baseline at rewrite start (2026-10-29): `shirolyzer/` contained the newer pattern-based round-8
+geo analyzer (`comfort_geo.py`, `scorer_geo.py`, `gates.py`, `rulings.py`, `fitlib.py`,
 `audit_geo.py`, fitted theta JSONs). The previous shipped round-8 modules were archived under
-`shirolyzer/legacy/round8/` for baseline comparison. `audit_geo.py A:all` passes 166/166 enforced
-rulings; `oldbase.py` still scores the shipped model at 123/168. The rewrite now targets the new
-geo model, not the archived scorer2 implementation.
+`shirolyzer/legacy/round8/` for baseline comparison. `audit_geo.py A:all` passed 166/166 enforced
+rulings; `oldbase.py` scored the shipped model at 123/168. The rewrite targeted that new geo
+model, not the archived scorer2 implementation. Final active code lives in
+`shirolyzer/{analyze,compute,audit,compare,xkb}.py`, `shirolyzer/utils/`, and
+`shirolyzer/config/`.
 
 This file is the implementation plan and progress tracker for the rewrite. It also records the
 decisions made during planning so the implementation does not have to rediscover them.
@@ -246,7 +249,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
 
 ### Branch `core`
 
-- [ ] **K1 — Establish the import root and package skeleton**
+- [x] **K1 — Establish the import root and package skeleton**
   - Issue: #9
   - Commit: `core: add package skeleton and dependencies`
   - Create `shirolyzer/utils/__init__.py`, `shirolyzer/utils/ansi/__init__.py`, and the
@@ -257,7 +260,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
     `shirolyzer/` as the import root (`from utils...`). Do not add wrapper scripts.
   - Done when every script can import its local modules without an absolute `sys.path` insert.
 
-- [ ] **K2 — Establish the generic analyzer entry points**
+- [x] **K2 — Establish the generic analyzer entry points**
   - Issue: #10
   - Commit: `core: establish generic analyzer entry points`
   - The old `analyze_shai.py`, `anneal_shai.py`, and `audit_shai.py` are archived in
@@ -274,7 +277,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when `analyze.py`, `compute.py`, and `audit.py` run from `shirolyzer/` and no active
     entry point uses the old `_shai`/`_geo` filenames.
 
-- [ ] **K3 — Move shared modules under `utils/`**
+- [x] **K3 — Move shared modules under `utils/`**
   - Issue: #11
   - Commit: `core: move shared analysis modules under utils`
   - Move `comfort_geo.py` → `shirolyzer/utils/comfort.py`, `gates.py` →
@@ -293,7 +296,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when all active scripts import the moved modules and no active file imports top-level
     `comfort_geo`, `gates`, `gateset`, `rulings`, or `fitlib`.
 
-- [ ] **K4 — Consolidate the scorer and search modules**
+- [x] **K4 — Consolidate the scorer and search modules**
   - Issue: #12
   - Commit: `core: consolidate scorer and search modules`
   - Move `scorer_geo.py` → `shirolyzer/utils/scorer.py`, keeping the `get_tables`, `Corpus`,
@@ -305,7 +308,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Update every active import of `scorer_geo`, `scorer2`, and `search2`.
   - Done when active code contains no `scorer_geo`, `scorer2`, or `search2` references.
 
-- [ ] **K5 — Package the ANSI geometry by physical layout**
+- [x] **K5 — Package the ANSI geometry by physical layout**
   - Issue: #13
   - Commit: `core: package ansi geometry under utils/ansi`
   - Extract the key geometry, stagger, hand, row, rest-posture, and displacement calculations
@@ -318,7 +321,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Update imports in `comfort.py`, `scorer.py`, `search.py`, and `audit.py`.
   - Done when `physical_layout: ansi` resolves through the registry and all geometry imports work.
 
-- [ ] **K6 — Remove absolute paths and result-path hard-coding**
+- [x] **K6 — Remove absolute paths and result-path hard-coding**
   - Issue: #14
   - Commit: `core: replace absolute paths with repo-relative resolution`
   - Delete all `/home/akai/...` and `/tmp/claude/...` paths and `sys.path.insert(...)` calls from
@@ -332,7 +335,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when `git grep` finds no absolute paths in active code and all commands have explicit
     output options.
 
-- [ ] **K7 — Remove corpus-specific assumptions from the entry points**
+- [x] **K7 — Remove corpus-specific assumptions from the entry points**
   - Issue: #15
   - Commit: `core: make entry points corpus-independent`
   - `analyze.py`: replace hard-coded `BEST`, Shai corpus loading, and round-8 output paths with
@@ -349,7 +352,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when the same code paths work with two different corpus directories without editing
     source files.
 
-- [ ] **K8 — Optimize secondary only after primary convergence**
+- [x] **K8 — Optimize secondary only after primary convergence**
   - Issue: #16
   - Commit: `compute: optimize secondary only after primary convergence`
   - Remove the composite corpus from the hot loop. Main quench/anneal iterations score only the
@@ -362,7 +365,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when a run shows one primary score per iteration and secondary improvements occur only
     in the final phase.
 
-- [ ] **K9 — Auto-generate the seed by default**
+- [x] **K9 — Auto-generate the seed by default**
   - Issue: #17
   - Commit: `compute: auto-generate seed by default`
   - Make `--seed` optional. When omitted, generate a random seed, print it, and record it in the
@@ -371,7 +374,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when two runs with the same `--seed` match and a run without `--seed` still records a
     usable seed.
 
-- [ ] **K10 — Load reference layouts from `config/references.toml`**
+- [x] **K10 — Load reference layouts from `config/references.toml`**
   - Issue: #18
   - Commit: `core: load reference layouts from TOML`
   - Define the reference schema as an array of tables:
@@ -388,7 +391,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when removing the TOML file produces a clear error and adding an entry changes the
     comparison output without code changes.
 
-- [ ] **K11 — Append finished layouts to the reference file**
+- [x] **K11 — Append finished layouts to the reference file**
   - Issue: #19
   - Commit: `compute: append final layout to references`
   - At the end of a successful compute run, append a new `[[reference]]` entry containing at
@@ -398,7 +401,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
   - Done when the file remains valid TOML after repeated compute runs and `compare.py` sees the
     new entry.
 
-- [ ] **K12 — Add a score-regression baseline**
+- [x] **K12 — Add a score-regression baseline**
   - Issue: #20
   - Commit: `core: add score regression baseline`
   - Capture the post-replacement baseline from the new geo model: `audit_geo.py A:all` =
@@ -414,7 +417,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
 
 ### Branch `config`
 
-- [ ] **G1 — Add the default YAML configuration**
+- [x] **G1 — Add the default YAML configuration**
   - Issue: #21
   - Commit: `config: add default YAML configuration`
   - Create `shirolyzer/config/config.yaml` with the four required sections:
@@ -473,7 +476,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
     data referenced by the `model` section.
   - Done when the file contains no dead example entries and all current defaults are represented.
 
-- [ ] **G2 — Implement the YAML loader and validator**
+- [x] **G2 — Implement the YAML loader and validator**
   - Issue: #22
   - Commit: `config: implement YAML loader and validation`
   - Add `shirolyzer/utils/config.py` using `PyYAML`.
@@ -486,7 +489,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
   - Done when invalid configs produce actionable errors and a valid config loads identically from
     the default path and `--config PATH`.
 
-- [ ] **G3 — Drive default fingering from the configured fingermap**
+- [x] **G3 — Drive default fingering from the configured fingermap**
   - Issue: #23
   - Commit: `fingers: derive defaults from configured fingermap`
   - Remove the hard-coded per-key `DEFAULT_FINGER` map from `comfort_geo.py`/`utils/fingers.py`;
@@ -496,7 +499,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
     sequence.
   - Done when changing one fingermap entry changes the default fingering and audit output.
 
-- [ ] **G4 — Support configurable alt-finger sequences**
+- [x] **G4 — Support configurable alt-finger sequences**
   - Issue: #24
   - Commit: `scorer: support configurable alt-finger sequences`
   - Port the new model's `gates.GATES_ALL` (`only`/`block`/`never` modes) and `gates.EXPLICIT`
@@ -508,7 +511,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
     declared.
   - Done when adding a new alt sequence changes analysis and generation without source edits.
 
-- [ ] **G5 — Implement the conditions engine and override order**
+- [x] **G5 — Implement the conditions engine and override order**
   - Issue: #25
   - Commit: `objective: enforce configured conditions`
   - Implement structured conditions for at least the current scissor classes: full/half,
@@ -520,7 +523,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
     thresholds.
   - Done when a condition change alters the allowed fingering set and audit catches violations.
 
-- [ ] **G6 — Implement tiered priority weights and alternation**
+- [x] **G6 — Implement tiered priority weights and alternation**
   - Issue: #26
   - Commit: `objective: apply tiered priority weights`
   - Rename the priority field `alts` to `alternation` and add a hand-alternation statistic to the
@@ -534,7 +537,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
   - Done when reordering the priority list demonstrably changes the search trade-offs while the
     default config still passes the regression check.
 
-- [ ] **G7 — Load the shared YAML config in all entry points**
+- [x] **G7 — Load the shared YAML config in all entry points**
   - Issue: #27
   - Commit: `core: load shared YAML config in entry points`
   - Wire `analyze.py`, `compute.py`, and `audit.py` to load the config and use it for corpora,
@@ -542,7 +545,7 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
   - Keep CLI overrides functional.
   - Done when one config edit affects analysis, generation, and audit consistently.
 
-- [ ] **G8 — Verify the default config preserves behaviour**
+- [x] **G8 — Verify the default config preserves behaviour**
   - Issue: #28
   - Commit: `config: verify default configuration preserves scores`
   - Run the K12 regression check against the ported default config and confirm `audit.py`
@@ -555,7 +558,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
 
 ### Branch `xkb`
 
-- [ ] **X1 — Add the layout-to-XKB symbol generator**
+- [x] **X1 — Add the layout-to-XKB symbol generator**
   - Issue: #29
   - Commit: `xkb: add layout-to-symbols generator`
   - Add `shirolyzer/utils/xkb.py` that converts a 30-character layout string plus a layout name
@@ -565,7 +568,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
   - Done when generating from the existing cfgE layout produces a file equivalent to
     `xkb/mine` apart from comments/metadata.
 
-- [ ] **X2 — Add the `--xkb` flag to compute**
+- [x] **X2 — Add the `--xkb` flag to compute**
   - Issue: #30
   - Commit: `compute: add xkb output flag`
   - Add `--xkb` (default false) and `--xkb-name` (default a safe generated name) to
@@ -575,7 +578,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
   - Done when a compute run with `--xkb` creates the file and a run without the flag creates
     nothing.
 
-- [ ] **X3 — Add a standalone generator/installer for existing layouts**
+- [x] **X3 — Add a standalone generator/installer for existing layouts**
   - Issue: #31
   - Commit: `xkb: add standalone layout generator and installer`
   - Add `shirolyzer/xkb.py` with `--layout`, `--name`, `--out`, and optional `--install`.
@@ -584,7 +587,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
   - Done when an already-generated layout can be converted and installed without running the
     annealer.
 
-- [ ] **X4 — Validate and document the XKB workflow**
+- [x] **X4 — Validate and document the XKB workflow**
   - Issue: #32
   - Commit: `xkb: validate generated symbols and document usage`
   - Run `bash -n xkb/install.sh`, generate a known layout, and compare against `xkb/mine`.
@@ -597,7 +600,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
 
 ### Branch `calibration`
 
-- [ ] **T1 — Add the compute time-budget flag**
+- [x] **T1 — Add the compute time-budget flag**
   - Issue: #33
   - Commit: `compute: add time budget flag`
   - Add `--time-budget` with a documented unit (seconds or `30m`-style strings) and graceful
@@ -607,7 +610,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
   - Done when a very short budget still produces a valid result and a longer budget performs more
     work without exceeding the cap by more than one in-flight operation.
 
-- [ ] **T2 — Run and record the tuning experiments**
+- [x] **T2 — Run and record the tuning experiments**
   - Issue: #34
   - Commit: `results: add compute runtime calibration`
   - Compare multiple time budgets (for example 2, 5, 10, 20, 30, and 60 minutes) and independent
@@ -617,7 +620,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
   - Identify the point of diminishing returns for each parameter.
   - Done when the calibration data is committed and summarised in a short report.
 
-- [ ] **T3 — Choose and apply the new compute defaults**
+- [x] **T3 — Choose and apply the new compute defaults**
   - Issue: #35
   - Commit: `compute: update search defaults from calibration`
   - Increase iterations well above 60k, runs above 24, and ILS above 6 according to T2.
@@ -625,7 +628,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
   - Update config comments, help text, and docs with the chosen values and rationale.
   - Done when a default run uses the new values and the reason for each value is recorded.
 
-- [ ] **T4 — Run the post-rewrite validation and refresh references**
+- [x] **T4 — Run the post-rewrite validation and refresh references**
   - Issue: #36
   - Commit: `results: record post-rewrite validation run`
   - Run the full compute pipeline with the new defaults, audit the winner, and save the
@@ -634,7 +637,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
   - Done when the validation artifacts are saved; selection and multi-result presentation are
     handled by T5.
 
-- [ ] **T5 — Add diversity-aware validation and multi-result presentation**
+- [x] **T5 — Add diversity-aware validation and multi-result presentation**
   - Issue: #39
   - Commit: `compute: report diverse valid layouts`
   - Cluster unique final layouts by primary and secondary score within configurable tolerances,
@@ -654,7 +657,7 @@ Branch exit: `calibration` merges to `main`; create `docs` from the updated `mai
 
 ### Branch `docs`
 
-- [ ] **D1 — Update analyzer documentation and usage examples**
+- [x] **D1 — Update analyzer documentation and usage examples**
   - Issue: #37
   - Commit: `docs: update analyzer documentation`
   - Update `shirolyzer/README.md` and the root `README.md` for the new structure, YAML config,
@@ -664,7 +667,7 @@ Branch exit: `calibration` merges to `main`; create `docs` from the updated `mai
     names.
   - Done when every documented command matches the implemented CLI.
 
-- [ ] **D2 — Final stale-reference and import cleanup**
+- [x] **D2 — Final stale-reference and import cleanup**
   - Issue: #38
   - Commit: `docs: finalize rewrite cleanup`
   - Run the section 4 quality gates, fix any remaining active stale references, and confirm
@@ -673,6 +676,26 @@ Branch exit: `calibration` merges to `main`; create `docs` from the updated `mai
   - Done when all gates pass and the tasklist reflects the completed rewrite.
 
 Branch exit: `docs` merges to `main`; the rewrite is complete.
+
+### Rewrite completion record
+
+- **Branches:** `corpus`, `core`, `config`, `xkb`, and `calibration` are merged to `main`.
+  `docs` carries the final documentation and cleanup commit; merging it completes the rewrite.
+- **Final defaults:** 28 random restarts plus reference seeds, 100000 anneal iterations, 8 ILS
+  rounds, `primary_sacrifice=0.00023`, diversity tolerances `0.002` (primary) and `0.005`
+  (secondary), minimum layout distance 4, maximum 8 valid layouts.  Polishing is opt-in with
+  `--polish-rounds`.
+- **Validation:** T4 passed audit 166/166, held the shipped-model baseline at 123/168, and
+  preserved every pre-rewrite reference score within `1e-9`.  T5 reported two materially
+  different valid layouts (the T4 winner and a runner-up 10 key positions away with a better
+  secondary score).  See `shirolyzer/results/validation/REPORT.md` and
+  `shirolyzer/results/validation/T5-REPORT.md`.
+- **Tests and gates:** 34 unit tests pass, `check_baseline.py` reports
+  `baseline OK: audit 166/166, oldbase 123/168, 10 references`, entry-point help checks pass,
+  and active runtime code does not import `shirolyzer/legacy/`.
+- **Issues:** #1-#36 and #39 are closed; #37 (D1) and #38 (D2) close with the `docs` branch.
+- **Results:** `shirolyzer/results/` remains local-only except for explicitly committed
+  calibration and validation artifacts.
 
 ---
 
@@ -711,23 +734,16 @@ Branch exit: `docs` merges to `main`; the rewrite is complete.
 
 ---
 
-## 7. Questions and deferred decisions
+## 7. Resolved minor decisions
 
-The major planning questions were resolved in section 1. The following are minor and do not block
-the implementation tasks above. Current defaults are listed so work can continue.
+The major planning questions were resolved in section 1. The remaining minor questions are now
+settled:
 
-1. **`README.md.bak`:** keep it as a historical backup, archive it, or delete it?
-   Current default: leave it untouched; the rewrite only updates `README.md`.
-2. **`shirolyzer/legacy/`:** keep it frozen, migrate it to the new package layout, or archive it
-   outside the active tree?
-   Current default: keep it frozen and ensure active code never imports it. Legacy imports may
-   remain stale by design.
-3. **Default `--xkb-name`:** use a generated name based on the run/seed, or a fixed name such as
-   `shiro`?
-   Current default: generated name, so existing `xkb/mine` is never overwritten accidentally.
-4. **Exact score-equivalence tolerance:** the regression check needs a numeric tolerance for
-   floating-point and refactor drift. Current default: exact match where feasible, otherwise a
-   documented tolerance agreed before G8 is checked off.
-
-If any answer changes an assumption used by a task, update this file and the corresponding GitHub
-issue before starting that task.
+1. **`README.md.bak`:** retained as a historical backup; active docs are `README.md` and
+   `shirolyzer/README.md`.
+2. **`shirolyzer/legacy/`:** frozen.  Active runtime code does not import it; stale references
+   inside legacy code and historical reports are intentional.
+3. **Default `--xkb-name`:** a generated safe name based on the layout hash, so `xkb/mine` is
+   never overwritten accidentally.
+4. **Score-equivalence tolerance:** `1e-9` for reference bigram/trigram costs in
+   `check_baseline.py`; audit and shipped-model counts must match exactly.
