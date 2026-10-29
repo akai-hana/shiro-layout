@@ -1,127 +1,426 @@
-<div align="center">
-
 # shirolyzer【白ライザー】
 
-###### Layout analyzer/generator based on preferential, context-dependent fingering. Initially built for the Shiro layout.
+Layout analyzer and generator built around the calibrated, context-dependent
+pattern model used by the Shiro layout.  It can score an existing layout,
+audit the model's fingering rules, rank reference layouts, and search for new
+30-key arrangements under primary and secondary corpora.
 
-<!-- (image) -->
+All commands below run from the repository root.  The package is executed as
+scripts directly under `shirolyzer/`, so imports use `utils.*` internally and
+no installation step is required beyond the Python dependencies.
 
-</div>
+## Requirements
 
----
-
-### Quick anchors
-
-- [a](#a)
-    - [b](#b)
-
----
-
-# Introduction
-
-## About 白ライザー
-
-The **shirolyzer** is an alt keyboard layout analyzer and generator, initially built for the purpose of iterating generations/analysis in order to reach shiro's final key arrangement.
-
-## Generation
-> shirolyzer's layout generation capabilities and specifications
-
-### Search effort
-
-`compute.py` defaults to 28 random restarts in addition to the layouts loaded
-from `config/references.toml`, 100000 anneal iterations per run, and 8 ILS
-rounds per top layout.  These values are calibrated in
-`results/calibration/REPORT.md`: the primary score plateaus around 40k
-iterations and ten total seeds, while additional ILS rounds keep improving the
-best result.  Override them per run with `--runs`, `--iters`, and `--ils`.
-
-`--time-budget` is optional.  It accepts seconds or `30m`-style strings and
-stops between runs/ILS rounds, always saving the best result found so far.
-
-### Diversity-aware results
-
-Near-equal results are clustered by score and by key-position distance before a
-layout is selected.  A candidate is valid when its primary score is no more
-than `--valid-tolerance` worse than the best primary result and, when both have
-a secondary score, its secondary score is no more than
-`--secondary-tolerance` worse.  Only layouts at least
-`--min-layout-distance` key positions apart are kept, up to `--max-valid`
-layouts.
-
-If one valid layout remains it is reported as the clear winner.  Otherwise one
-layout is still selected for `--xkb`, but every valid layout is printed and
-written to the JSON `valid_layouts` list, and each is appended to the reference
-file (or `--append-references`) under a unique name.
-
-`--polish-rounds N` runs additional quench/anneal passes over the top
-`--polish-candidates` distinct layouts until a full pass improves none, or the
-round limit is reached.  Polishing is disabled by default; enable it when the
-near-equal alternatives should be optimized further before selection.
-
-### Corpora
-
-On layout generation, it is capable of taking corpora under different weightings and weightings of priority:
-
-- **Primary:** It takes one or more primary corpora at the same time, to be evaluated at the same time ("a priori") in a blend of varying weights
-           (e.g. 100, 50:50, 50:25:25, 80:20:20...).
-
-- **Secondary:** It can optionally take any amount of corpora to be evaluated _after_ an initial generation, ("a posteriori").
-    > After generating a layout based off of primary corpus/corpora, it will optimize for secondary corpus/corpora where it doesn't hurt primary,
-    > under different levels of "primary sacrifice": to what degree can primary optimization be harmed to benefit secondary (e.g. 1%, 0.1%, 5%, 50%...).
-
-### Alt-fingers & Context
-
-The generator can take user-defined alt-fingers into consideration as criteria to optimize for. \
-These will override the selected fingermap.
-
-Defined alts are based off of physical key positions, instead of characters. \
-This allows the generator to take them into consideration on the letter arrangement generated, instead of not being accounted and optimized for.
-
-Alts can depend on wide rules (e.g. _"no full reverse scissors with fingers M-L-P"_), or on specific context examples (finger-positional bigrams/trigrams).
-
-Not all defined alt-fingers are equal: they 
-
-<!--TODO: make sacrifice be defined on a percentage basis alongside current numerical basis-->
-
-<!--TODO: make it so that sacrifice can be defined under specific parameters: % of rolls, % of SFBs, % of redirects...-->
-
-### XKB output
-
-`compute.py --xkb` writes the selected layout to `xkb/<name>`, where the default
-name is a safe hash-derived name.  Use `--xkb-name` to choose a name; the
-shipped `xkb/mine` is only overwritten when `--xkb-name mine` is passed
-explicitly.
-
-To convert an existing layout without running the generator:
+- Python 3.11 or newer (`tomllib` is used for reference files).
+- `numpy`, `scipy`, and `PyYAML`.
 
 ```bash
-python3 shirolyzer/xkb.py --layout ";aiojvlnrwhfpeygtcmsbxquzkd,./" --name cfgE
-python3 shirolyzer/xkb.py --layout "$(cat layout.txt)" --out xkb/shiro --install
+python3 -m venv .venv
+. .venv/bin/activate
+pip install -r requirements.txt
 ```
 
-Install a generated symbols file (or the default `xkb/mine`) with:
+## Quick start
+
+Build the parsed corpora, analyze the default layout, and generate an XKB
+symbols file:
 
 ```bash
-xkb/install.sh            # installs xkb/mine as "mine"
-xkb/install.sh cfgE       # installs xkb/cfgE
-xkb/install.sh FILE NAME  # installs an arbitrary symbols file under NAME
+python3 corpora/shai/parse_shai.py
+python3 corpora/spanish/parse_spanish.py
+
+python3 shirolyzer/analyze.py \
+  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --primary-corpus corpora/shai/parsed \
+  --secondary-corpus corpora/spanish/parsed \
+  --name shiro
+
+python3 shirolyzer/compute.py --name shiro --xkb --xkb-name shiro
+xkb/install.sh shiro
 ```
 
-The generated symbols use the same punctuation mapping as `xkb/mine`, keep the
-apostrophe on both `<AC11>` and the ISO `<LSGT>` key, and can be compiled with
-`xkbcomp` against an Xvfb display for a dry-run check.
+`compute.py` with defaults is a long-running search.  See
+[Search and diversity](#search-and-diversity) for shorter experiments and
+for the way valid layouts are reported.
+
+## Repository layout
+
+| Path | Purpose |
+|---|---|
+| `corpora/shai/` | Shai English corpus parser and parsed frequency files |
+| `corpora/spanish/` | Spanish corpus parser and parsed frequency files |
+| `shirolyzer/analyze.py` | Score one layout and print a detailed report |
+| `shirolyzer/audit.py` | Run questionnaire probes and model rulings |
+| `shirolyzer/compare.py` | Rank TOML reference layouts |
+| `shirolyzer/compute.py` | Generate and validate layouts |
+| `shirolyzer/xkb.py` | Convert an existing layout to XKB symbols |
+| `shirolyzer/check_baseline.py` | Regression check for references and audit counts |
+| `shirolyzer/config/` | YAML config, references, model theta, score baseline |
+| `shirolyzer/utils/` | Runtime model, corpus, search, and output modules |
+| `shirolyzer/tests/` | Unit and regression tests |
+| `shirolyzer/results/` | Local run outputs plus committed calibration/validation reports |
+| `shirolyzer/dev/` | Fitting and shipped-model baseline development tools |
+| `shirolyzer/legacy/` | Archived pre-rewrite code; not imported at runtime |
+| `xkb/` | Generated symbols and the installer |
+
+`shirolyzer/results/` is gitignored except for explicitly added reports and
+validation artifacts.
+
+## Configuration
+
+`shirolyzer/config/config.yaml` is the user-facing source of truth for the
+physical layout, corpora, fingermap, alt-finger rules, geometric conditions,
+objective priorities, and finger balance.  Fitted model parameters live in the
+theta file referenced by the config.
+
+An abridged view of the main sections:
+
+```yaml
+general:
+  physical_layout: ansi
+  default_layout: ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  primary_corpus:
+    - {name: shai, weight: 100}
+  secondary_corpus:
+    - {name: spanish, weight: 100}
+  primary_sacrifice: 0.00023   # percent of the best primary score
+
+model:
+  type: pattern
+  variant: A
+  theta_file: model/theta_geo_A_all.json
+```
+
+The remaining sections control the search:
+
+- `fingermap`: 30 space-separated key/finger tokens in QWERTY row-major order.
+  A token is a QWERTY key label followed by `P`, `R`, `M`, or `I` (pinky,
+  ring, middle, index), for example `QR` or `;P`.
+- `alt_fingers`: context gates and explicit sequence overrides.  A gate uses
+  `key`, `finger`, `mode` (`only`, `block`, or `never`), and an optional
+  `context` list of QWERTY keys.  An explicit override uses `sequence` plus a
+  `fingers` list with one finger per key.  Set `explicit: true` on a gate when
+  it must be enforced through the explicit context table.
+- `conditions`: ordered rules for `scissors`, `spread`, `separation`, and
+  `crossing`.  The first matching rule wins; `allow: false` rejects the
+  fingering and `allow: true` permits it.
+- `priority_list`: tiers of objective terms.  Higher tiers receive larger
+  multipliers, and terms in one list share a tier.  Every supported name
+  (`sfbs-sfts`, `scissors`, `redirects`, `rolls`, `alternation`, and
+  `finger_balance`) must appear exactly once.
+- `finger_balance`: target percentage for each hand/finger.  Values are
+  normalised, so they do not have to add up to 100.
+
+Corpus entries may use a `name` that resolves to
+`corpora/<name>/parsed`, or an explicit `path` to a parsed directory, a corpus
+directory containing `parsed/`, or a raw `.txt`, `.xz`, or `.zip` source.
+Weights blend corpora by scaling their counts.
+
+Command-line corpus options replace the YAML corpus lists for that run:
+`--primary-corpus` and `--secondary-corpus` are repeatable and merge their
+inputs by count.  `--config PATH` loads a different YAML file; relative theta
+paths are resolved from `shirolyzer/config/`.
+
+Validation rejects unknown sections, malformed tokens, unknown priority names,
+duplicate priorities, bad conditions, and missing theta parameters with an
+error that names the config location.
+
+### Reference layouts
+
+`shirolyzer/config/references.toml` is an array of tables:
+
+```toml
+[[reference]]
+name = "shiro"
+layout = ";tspbxgoiwndhrlyecuafkvmzjq,./"
+primary_score = 3.520201897
+secondary_score = 3.704852567
+seed = 20261029
+```
+
+Only `name` and `layout` are required.  A layout must have 30 keys with 26
+distinct letters, and names must be unique.  Scores and seed are informational.
+`compute.py` appends each valid layout to the reference file (or to
+`--append-references`) with a unique name; a layout that is already present is
+not appended again.  Use `compare.py --refs PATH` to rank a different file.
+
+## Corpora
+
+Both parsers download their documented source, parse it, write the three
+frequency JSON files under `parsed/`, and delete the temporary source on
+success.  Network access is required for the default mode.
+
+### Shai English
+
+```bash
+python3 corpora/shai/parse_shai.py
+python3 corpora/shai/parse_shai.py --check
+python3 corpora/shai/parse_shai.py --source FILE.txt.xz --keep-source
+```
+
+Output: `corpora/shai/parsed/{letter,bigram,trigram}_freq.json`.  The parser
+lowercases and counts maximal `[a-z]+` runs; non-letters break runs.  See
+`corpora/shai/README.md` for source details and totals.
+
+### Spanish
+
+```bash
+python3 corpora/spanish/parse_spanish.py
+python3 corpora/spanish/parse_spanish.py --check
+python3 corpora/spanish/parse_spanish.py --source FILE.zip --keep-source
+```
+
+Output: `corpora/spanish/parsed/{letter,bigram,trigram}_freq.json`.  The parser
+normalises with NFKD, strips combining marks, lowercases, and counts maximal
+`[a-z]+` runs.  See `corpora/spanish/README.md` for source details and totals.
+
+`--check` parses and compares against the existing `parsed/` files without
+writing.  `--source` uses a local archive instead of downloading.  `--url`
+overrides the download URL.  `--keep-source` keeps a downloaded temporary
+source for debugging.
 
 ## Analysis
-> Details about shirolyzer's layout generation
 
-The **shirolyzer** also provides an analyzer, to evaluate layouts under the same criteria that the generator tries to optimize for.
+### Analyze one layout
 
-> TODO: explain more in detail
+```bash
+python3 shirolyzer/analyze.py \
+  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --primary-corpus corpora/shai/parsed \
+  --secondary-corpus corpora/spanish/parsed \
+  --name shiro
+```
+
+With no `--layout`, the config's `general.default_layout` is used.  With no
+corpus flags, the YAML corpora are used.
+
+The report contains the primary and secondary corpus scores, bigram category
+shares, the worst bigrams, scissor counts, trigram patterns, finger load, and a
+per-letter fingering guide.  Output defaults to
+`shirolyzer/results/analysis[_name].txt` and `.json`; override with `--out` and
+`--out-json`.
+
+### Audit the model
+
+```bash
+python3 shirolyzer/audit.py \
+  --out shirolyzer/results/audit.txt \
+  --out-json shirolyzer/results/audit.json
+```
+
+The audit prints questionnaire probes, hard checks, corpus totals, and every
+model ruling with a pass/fail result.  The default YAML model is used unless a
+legacy model configuration name such as `A:all` is supplied positionally.
+`--rulings PATH` loads a custom `RULINGS` list.  `--config PATH` selects a
+different YAML file.
+
+### Compare references
+
+```bash
+python3 shirolyzer/compare.py
+python3 shirolyzer/compare.py --refs shirolyzer/config/references.toml
+python3 shirolyzer/compare.py --primary-corpus corpora/shai/parsed
+```
+
+`compare.py` prints reference names, plain corpus trigram scores, and layouts,
+sorted by score.  This is the plain trigram cost used by `analyze.py`; the
+generator's primary score also includes the calibrated comfort, geometry,
+condition, and balance terms, so the two numbers are not directly comparable.
+
+### Regression check
+
+```bash
+python3 shirolyzer/check_baseline.py
+```
+
+This checks reference bigram/trigram costs against
+`shirolyzer/config/score_baseline.json`, the audit ruling count, and the
+shipped-model baseline.  Newly appended references are allowed; references
+listed in the baseline must still match within `1e-9`.  Use `--write` only when
+intentionally regenerating the baseline.
+
+## Search and diversity
+
+`compute.py` combines the reference layouts with random restarts, optimizes
+them on the primary corpus, then tunes promising layouts on the secondary
+corpus without exceeding the primary-sacrifice budget.
+
+```bash
+python3 shirolyzer/compute.py --name run --seed 20261029
+```
+
+Defaults:
+
+| Option | Default | Meaning |
+|---|---:|---|
+| `--runs` | `28` | Random restarts in addition to reference seeds |
+| `--iters` | `100000` | Anneal iterations per primary run |
+| `--ils` | `8` | ILS rounds per top primary layout |
+| `--primary-sacrifice` | `0.00023` | Percent of best primary allowed for secondary tuning |
+| `--valid-tolerance` | `0.002` | Primary window for valid layouts |
+| `--secondary-tolerance` | `0.005` | Secondary window for valid layouts |
+| `--min-layout-distance` | `4` | Minimum key-position distance between valid layouts |
+| `--max-valid` | `8` | Maximum valid layouts reported; `0` means no limit |
+| `--polish-rounds` | `0` | Maximum polish passes over distinct candidates; `0` disables |
+| `--polish-candidates` | `4` | Distinct primary candidates to polish |
+
+The effort defaults are calibrated in
+`shirolyzer/results/calibration/REPORT.md`: the primary score plateaus around
+40k-60k iterations and roughly ten total seeds, while ILS continues to help.
+Override any value per run.  `--time-budget` accepts seconds or strings such as
+`30s`, `10m`, or `1h`, stops between runs/ILS/secondary operations, and always
+saves the best result found so far.
+
+### Search phases
+
+1. **Primary seeding and search.** Load reference layouts, add explicit
+   `--seed-layout` layouts, then add `--runs` random restarts.  Every seed is
+   quenched, annealed for `--iters`, and quenched again on the primary corpus.
+2. **ILS.** The four best distinct primary layouts receive up to `--ils`
+   rounds of perturbation, quench, and half-length anneal.  Improvements are
+   kept between rounds.
+3. **Optional polish.** With `--polish-rounds N`, the top distinct candidates
+   within the valid-layout tolerances are polished for at most `N` passes
+   each.  A candidate stops early when a full pass does not improve its primary
+   score.
+4. **Secondary phase.** The four best primary layouts are tuned against the
+   secondary corpus under a hard primary limit.  The limit is the best primary
+   score plus `--primary-sacrifice` percent.  The best eligible secondary result
+   becomes `selected`.
+5. **Diversity validation.** Results are merged by layout, clustered by score
+   and key distance, and reported as `valid_layouts`.
+
+### Valid layouts
+
+A result is valid when its primary score is no more than `--valid-tolerance`
+worse than the best primary, and, when both have a secondary score, its
+secondary score is no more than `--secondary-tolerance` worse.  Only layouts at
+least `--min-layout-distance` key positions apart are kept, up to
+`--max-valid`.  A row that is better on either score is never disqualified by
+that score.
+
+If one valid layout remains, `selection_status` is `clear_winner`.  Otherwise
+it is `multiple_valid`: one layout is still selected for XKB and summary
+output, but every valid layout is printed and written to the JSON
+`valid_layouts` list, and each is appended to the reference file with a unique
+name.  The runner-up may have a better secondary score while giving up some
+primary score; inspect the valid list rather than treating `selected` as the
+only result.  See `shirolyzer/results/validation/T5-REPORT.md` for an example
+with two valid layouts.
+
+### Examples
+
+A short experiment that does not modify the real reference file:
+
+```bash
+cp shirolyzer/config/references.toml /tmp/shiro-refs.toml
+python3 shirolyzer/compute.py \
+  --references /tmp/shiro-refs.toml \
+  --append-references /tmp/shiro-refs.toml \
+  --time-budget 2m --runs 2 --iters 20000 --ils 1 \
+  --name try
+```
+
+A diversity-aware search with polishing:
+
+```bash
+python3 shirolyzer/compute.py --name diversify --seed 20261030 \
+  --polish-rounds 3 --polish-candidates 6 \
+  --valid-tolerance 0.002 --secondary-tolerance 0.005 \
+  --min-layout-distance 4 --max-valid 8
+```
+
+A full default run that writes the selected layout to XKB:
+
+```bash
+python3 shirolyzer/compute.py --name shiro --seed 20261029 \
+  --xkb --xkb-name shiro
+```
+
+`--seed` makes a run reproducible; when omitted, a seed is generated and
+recorded in the output.  `--seed-layout LAYOUT` (or `--layout`) adds a starting
+layout and is repeatable.
+
+### Output
+
+Default output paths are
+`shirolyzer/results/compute[_name].txt` and `.json`.  The text output records
+the seed, corpora, references, selection status, best primary/secondary, the
+valid-layout block, and every result row.  The JSON also includes elapsed time,
+the time budget, completed run/iteration/ILS/secondary/polish counts, all
+parameters, `results`, `best_primary`, `best_secondary`, `selected`,
+`selection_status`, `valid_layouts`, appended reference names, and the XKB path
+when requested.
+
+`compute.py` appends valid layouts by default because the reference list is
+part of the calibration workflow.  For experiments, point both `--references`
+and `--append-references` at a temporary copy.
+
+## XKB workflow
+
+Generate symbols for an existing layout:
+
+```bash
+python3 shirolyzer/xkb.py \
+  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --name shiro
+```
+
+This writes `xkb/shiro`.  Use `--out PATH` for a different location, or
+`--install` to run the installer immediately.
+
+Generate from a compute run:
+
+```bash
+python3 shirolyzer/compute.py --xkb --xkb-name shiro --name run
+```
+
+Without `--xkb-name`, the selected layout is written under a generated safe
+name.  `xkb/mine` is only overwritten when `--xkb-name mine` is passed
+explicitly.
+
+Install and apply a symbols file to the current X display:
+
+```bash
+xkb/install.sh                 # install xkb/mine as "mine"
+xkb/install.sh shiro           # install xkb/shiro as "shiro"
+xkb/install.sh FILE NAME       # install an arbitrary symbols file
+```
+
+The installer needs a running X display.  It uses `setxkbmap` to print the
+component shell and `xkbcomp` to compile the final keymap, because `setxkbmap
+-I` replaces the system XKB path.  Generated symbols use the same punctuation
+mapping as `xkb/mine`, keep the apostrophe on both `<AC11>` and the ISO
+`<LSGT>` key, and can be compiled with `xkbcomp` for a dry-run check.
+
+## Tests and quality gates
+
+```bash
+python3 -m compileall shirolyzer
+python3 shirolyzer/analyze.py --help
+python3 shirolyzer/compute.py --help
+python3 shirolyzer/audit.py --help
+python3 shirolyzer/compare.py --help
+python3 shirolyzer/xkb.py --help
+python3 shirolyzer/check_baseline.py
+python3 -m unittest discover -s shirolyzer/tests -v
+```
+
+The test suite covers config validation, condition ordering, reference
+baselines, diversity selection/rendering, and XKB generation.
+
+## Calibration and validation
+
+- `shirolyzer/results/calibration/REPORT.md` — runtime sweeps and the rationale
+  for the current run/iteration/ILS defaults.
+- `shirolyzer/results/validation/REPORT.md` — post-rewrite full validation,
+  audit, and reference comparison.
+- `shirolyzer/results/validation/T5-REPORT.md` — diversity-aware validation
+  with two materially different valid layouts.
+
+Committed reports and artifacts remain in the repository for traceability;
+other `shirolyzer/results/` files are local outputs.
 
 ---
 
-<div align="center">
-
-</> with <3 by [akai_hana](https://github.com/akai-hana)
-
-</div>
+Built by [akai_hana](https://github.com/akai-hana).
