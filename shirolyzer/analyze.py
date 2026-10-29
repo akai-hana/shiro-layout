@@ -96,6 +96,7 @@ def category_report(layout, corpus, tables):
     cats = {k: stats[k] / total * 100 for k in (
         "sfb", "scissor_IM_hsb", "scissor_IM_fsb", "scissor_MR", "scissor_RP",
         "roll_in", "roll_out", "leap", "alt", "repeat")}
+    cats["hand_alternation"] = cats["alt"]
     cats["total_tokens"] = total
     worst.sort(reverse=True)
     scissors.sort(reverse=True)
@@ -144,6 +145,7 @@ def trigram_patterns(layout, corpus, tables):
     out = {k: v / total * 100 for k, v in acc.items()}
     out["total_rolls"] = out.get("inroll", 0) + out.get("outroll", 0)
     out["total_redirects"] = out.get("redirect", 0) + out.get("redirect_weak", 0)
+    out["hand_alternation"] = out.get("alternate", 0)
     return out
 
 
@@ -246,7 +248,7 @@ def main():
     out()
     out("== bigram categories (% of letter bigrams, chosen fingering) ==")
     for k in ("sfb", "scissor_IM_hsb", "scissor_IM_fsb", "scissor_MR", "scissor_RP",
-              "roll_in", "roll_out", "leap", "alt", "repeat"):
+              "roll_in", "roll_out", "leap", "alt", "hand_alternation", "repeat"):
         out(f"  {k:16s} {cats[k]:6.2f}")
     out()
     out("== worst bigrams (chosen cost, fingering, count) ==")
@@ -258,7 +260,7 @@ def main():
         out(f"  {bg}  n={cnt:8d}  cost={c:5.2f}  {pair:3s}  {f1}{f2}")
     out()
     out("== trigram patterns (chosen fingering, % of trigrams) ==")
-    for k in ("alternate", "inroll", "outroll", "total_rolls", "onehand",
+    for k in ("alternate", "hand_alternation", "inroll", "outroll", "total_rolls", "onehand",
               "redirect", "redirect_weak", "total_redirects", "sfb_tri", "other"):
         out(f"  {k:16s} {pats.get(k, 0):6.2f}")
     out()

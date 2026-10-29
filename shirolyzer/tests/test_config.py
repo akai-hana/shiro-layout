@@ -74,3 +74,51 @@ class ConfigLoaderTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PriorityTests(unittest.TestCase):
+    def setUp(self):
+        self.raw = yaml.safe_load(paths.CONFIG_FILE.read_text(encoding="utf-8"))
+
+    def write(self, data):
+        tmp = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
+        yaml.safe_dump(data, tmp)
+        tmp.close()
+        self.addCleanup(Path(tmp.name).unlink)
+        return Path(tmp.name)
+
+    def test_default_priority_scales_are_neutral(self):
+        cfg = CFG.load()
+        self.assertEqual(set(cfg.priority_multipliers().values()), {1.0})
+
+    def test_reordered_priority_changes_scale(self):
+        data = copy.deepcopy(self.raw)
+        data["priority_list"] = [
+            ["finger_balance"],
+            ["rolls", "alternation"],
+            ["scissors", "redirects"],
+            ["sfbs-sfts"],
+        ]
+        cfg = CFG.load(self.write(data))
+        scales = cfg.priority_multipliers()
+        self.assertGreater(scales["finger_balance"], scales["sfbs-sfts"])
+        self.assertEqual(scales["rolls"], scales["alternation"])
+
+    def test_reordered_priority_applies_to_search_weights(self):
+        data = copy.deepcopy(self.raw)
+        data["priority_list"] = [
+            ["finger_balance"],
+            ["rolls", "alternation"],
+            ["scissors", "redirects"],
+            ["sfbs-sfts"],
+        ]
+        path = self.write(data)
+        try:
+            CFG.load_and_apply(path)
+            from shirolyzer.utils import comfort as cg
+            from shirolyzer.utils import search as sh
+            self.assertGreater(sh.W_BALANCE, 0.4)
+            self.assertGreater(cg.W_ALT_SCALE, 1.0)
+            self.assertGreater(cg.W_SFB_SCALE, 0.0)
+        finally:
+            CFG.load_and_apply(paths.CONFIG_FILE)
