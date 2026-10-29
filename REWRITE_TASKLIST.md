@@ -1,8 +1,15 @@
 # Shirolyzer Rewrite — Tasklist and Implementation Plan
 
 Source specification: `REWRITE_SPEC_LIST.txt` (must remain unchanged).
-Status: planning complete; implementation not started.
-Last planned: 2026-10-28.
+Status: planning complete; round-8 geo code installed; implementation not started.
+Last planned: 2026-10-29.
+
+Baseline as of 2026-10-29: `shirolyzer/` now contains the newer pattern-based round-8 geo
+analyzer (`comfort_geo.py`, `scorer_geo.py`, `gates.py`, `rulings.py`, `fitlib.py`,
+`audit_geo.py`, fitted theta JSONs). The previous shipped round-8 modules were archived under
+`shirolyzer/legacy/round8/` for baseline comparison. `audit_geo.py A:all` passes 166/166 enforced
+rulings; `oldbase.py` still scores the shipped model at 123/168. The rewrite now targets the new
+geo model, not the archived scorer2 implementation.
 
 This file is the implementation plan and progress tracker for the rewrite. It also records the
 decisions made during planning so the implementation does not have to rediscover them.
@@ -36,10 +43,14 @@ The following decisions were confirmed during planning:
    - The main optimization loop evaluates only the primary corpus.
    - Secondary-corpus improvement is attempted only after primary convergence, and candidates
      outside the configured primary-sacrifice budget are rejected.
-6. **Behaviour baseline:** preserve the current calibrated model by default.
-   - Current weights, implicit alt-context rules, and reference layouts are ported into the
-     default configuration.
-   - A regression check must confirm that reference scores still match the pre-rewrite values.
+6. **Behaviour baseline:** preserve the current calibrated geo model by default.
+   - "Current" means the pattern-based round-8 geo model installed on 2026-10-29
+     (`theta_geo_A_all.json`, `gates.py`, `rulings.py`), not the archived `legacy/round8`
+     scorer2 model.
+   - Current model parameters, gates, default fingering, and reference layouts are represented
+     in the new code/config layout.
+   - A regression check must confirm that reference scores still match the post-replacement
+     baseline, and that `audit_geo.py A:all` remains 166/166.
 7. **Runtime tuning:** time-budget-driven experimentation.
    - `compute.py` gains a `--time-budget` flag.
    - Runs under several time budgets will be compared to find where increasing iterations,
@@ -59,11 +70,19 @@ These are working assumptions unless a question below says otherwise:
 - Downloaded corpus source archives are temporary and are never committed.
 - Only the parsed frequency JSON files, corpus READMEs, and configuration/reference files remain
   in version control.
-- `shirolyzer/results/` and `shirolyzer/legacy/` remain in place. `legacy/` is frozen: active code
-  must not import it, but it does not have to be migrated to the new package layout.
+- `shirolyzer/results/` and `shirolyzer/legacy/` remain in place. `legacy/` is frozen: active
+  runtime code must not import it, but it does not have to be migrated to the new package
+  layout. The baseline tools `oldmodel.py`/`oldbase.py` are the only allowed exception; K3
+  moves them and the fitting/review tools into a clearly non-runtime development area.
 - The ANSI geometry becomes `shirolyzer/utils/ansi/` with an `ansi.py` inside it and an
   `__init__.py` re-exporting the public geometry functions. Future `iso/` and `matrix/` packages
-  can follow the same pattern.
+  can follow the same pattern. K5 extracts the geometry currently embedded in
+  `comfort_geo.py` rather than porting the archived `legacy/round8/ansi.py`.
+- The new model's fitted parameters (`theta_geo_A_all.json`) and the `rulings.py` calibration data
+  are calibrated data, not user-editable configuration. The YAML remains the single user-facing
+  config; it may reference the theta file and model variant.
+- `requirements.txt` already exists with `numpy` and `scipy`; K1 only adds `PyYAML` and any
+  missing runtime dependencies.
 - Primary entry points are run directly, for example `python shirolyzer/compute.py ...`.
   Because the scripts live in `shirolyzer/`, imports use `utils.*` as the import root. No
   hard-coded absolute paths or `sys.path.insert(...)` calls are allowed.
@@ -126,8 +145,9 @@ python shirolyzer/compare.py --help
 git grep -nE "analyze_shai|anneal_shai|audit_shai|build_shai_corpus|build_spanish_corpus|scorer2|search2|/home/akai|sys\.path\.insert"
 ```
 
-Acceptable remaining matches are only in `shirolyzer/legacy/`, `shirolyzer/results/`, historical
-documentation, or this tasklist itself. Any other match must be fixed.
+Acceptable remaining matches are only in `shirolyzer/legacy/`, `shirolyzer/results/`, the
+`oldmodel.py`/`oldbase.py` baseline tools, historical documentation, or this tasklist itself.
+Any other match must be fixed.
 
 ---
 
@@ -141,22 +161,22 @@ documentation, or this tasklist itself. Any other match must be fixed.
   - This is the only direct commit to `main`; all later work happens on task branches.
   - Done when `REWRITE_TASKLIST.md` is on `origin/main`.
 
-- [ ] **P0.2 — Publish the plan as GitHub issues and link them**
-  - Issue: TBD
+- [x] **P0.2 — Create the `corpus` branch from `main`**
+  - Issue: #1
+  - Commit: none (branch creation only)
+  - Done when `corpus` exists locally and remotely, created from the latest `main`.
+
+- [x] **P0.3 — Publish the plan as GitHub issues and link them**
+  - Issue: #2
   - Commit: `planning: link rewrite issues`
   - Create the issues described in section 3, fill in every `Issue: TBD` field, and commit this
     tracking update on the `corpus` branch before starting C1.
   - Done when every task has an issue number and no implementation task is unassigned.
 
-- [ ] **P0.3 — Create the `corpus` branch from `main`**
-  - Issue: TBD
-  - Commit: none (branch creation only)
-  - Done when `corpus` exists locally and remotely, created from the latest `main`.
-
 ### Branch `corpus`
 
-- [ ] **C1 — Move and rename the corpus parser scripts**
-  - Issue: TBD
+- [x] **C1 — Move and rename the corpus parser scripts**
+  - Issue: #3
   - Commit: `corpus: move and rename corpus parsers`
   - Files: `shirolyzer/build_shai_corpus.py` → `corpora/shai/parse_shai.py`;
     `shirolyzer/build_spanish_corpus.py` → `corpora/spanish/parse_spanish.py`.
@@ -165,8 +185,8 @@ documentation, or this tasklist itself. Any other match must be fixed.
   - Done when both scripts run from their new directories and no active file references the old
     names.
 
-- [ ] **C2 — Standardise the `parsed/` output directories**
-  - Issue: TBD
+- [x] **C2 — Standardise the `parsed/` output directories**
+  - Issue: #4
   - Commit: `corpus: standardize parsed corpus directories`
   - Ensure `corpora/shai/parsed/` and `corpora/spanish/parsed/` both exist and contain only
     `letter_freq.json`, `bigram_freq.json`, and `trigram_freq.json`.
@@ -175,8 +195,8 @@ documentation, or this tasklist itself. Any other match must be fixed.
   - Keep JSON key ordering and formatting consistent between both corpora.
   - Done when both parsers write to `parsed/` and the old Spanish root-level JSON files are gone.
 
-- [ ] **C3 — Make `parse_shai.py` self-contained**
-  - Issue: TBD
+- [x] **C3 — Make `parse_shai.py` self-contained**
+  - Issue: #5
   - Commit: `corpus: make shai parser self-contained`
   - Add download and streaming decompression for the `.xz` source named in
     `corpora/shai/README.md` (standard library only: `urllib`, `lzma`, `hashlib`, `tempfile`).
@@ -188,8 +208,8 @@ documentation, or this tasklist itself. Any other match must be fixed.
     418,381,828 letters, 327,253,737 bigrams, and 240,524,895 trigrams.
   - Done when a fresh run produces the same JSON content as the tracked parsed files.
 
-- [ ] **C4 — Make `parse_spanish.py` self-contained**
-  - Issue: TBD
+- [x] **C4 — Make `parse_spanish.py` self-contained**
+  - Issue: #6
   - Commit: `corpus: make spanish parser self-contained`
   - Replace the old local-directory assumption with the Zenodo zip source named in
     `corpora/spanish/README.md`.
@@ -199,8 +219,8 @@ documentation, or this tasklist itself. Any other match must be fixed.
   - Support the same `--source`, `--url`, `--check`, `--write`, and `--keep-source` options as C3.
   - Done when a fresh run produces valid parsed JSON and leaves no source archive behind.
 
-- [ ] **C5 — Add corpus and Python cache ignores**
-  - Issue: TBD
+- [x] **C5 — Add corpus and Python cache ignores**
+  - Issue: #7
   - Commit: `corpus: ignore downloaded corpus sources and caches`
   - Extend `.gitignore` for downloaded corpus archives, decompressed/extracted raw sources,
     `__pycache__/`, `*.py[cod]`, and temporary corpus directories.
@@ -208,8 +228,8 @@ documentation, or this tasklist itself. Any other match must be fixed.
   - Done when downloading/parsing a corpus leaves a clean `git status` apart from intentional JSON
     changes.
 
-- [ ] **C6 — Update corpus documentation and remove solved TODOs**
-  - Issue: TBD
+- [x] **C6 — Update corpus documentation and remove solved TODOs**
+  - Issue: #8
   - Commit: `docs: update corpus readmes`
   - Document the exact commands for both parsers, the source URLs, the output paths, and the fact
     that raw sources are deleted.
@@ -222,85 +242,110 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
 ### Branch `core`
 
 - [ ] **K1 — Establish the import root and package skeleton**
-  - Issue: TBD
+  - Issue: #9
   - Commit: `core: add package skeleton and dependencies`
   - Create `shirolyzer/utils/__init__.py`, `shirolyzer/utils/ansi/__init__.py`, and the
     `shirolyzer/config/` directory. `analyze.py`, `compute.py`, `audit.py`, and `compare.py` stay
     directly under `shirolyzer/`.
-  - Add `requirements.txt` with `numpy` and `PyYAML` if they are not already declared elsewhere.
+  - Add `PyYAML` to the existing `requirements.txt`; `numpy` and `scipy` are already declared.
   - Keep direct execution (`python shirolyzer/analyze.py`) as the primary interface, with
     `shirolyzer/` as the import root (`from utils...`). Do not add wrapper scripts.
   - Done when every script can import its local modules without an absolute `sys.path` insert.
 
-- [ ] **K2 — Rename the analyzer entry points**
-  - Issue: TBD
-  - Commit: `core: rename analyzer entry points`
-  - Rename `analyze_shai.py` → `analyze.py`, `anneal_shai.py` → `compute.py`, and
-    `audit_shai.py` → `audit.py`.
-  - Remove `_shai` from docstrings, help text, comments, and default values where it implies a
+- [ ] **K2 — Establish the generic analyzer entry points**
+  - Issue: #10
+  - Commit: `core: establish generic analyzer entry points`
+  - The old `analyze_shai.py`, `anneal_shai.py`, and `audit_shai.py` are archived in
+    `legacy/round8/`; do not rename them back. The new code currently exposes `audit_geo.py`
+    and `scorer_geo.py`.
+  - Rename `audit_geo.py` → `audit.py` and strip `_geo`/`_shai` naming where it implies a
     corpus-specific tool.
+  - Port the diagnostics from `legacy/round8/analyze_shai.py` to `analyze.py` against the new
+    geo scorer tables.
+  - Port the annealer/ILS loop from `legacy/round8/anneal_shai.py`, `ils.py`, and `objective.py`
+    to `compute.py` against the new geo scorer tables. Keep the current single-composite loop for
+    this task; K8 changes the iteration order.
   - Keep `compare.py` as a user-facing entry point.
-  - Done when the three renamed scripts run and the old filenames no longer exist.
+  - Done when `analyze.py`, `compute.py`, and `audit.py` run from `shirolyzer/` and no active
+    entry point uses the old `_shai`/`_geo` filenames.
 
 - [ ] **K3 — Move shared modules under `utils/`**
-  - Issue: TBD
+  - Issue: #11
   - Commit: `core: move shared analysis modules under utils`
-  - Move `comfort.py`, `fingers.py`, `ils.py`, and `objective.py` into `shirolyzer/utils/`.
+  - Move `comfort_geo.py` → `shirolyzer/utils/comfort.py`, `gates.py` →
+    `shirolyzer/utils/gates.py`, `gateset.py` → `shirolyzer/utils/gateset.py`, `rulings.py` →
+    `shirolyzer/utils/rulings.py`, and `fitlib.py` → `shirolyzer/utils/fitlib.py`.
+  - Split the finger/key constants currently embedded in `comfort_geo.py` (`KEYS`, `FINGERS`,
+    `KI`, `DEFAULT_FINGER`, etc.) into `shirolyzer/utils/fingers.py`; `comfort.py` imports them.
+  - Move the fitting/review/baseline tools (`fit2.py`, `fit3.py`, `de_polish2.py`, `loo3.py`,
+    `ablate.py`, `review.py`, `oldmodel.py`, `oldbase.py`, plus `oldbase.json`) into
+    `shirolyzer/dev/`. These are non-runtime tooling; `oldmodel.py` and `oldbase.py` may
+    continue to import `legacy/round8/`.
+  - Move the runtime calibration data (`theta_geo_A_all.json`, `theta3_Aall.json`,
+    `theta_A.json`, `anchor_pairs.json`) into `shirolyzer/config/model/`.
   - Update all imports in the active scripts to import from `utils.*`.
   - Leave `legacy/` untouched; it is intentionally frozen.
   - Done when all active scripts import the moved modules and no active file imports top-level
-    `comfort`, `fingers`, `ils`, or `objective`.
+    `comfort_geo`, `gates`, `gateset`, `rulings`, or `fitlib`.
 
 - [ ] **K4 — Consolidate the scorer and search modules**
-  - Issue: TBD
+  - Issue: #12
   - Commit: `core: consolidate scorer and search modules`
-  - Rename `scorer2.py` → `shirolyzer/utils/scorer.py` and `search2.py` →
-    `shirolyzer/utils/search.py`, dropping the `2` suffix.
-  - Fix the stale `objective.py` dependency on `scorer.Corpus` and keep the `Corpus` interface
-    available from the new scorer module.
-  - Update every active import of `scorer2`/`search2`.
-  - Done when active code contains no `scorer2` or `search2` references.
+  - Move `scorer_geo.py` → `shirolyzer/utils/scorer.py`, keeping the `get_tables`, `Corpus`,
+    `SPACE`, `N`, and `FID` compatibility surface.
+  - Port `legacy/round8/search2.py` → `shirolyzer/utils/search.py` against the new scorer and
+    move its balance constants to `utils/fingers.py` or a small `utils/balance.py`.
+  - Replace the scorer's temporary `legacy` import shim with a real corpus interface in
+    `utils/scorer.py` or `utils/corpus.py`; active runtime code must not import `legacy`.
+  - Update every active import of `scorer_geo`, `scorer2`, and `search2`.
+  - Done when active code contains no `scorer_geo`, `scorer2`, or `search2` references.
 
 - [ ] **K5 — Package the ANSI geometry by physical layout**
-  - Issue: TBD
+  - Issue: #13
   - Commit: `core: package ansi geometry under utils/ansi`
-  - Move `ansi.py` to `shirolyzer/utils/ansi/ansi.py`.
+  - Extract the key geometry, stagger, hand, row, rest-posture, and displacement calculations
+    currently embedded in `comfort_geo.py` into `shirolyzer/utils/ansi/ansi.py`. Do not port the
+    archived `legacy/round8/ansi.py` model.
   - Add `shirolyzer/utils/ansi/__init__.py` that re-exports the public geometry API and provides
     a registry entry for `physical_layout = "ansi"`.
   - Structure the registry so `iso`, `matrix`, and similar one-word physical-layout packages can
     be added later without changing callers.
-  - Update imports in `comfort.py`, `scorer.py`, and `audit.py`.
+  - Update imports in `comfort.py`, `scorer.py`, `search.py`, and `audit.py`.
   - Done when `physical_layout: ansi` resolves through the registry and all geometry imports work.
 
 - [ ] **K6 — Remove absolute paths and result-path hard-coding**
-  - Issue: TBD
+  - Issue: #14
   - Commit: `core: replace absolute paths with repo-relative resolution`
-  - Delete all `/home/akai/...` paths and `sys.path.insert(...)` calls from active code.
-  - Add a small path helper under `utils/` for repository root, corpus root, config directory, and
-    results directory.
-  - Replace hard-coded `results/round8/...` output paths with `--out`/`--out-json` options whose
-    defaults are derived from the command and layout name.
+  - Delete all `/home/akai/...` and `/tmp/claude/...` paths and `sys.path.insert(...)` calls from
+    active code. The `oldmodel.py`/`oldbase.py` baseline tools may keep a repo-relative
+    `legacy/round8` import helper.
+  - Add a small path helper under `utils/` for repository root, corpus root, config directory,
+    model-data directory, and results directory.
+  - Replace hard-coded `results/round8/...` and script-adjacent audit/review output paths with
+    `--out`/`--out-json` options whose defaults are derived from the command and layout name.
   - Keep existing `results/` history untouched.
   - Done when `git grep` finds no absolute paths in active code and all commands have explicit
     output options.
 
 - [ ] **K7 — Remove corpus-specific assumptions from the entry points**
-  - Issue: TBD
+  - Issue: #15
   - Commit: `core: make entry points corpus-independent`
   - `analyze.py`: replace hard-coded `BEST`, Shai corpus loading, and round-8 output paths with
     `--layout`, repeatable `--primary-corpus`, `--secondary-corpus`, `--out`, and `--out-json`
     options.
   - `compute.py`: replace hard-coded `CFG_E`, `DEFAULT_SEEDS`, Shai/Spanish paths, and result
-    paths with corpus flags, reference/seed inputs, and output options.
-  - `audit.py`: replace the hard-coded Shai probes, `REFS`, and corpus map with
-    configuration/reference-driven data and generic corpus flags.
+    paths with corpus flags, reference/seed inputs, and output options. Seed the defaults from
+    the new geo reference layouts, not the archived scorer2 winners.
+  - `audit.py`: keep the questionnaire/ruling audit as calibration data behind `utils/rulings.py`
+    with an optional `--rulings` override; replace hard-coded Shai corpus scans and output paths
+    with generic corpus flags and output options.
   - Corpus path arguments accept either a raw source, a corpus directory, or a parsed corpus
     directory; document the accepted forms.
   - Done when the same code paths work with two different corpus directories without editing
     source files.
 
 - [ ] **K8 — Optimize secondary only after primary convergence**
-  - Issue: TBD
+  - Issue: #16
   - Commit: `compute: optimize secondary only after primary convergence`
   - Remove the composite corpus from the hot loop. Main quench/anneal iterations score only the
     primary corpus/corpora.
@@ -313,7 +358,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
     in the final phase.
 
 - [ ] **K9 — Auto-generate the seed by default**
-  - Issue: TBD
+  - Issue: #17
   - Commit: `compute: auto-generate seed by default`
   - Make `--seed` optional. When omitted, generate a random seed, print it, and record it in the
     result JSON.
@@ -322,7 +367,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
     usable seed.
 
 - [ ] **K10 — Load reference layouts from `config/references.toml`**
-  - Issue: TBD
+  - Issue: #18
   - Commit: `core: load reference layouts from TOML`
   - Define the reference schema as an array of tables:
 
@@ -339,7 +384,7 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
     comparison output without code changes.
 
 - [ ] **K11 — Append finished layouts to the reference file**
-  - Issue: TBD
+  - Issue: #19
   - Commit: `compute: append final layout to references`
   - At the end of a successful compute run, append a new `[[reference]]` entry containing at
     minimum the generated name, layout string, primary score, secondary score, and seed.
@@ -349,20 +394,23 @@ Branch exit: `corpus` merges to `main`; create `core` from the updated `main`.
     new entry.
 
 - [ ] **K12 — Add a score-regression baseline**
-  - Issue: TBD
+  - Issue: #20
   - Commit: `core: add score regression baseline`
-  - Capture the pre-rewrite scores for the reference layouts and the current known layouts using
-    the existing result JSON files where possible.
-  - Add a small check script or test that recomputes those scores and fails on unintended drift.
+  - Capture the post-replacement baseline from the new geo model: `audit_geo.py A:all` =
+    166/166 enforced rulings, `oldbase.py` = 123/168 shipped-model rulings, and per-reference
+    bigram/trigram costs computed through `scorer_geo.get_tables()`.
+  - Use `theta_geo_A_all.json` as the fixed model. Record reference layouts and their scores in a
+    small JSON/TOML baseline file.
+  - Add a check script or test that recomputes those scores and fails on unintended drift.
   - Done when the baseline passes before config work begins and can be rerun after every batch.
-  - Note: this is the guard for the "preserve current behaviour" requirement.
+  - Note: this is the guard for the "preserve current geo behaviour" requirement.
 
 Branch exit: `core` merges to `main`; create `config` from the updated `main`.
 
 ### Branch `config`
 
 - [ ] **G1 — Add the default YAML configuration**
-  - Issue: TBD
+  - Issue: #21
   - Commit: `config: add default YAML configuration`
   - Create `shirolyzer/config/config.yaml` with the four required sections:
     `general`, `fingermap`, `alt_fingers`, `conditions`, plus `priority_list` and
@@ -377,6 +425,11 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
       secondary_corpus:
         - {name: spanish, weight: 100}
       primary_sacrifice: 0.00023   # percent of best primary score
+
+    model:
+      type: pattern
+      variant: A                   # disallow full-span M/R reverse scissor
+      theta_file: model/theta_geo_A_all.json
 
     fingermap: |
       LR LR LM LM LM  RM RM RM RR RR
@@ -409,37 +462,41 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
       RP: 12.5
     ```
 
-  - Port every current implicit alt-context rule and scissor/condition rule into this file so it
-    is the single source of truth.
+  - Port the new model's gates from `gates.py` (`GATES_ALL`, `EXPLICIT`), the default fingering
+    from `comfort_geo.DEFAULT_FINGER`, and every current geometric condition into this file so
+    the YAML is the single user-facing source of truth. Fitted theta remains calibrated model
+    data referenced by the `model` section.
   - Done when the file contains no dead example entries and all current defaults are represented.
 
 - [ ] **G2 — Implement the YAML loader and validator**
-  - Issue: TBD
+  - Issue: #22
   - Commit: `config: implement YAML loader and validation`
   - Add `shirolyzer/utils/config.py` using `PyYAML`.
   - Validate: physical layout name, 30-token fingermap, corpus weight totals, known priority
-    names, non-negative percentages, valid condition fields, and alt sequences using valid QWERTY
-    position labels.
+    names, non-negative percentages, valid condition fields, alt sequences using valid QWERTY
+    position labels, model type/variant, and that the referenced theta file exists and contains
+    every required parameter.
   - Support a scalar or list for corpora; normalise both.
   - Precedence: command-line flags override YAML values, which override built-in defaults.
   - Done when invalid configs produce actionable errors and a valid config loads identically from
     the default path and `--config PATH`.
 
 - [ ] **G3 — Drive default fingering from the configured fingermap**
-  - Issue: TBD
+  - Issue: #23
   - Commit: `fingers: derive defaults from configured fingermap`
-  - Remove the hard-coded per-key default fingers from `fingers.py`; read them from the loaded
-    config.
-  - Keep geometry, travel, strength, and other physical constants in code.
+  - Remove the hard-coded per-key `DEFAULT_FINGER` map from `comfort_geo.py`/`utils/fingers.py`;
+    read it from the loaded config.
+  - Keep geometry, rest posture, finger length, and other physical constants in code.
   - Ensure computed fingerings never violate the fingermap unless allowed by an alt-finger
     sequence.
   - Done when changing one fingermap entry changes the default fingering and audit output.
 
 - [ ] **G4 — Support configurable alt-finger sequences**
-  - Issue: TBD
+  - Issue: #24
   - Commit: `scorer: support configurable alt-finger sequences`
-  - Port the current hard-coded `_ALT_CONTEXTS`, `_ALT_BLOCKS`, per-key alt premiums, and related
-    gates into the default `alt_fingers` list.
+  - Port the new model's `gates.GATES_ALL` (`only`/`block`/`never` modes) and `gates.EXPLICIT`
+    into the default `alt_fingers`/`conditions` schema. The archived `_ALT_CONTEXTS`/`_ALT_BLOCKS`
+    are not the target.
   - Support sequences of arbitrary length (bigram, trigram, quatrigram, and longer) using QWERTY
     physical positions.
   - Apply declared alts during scoring/search and make them override the fingermap only where
@@ -447,29 +504,33 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
   - Done when adding a new alt sequence changes analysis and generation without source edits.
 
 - [ ] **G5 — Implement the conditions engine and override order**
-  - Issue: TBD
+  - Issue: #25
   - Commit: `objective: enforce configured conditions`
   - Implement structured conditions for at least the current scissor classes: full/half,
     regular/reverse, optional finger lists, and allow/deny.
   - Preserve the spec's override order: entries higher in the list take precedence over lower
     entries. Add a regression test using the spec's half-scissor example in both orders.
-  - Route existing impossibility rules through this engine instead of ad-hoc checks.
+  - Route the new model's geometric impossibility rules (full-span reverse scissors, spread
+    limit, index/pinky separation, crossing/stacking) through this engine instead of ad-hoc
+    thresholds.
   - Done when a condition change alters the allowed fingering set and audit catches violations.
 
 - [ ] **G6 — Implement tiered priority weights and alternation**
-  - Issue: TBD
+  - Issue: #26
   - Commit: `objective: apply tiered priority weights`
   - Rename the priority field `alts` to `alternation` and add a hand-alternation statistic to the
-    scorer/analyzer.
-  - Convert `priority_list` tiers into category multipliers. Items in the same tier share equal
+    scorer/analyzer (`comfort_geo.W_ALT` is the current term).
+  - Convert `priority_list` tiers into multipliers over the new model's cost components:
+    same-finger bigrams/trigrams, vertical/crossing scissor strain, rolls/leaps, trigram
+    redirect/continue terms, alternation, and finger balance. Items in the same tier share equal
     weight; higher tiers receive larger multipliers.
-  - Default multipliers must keep the current calibrated scores reproducible (the regression
+  - Default multipliers must keep the current calibrated geo scores reproducible (the regression
     baseline from K12 is the acceptance test).
   - Done when reordering the priority list demonstrably changes the search trade-offs while the
     default config still passes the regression check.
 
 - [ ] **G7 — Load the shared YAML config in all entry points**
-  - Issue: TBD
+  - Issue: #27
   - Commit: `core: load shared YAML config in entry points`
   - Wire `analyze.py`, `compute.py`, and `audit.py` to load the config and use it for corpora,
     physical layout, fingermap, alt fingers, conditions, priority tiers, and finger balance.
@@ -477,9 +538,10 @@ Branch exit: `core` merges to `main`; create `config` from the updated `main`.
   - Done when one config edit affects analysis, generation, and audit consistently.
 
 - [ ] **G8 — Verify the default config preserves behaviour**
-  - Issue: TBD
+  - Issue: #28
   - Commit: `config: verify default configuration preserves scores`
-  - Run the K12 regression check against the ported default config.
+  - Run the K12 regression check against the ported default config and confirm `audit.py`
+    still reports 166/166 enforced rulings.
   - Investigate and document any unavoidable deviation; do not silently accept score drift.
   - Done when reference rankings are unchanged and numeric scores match within the agreed
     tolerance, or a documented follow-up question exists.
@@ -489,7 +551,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
 ### Branch `xkb`
 
 - [ ] **X1 — Add the layout-to-XKB symbol generator**
-  - Issue: TBD
+  - Issue: #29
   - Commit: `xkb: add layout-to-symbols generator`
   - Add `shirolyzer/utils/xkb.py` that converts a 30-character layout string plus a layout name
     into the XKB symbols format used by `xkb/mine`.
@@ -499,7 +561,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
     `xkb/mine` apart from comments/metadata.
 
 - [ ] **X2 — Add the `--xkb` flag to compute**
-  - Issue: TBD
+  - Issue: #30
   - Commit: `compute: add xkb output flag`
   - Add `--xkb` (default false) and `--xkb-name` (default a safe generated name) to
     `compute.py`.
@@ -509,7 +571,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
     nothing.
 
 - [ ] **X3 — Add a standalone generator/installer for existing layouts**
-  - Issue: TBD
+  - Issue: #31
   - Commit: `xkb: add standalone layout generator and installer`
   - Add `shirolyzer/xkb.py` with `--layout`, `--name`, `--out`, and optional `--install`.
   - Update `xkb/install.sh` to accept an optional symbols/name argument while keeping the current
@@ -518,7 +580,7 @@ Branch exit: `config` merges to `main`; create `xkb` from the updated `main`.
     annealer.
 
 - [ ] **X4 — Validate and document the XKB workflow**
-  - Issue: TBD
+  - Issue: #32
   - Commit: `xkb: validate generated symbols and document usage`
   - Run `bash -n xkb/install.sh`, generate a known layout, and compare against `xkb/mine`.
   - If an X display is available, compile with `xkbcomp` and confirm the keymap loads; otherwise
@@ -531,7 +593,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
 ### Branch `calibration`
 
 - [ ] **T1 — Add the compute time-budget flag**
-  - Issue: TBD
+  - Issue: #33
   - Commit: `compute: add time budget flag`
   - Add `--time-budget` with a documented unit (seconds or `30m`-style strings) and graceful
     stopping between runs/ILS rounds. Always save the best result found so far.
@@ -541,7 +603,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
     work without exceeding the cap by more than one in-flight operation.
 
 - [ ] **T2 — Run and record the tuning experiments**
-  - Issue: TBD
+  - Issue: #34
   - Commit: `results: add compute runtime calibration`
   - Compare multiple time budgets (for example 2, 5, 10, 20, 30, and 60 minutes) and independent
     sweeps of iterations, runs, and ILS rounds.
@@ -551,7 +613,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
   - Done when the calibration data is committed and summarised in a short report.
 
 - [ ] **T3 — Choose and apply the new compute defaults**
-  - Issue: TBD
+  - Issue: #35
   - Commit: `compute: update search defaults from calibration`
   - Increase iterations well above 60k, runs above 24, and ILS above 6 according to T2.
   - Set the default time budget if the data supports it; otherwise keep the flag optional.
@@ -559,7 +621,7 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
   - Done when a default run uses the new values and the reason for each value is recorded.
 
 - [ ] **T4 — Run the post-rewrite validation and refresh references**
-  - Issue: TBD
+  - Issue: #36
   - Commit: `results: record post-rewrite validation run`
   - Run the full compute pipeline with the new defaults, audit the winner, and append the final
     layout(s) to `config/references.toml`.
@@ -571,7 +633,7 @@ Branch exit: `calibration` merges to `main`; create `docs` from the updated `mai
 ### Branch `docs`
 
 - [ ] **D1 — Update analyzer documentation and usage examples**
-  - Issue: TBD
+  - Issue: #37
   - Commit: `docs: update analyzer documentation`
   - Update `shirolyzer/README.md` and the root `README.md` for the new structure, YAML config,
     corpus commands, two-phase search, references TOML, and XKB workflow.
@@ -580,7 +642,7 @@ Branch exit: `calibration` merges to `main`; create `docs` from the updated `mai
   - Done when every documented command matches the implemented CLI.
 
 - [ ] **D2 — Final stale-reference and import cleanup**
-  - Issue: TBD
+  - Issue: #38
   - Commit: `docs: finalize rewrite cleanup`
   - Run the section 4 quality gates, fix any remaining active stale references, and confirm
     `legacy/` is not imported.
@@ -595,9 +657,9 @@ Branch exit: `docs` merges to `main`; the rewrite is complete.
 
 | Spec item | Task(s) |
 |---|---|
-| Rename `analyze_shai.py` → `analyze.py` | K2 |
-| Rename `anneal_shai.py` → `compute.py` | K2 |
-| Rename `audit_shai.py` → `audit.py` | K2 |
+| Establish `analyze.py` (from archived `analyze_shai.py`) | K2 |
+| Establish `compute.py` (from archived `anneal_shai.py`) | K2 |
+| Establish `audit.py` (from `audit_geo.py`) | K2 |
 | Move/rename corpus build scripts | C1 |
 | `parsed/` sub-directory for both corpora | C2 |
 | Corpus scripts download, parse, and delete source | C3, C4 |

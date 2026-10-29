@@ -1,18 +1,37 @@
-# Ian Douglas' Spanish keyboard Development corpus
+# Ian Douglas' Spanish keyboard development corpus
 
----
+Source: <https://zenodo.org/records/5501931>
+Download: <https://zenodo.org/records/5501931/files/Spanish-Keyboard-Corpus-1.0.0.zip?download=1>
 
-Source: https://zenodo.org/records/5501931
-Download link: https://zenodo.org/records/5501931/files/Spanish-Keyboard-Corpus-1.0.0.zip?download=1
+The parser extracts `clean-spanish-book-extracts.txt` from the archive. This is
+the cleaned book corpus that matches the scale of the previous local Gutenberg
+sample.
 
-P.S.: for anyone who doesn't know, this corpus is basically the spanish equivalent for Shai.
-      i'm picking it as the secondary corpus for shiro because of this same reason.
+## Build
 
----
+```sh
+python3 corpora/spanish/parse_spanish.py            # download, parse, write parsed/
+python3 corpora/spanish/parse_spanish.py --check    # download, parse, compare only
+python3 corpora/spanish/parse_spanish.py --source FILE.zip [--keep-source]
+```
 
-Letters: 418,381,828
-Bigrams: 327,253,737
-Trigrams: 240,524,895
-Runs: 91,128,091
+The parser downloads the zip to a temporary directory, extracts only the
+selected text file, and deletes the archive and extracted files on success.
+`--source` uses an existing local zip instead, and `--keep-source` keeps the
+working files for debugging.
 
-Processing: lowercase, maximal [a-z]+ runs; non-letters break runs
+Output: `corpora/spanish/parsed/letter_freq.json`,
+`corpora/spanish/parsed/bigram_freq.json`, and
+`corpora/spanish/parsed/trigram_freq.json`.
+
+## Totals
+
+```text
+Letters:  8,584,068
+Spaces:   1,860,626
+Bigrams:  6,723,441
+Trigrams: 4,983,706
+```
+
+Processing: lowercase, Unicode NFKD with combining marks stripped, then
+maximal `[a-z]+` runs; non-letters break runs.

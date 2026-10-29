@@ -1,1 +1,0 @@
-Update spanish corpus to use Spanish-Keyboard-Corpus-1.0.0.zip instead of the current.
