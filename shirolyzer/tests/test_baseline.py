@@ -8,7 +8,7 @@ from shirolyzer.utils import paths
 class BaselineRegressionTests(unittest.TestCase):
     def test_default_config_reproduces_k12_baseline(self):
         result = subprocess.run(
-            [sys.executable, str(paths.SHIROLYZER_ROOT / "check_baseline.py")],
+            [sys.executable, "-m", "shirolyzer", "check-baseline"],
             cwd=paths.REPO_ROOT, capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("baseline OK", result.stdout)

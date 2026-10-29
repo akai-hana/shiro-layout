@@ -7,11 +7,11 @@ for letters only.
 """
 import argparse
 
-from utils import config as CFG
-from utils import render as RENDER
+from ..utils import config as CFG
+from ..utils import render as RENDER
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("layout",
                     help="30-character layout in QWERTY row-major order")
@@ -21,7 +21,7 @@ def main():
                     help="omit the finger labels")
     ap.add_argument("--both", action="store_true",
                     help="print both the annotated and plain grids")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     try:
         if args.plain:

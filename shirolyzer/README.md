@@ -5,9 +5,10 @@ pattern model used by the Shiro layout.  It can score an existing layout,
 audit the model's fingering rules, rank reference layouts, and search for new
 30-key arrangements under primary and secondary corpora.
 
-All commands below run from the repository root.  The package is executed as
-scripts directly under `shirolyzer/`, so imports use `utils.*` internally and
-no installation step is required beyond the Python dependencies.
+All commands below run from the repository root.  `analyze.py` and `compute.py`
+are thin facades over `shirolyzer/commands/`; other commands run through
+`python3 -m shirolyzer`.  No installation step is required beyond the Python
+dependencies.
 
 ## Requirements
 
@@ -29,11 +30,7 @@ symbols file:
 python3 corpora/shai/parse_shai.py
 python3 corpora/spanish/parse_spanish.py
 
-python3 shirolyzer/analyze.py \
-  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
-  --primary-corpus corpora/shai/parsed \
-  --secondary-corpus corpora/spanish/parsed \
-  --name shiro
+python3 shirolyzer/analyze.py ";ntgfjoehkrpmscuaydilbqvwxz,./" --name shiro
 
 python3 shirolyzer/compute.py --name shiro --xkb --xkb-name shiro
 xkb/install.sh shiro
@@ -43,9 +40,18 @@ Render any layout as a staggered ASCII grid; by default each key is shown with
 its configured finger, like the `fingermap` in `config.yaml`:
 
 ```bash
-python3 shirolyzer/render.py ";ntgfjoehkrpmscuaydilbqvwxz,./"
-python3 shirolyzer/render.py --plain ";ntgfjoehkrpmscuaydilbqvwxz,./"
-python3 shirolyzer/render.py --both ";ntgfjoehkrpmscuaydilbqvwxz,./"
+python3 -m shirolyzer render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+python3 -m shirolyzer render --plain ";ntgfjoehkrpmscuaydilbqvwxz,./"
+python3 -m shirolyzer render --both ";ntgfjoehkrpmscuaydilbqvwxz,./"
+```
+
+Common workflows are also available through `just`:
+
+```bash
+just compute
+just analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
+just render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+just test
 ```
 
 `compute.py` with defaults is a long-running search.  See
@@ -58,13 +64,14 @@ for the way valid layouts are reported.
 |---|---|
 | `corpora/shai/` | Shai English corpus parser and parsed frequency files |
 | `corpora/spanish/` | Spanish corpus parser and parsed frequency files |
-| `shirolyzer/analyze.py` | Score one layout and print a detailed report |
-| `shirolyzer/audit.py` | Run questionnaire probes and model rulings |
-| `shirolyzer/compare.py` | Rank TOML reference layouts |
-| `shirolyzer/compute.py` | Generate and validate layouts |
-| `shirolyzer/xkb.py` | Convert an existing layout to XKB symbols |
-| `shirolyzer/render.py` | Print a layout as a staggered, finger-annotated ASCII grid |
-| `shirolyzer/check_baseline.py` | Regression check for references and audit counts |
+| `shirolyzer/analyze.py` | Facade: score one layout and print a detailed report |
+| `shirolyzer/compute.py` | Facade: generate and validate layouts |
+| `shirolyzer/commands/` | Implementations of all CLI subcommands |
+| `python -m shirolyzer audit` | Run questionnaire probes and model rulings |
+| `python -m shirolyzer compare` | Rank TOML reference layouts |
+| `python -m shirolyzer xkb` | Convert an existing layout to XKB symbols |
+| `python -m shirolyzer render` | Print a layout as a staggered, finger-annotated ASCII grid |
+| `python -m shirolyzer check-baseline` | Regression check for references and audit counts |
 | `shirolyzer/config/` | YAML config, references, model theta, score baseline |
 | `shirolyzer/utils/` | Runtime model, corpus, search, and output modules |
 | `shirolyzer/tests/` | Unit and regression tests |
@@ -199,15 +206,12 @@ source for debugging.
 ### Analyze one layout
 
 ```bash
-python3 shirolyzer/analyze.py \
-  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
-  --primary-corpus corpora/shai/parsed \
-  --secondary-corpus corpora/spanish/parsed \
-  --name shiro
+python3 shirolyzer/analyze.py ";ntgfjoehkrpmscuaydilbqvwxz,./" --name shiro
 ```
 
-With no `--layout`, the config's `general.current_layout` is used.  With no
-corpus flags, the YAML corpora are used.
+With no layout argument, the config's `general.current_layout` is used.  With
+no corpus flags, the YAML corpora are used.  `--layout` remains available as a
+compatibility flag.
 
 The report contains the primary and secondary corpus scores, bigram category
 shares, the worst bigrams, scissor counts, trigram patterns, finger load, and a
@@ -218,7 +222,7 @@ per-letter fingering guide.  Output defaults to
 ### Audit the model
 
 ```bash
-python3 shirolyzer/audit.py \
+python3 -m shirolyzer audit \
   --out shirolyzer/results/audit.txt \
   --out-json shirolyzer/results/audit.json
 ```
@@ -232,12 +236,12 @@ different YAML file.
 ### Compare references
 
 ```bash
-python3 shirolyzer/compare.py
-python3 shirolyzer/compare.py --refs shirolyzer/config/references.toml
-python3 shirolyzer/compare.py --primary-corpus corpora/shai/parsed
+python3 -m shirolyzer compare
+python3 -m shirolyzer compare --refs shirolyzer/config/references.toml
+python3 -m shirolyzer compare --primary-corpus corpora/shai/parsed
 ```
 
-`compare.py` prints reference names, plain corpus trigram scores, and layouts,
+`compare` prints reference names, plain corpus trigram scores, and layouts,
 sorted by score.  This is the plain trigram cost used by `analyze.py`; the
 generator's primary score also includes the calibrated comfort, geometry,
 condition, and balance terms, so the two numbers are not directly comparable.
@@ -245,7 +249,7 @@ condition, and balance terms, so the two numbers are not directly comparable.
 ### Regression check
 
 ```bash
-python3 shirolyzer/check_baseline.py
+python3 -m shirolyzer check-baseline
 ```
 
 This checks reference bigram/trigram costs against
@@ -376,7 +380,7 @@ and `--append-references` at a temporary copy.
 Generate symbols for an existing layout:
 
 ```bash
-python3 shirolyzer/xkb.py \
+python3 -m shirolyzer xkb \
   --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
   --name shiro
 ```
@@ -414,10 +418,10 @@ mapping as `xkb/mine`, keep the apostrophe on both `<AC11>` and the ISO
 python3 -m compileall shirolyzer
 python3 shirolyzer/analyze.py --help
 python3 shirolyzer/compute.py --help
-python3 shirolyzer/audit.py --help
-python3 shirolyzer/compare.py --help
-python3 shirolyzer/xkb.py --help
-python3 shirolyzer/check_baseline.py
+python3 -m shirolyzer audit --help
+python3 -m shirolyzer compare --help
+python3 -m shirolyzer xkb --help
+python3 -m shirolyzer check-baseline
 python3 -m unittest discover -s shirolyzer/tests -v
 ```
 

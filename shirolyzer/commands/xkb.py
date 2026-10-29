@@ -2,18 +2,18 @@
 """Generate an XKB symbols file for an existing layout.
 
 Examples:
-    python3 shirolyzer/xkb.py --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" --name shiro
-    python3 shirolyzer/xkb.py --layout "$(cat layout.txt)" --out /tmp/shiro --install
+    python3 -m shirolyzer xkb --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" --name shiro
+    python3 -m shirolyzer xkb --layout "$(cat layout.txt)" --out /tmp/shiro --install
 """
 import argparse
 import subprocess
 from pathlib import Path
 
-from utils import paths
-from utils import xkb as XKB
+from ..utils import paths
+from ..utils import xkb as XKB
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--layout", required=True,
                     help="30-character layout in QWERTY row-major order")
@@ -23,7 +23,7 @@ def main():
                     help="output symbols file (default: xkb/<name>)")
     ap.add_argument("--install", action="store_true",
                     help="install and apply the generated symbols with xkb/install.sh")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     name = args.name or XKB.safe_name(args.layout)
     out = Path(args.out) if args.out else paths.XKB_DIR / name

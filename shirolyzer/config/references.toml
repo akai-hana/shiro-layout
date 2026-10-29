@@ -1,5 +1,5 @@
-# Reference layouts used by compare.py and compute.py.
-# Add new layouts as [reference] tables; compute.py appends generated results.
+# Reference layouts used by the compare and compute commands.
+# Add new layouts as [reference] tables; compute appends generated results.
 
 [[reference]]
 name = "qwerty"

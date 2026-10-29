@@ -2,11 +2,11 @@
 """Score reference layouts against a corpus with the calibrated model."""
 import argparse
 
-from utils import config as CFG
-from utils import paths
-from utils import references as R
-from utils import scorer as SG
-from utils.ansi import KEYS, KI
+from ..utils import config as CFG
+from ..utils import paths
+from ..utils import references as R
+from ..utils import scorer as SG
+from ..utils.ansi import KEYS, KI
 
 
 def score(layout, corpus, tables=None):
@@ -28,7 +28,7 @@ def score(layout, corpus, tables=None):
     return float((tri.ravel()[flat] * corpus.tri_counts[ok]).sum() / total)
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", default=None,
                     help="YAML config file (default: config/config.yaml)")
@@ -36,7 +36,7 @@ def main():
                     help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip")
     ap.add_argument("--refs", default=str(paths.REFERENCES_FILE),
                     help="TOML reference file (default: config/references.toml)")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     cfg = CFG.load_and_apply(args.config)
     if args.primary_corpus:
         corpus = SG.Corpus.load(args.primary_corpus)

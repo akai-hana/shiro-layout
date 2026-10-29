@@ -1,7 +1,6 @@
-"""Shirolyzer package root for module-mode tooling.
+"""Shirolyzer package root.
 
-User-facing entry points remain directly executable under ``shirolyzer/`` and
-import shared code through the ``utils`` package.  The package marker lets
-non-runtime tools in ``shirolyzer/dev`` be invoked with
-``python -m shirolyzer.dev.<tool>`` without path bootstrapping.
+The two primary entry points, ``shirolyzer/compute.py`` and
+``shirolyzer/analyze.py``, are thin facades over ``shirolyzer.commands``.
+Other commands are available through ``python -m shirolyzer <command>``.
 """

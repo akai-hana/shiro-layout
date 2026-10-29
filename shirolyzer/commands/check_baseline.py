@@ -9,10 +9,10 @@ from pathlib import Path
 
 import numpy as np
 
-from utils import paths
-from utils import references as R
-from utils import scorer as SG
-from utils.ansi import KEYS, KI
+from ..utils import paths
+from ..utils import references as R
+from ..utils import scorer as SG
+from ..utils.ansi import KEYS, KI
 
 MODEL = "theta_geo_A_all.json"
 BASELINE_FILE = paths.CONFIG_DIR / "score_baseline.json"
@@ -54,10 +54,10 @@ def audit_counts():
     with tempfile.TemporaryDirectory() as tmp:
         out_json = Path(tmp) / "audit.json"
         subprocess.run(
-            [sys.executable, str(paths.SHIROLYZER_ROOT / "audit.py"),
+            [sys.executable, "-m", "shirolyzer.commands.audit",
              AUDIT_CONFIG, "--out-json", str(out_json),
              "--out", str(Path(tmp) / "audit.txt")],
-            cwd=paths.SHIROLYZER_ROOT, check=True,
+            cwd=paths.REPO_ROOT, check=True,
             stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True)
         data = json.loads(out_json.read_text())
     return data["rulings"]
@@ -107,14 +107,14 @@ def compare(expected, actual, tolerance):
     return errors
 
 
-def main():
+def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--baseline", default=str(BASELINE_FILE))
     ap.add_argument("--corpus", default=str(paths.CORPUS_ROOT / "shai" / "parsed"))
     ap.add_argument("--tolerance", type=float, default=1e-9)
     ap.add_argument("--write", action="store_true",
                     help="regenerate the baseline file")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     actual = collect(args.corpus)
     baseline = Path(args.baseline)
     if args.write:

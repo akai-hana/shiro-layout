@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 """Questionnaire and ruling audit for the pattern model.
 
-usage: python3 shirolyzer/audit.py [--config A:all] [--out PATH]"""
+usage: python3 -m shirolyzer audit [--config A:all] [--out PATH]"""
 import argparse, json
 from pathlib import Path
 import numpy as np
-from utils import comfort as cg, config as CFG, gates as GT, fitlib as FL, paths, rulings as RL
-from utils.corpus import load_many
-from utils import scorer as SG
-from utils.ansi import KEYS, KI, FINGERS, FI
-from utils.fingers import NF, DEFAULT_FINGER
+from ..utils import comfort as cg, config as CFG, gates as GT, fitlib as FL, paths, rulings as RL
+from ..utils.corpus import load_many
+from ..utils import scorer as SG
+from ..utils.ansi import KEYS, KI, FINGERS, FI
+from ..utils.fingers import NF, DEFAULT_FINGER
 
 ap = argparse.ArgumentParser(description=__doc__)
 ap.add_argument("config", nargs="?", default=None,

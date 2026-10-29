@@ -17,9 +17,11 @@ XKB symbols and installer needed to try a generated arrangement on X11.
 - **Reference comparison** — ranks the layouts listed in a TOML reference file.
 - **XKB workflow** — converts a layout string into symbols and installs it.
 
-The analyzer, generator, auditor, and comparer live directly under
-`shirolyzer/`.  Archived pre-rewrite code remains under `shirolyzer/legacy/`
-for reference and is not used at runtime.
+The primary entry points are `shirolyzer/compute.py` and
+`shirolyzer/analyze.py`; the other commands are available through
+`python3 -m shirolyzer`.  Implementations live under `shirolyzer/commands/`.
+Archived pre-rewrite code remains under `shirolyzer/legacy/` for reference and
+is not used at runtime.
 
 ## Quick start
 
@@ -38,19 +40,16 @@ python3 corpora/shai/parse_shai.py
 python3 corpora/spanish/parse_spanish.py
 ```
 
-Analyze the current layout:
+Analyze a layout:
 
 ```bash
-python3 shirolyzer/analyze.py \
-  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
-  --primary-corpus corpora/shai/parsed \
-  --secondary-corpus corpora/spanish/parsed
+python3 shirolyzer/analyze.py ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
-Render a layout as a staggered ASCII grid with its configured fingers:
+Render it as a staggered ASCII grid with its configured fingers:
 
 ```bash
-python3 shirolyzer/render.py ";ntgfjoehkrpmscuaydilbqvwxz,./"
+python3 -m shirolyzer render ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 Generate a layout and write it to XKB:
@@ -62,6 +61,16 @@ python3 shirolyzer/compute.py --name shiro --xkb --xkb-name shiro
 A default compute run is a long-running search; see
 [`shirolyzer/README.md`](shirolyzer/README.md) for shorter experiments and for
 the meaning of `selected` versus the full `valid_layouts` list.
+
+If you use [`just`](https://github.com/casey/just), the common workflows are
+shortcuts:
+
+```bash
+just compute
+just analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
+just render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+just test
+```
 
 Install the generated symbols on the current X display:
 
@@ -93,7 +102,8 @@ Reference layouts live in
 ```text
 corpora/shai/             English corpus parser and parsed frequencies
 corpora/spanish/          Spanish corpus parser and parsed frequencies
-shirolyzer/               Analyzer/generator entry points and runtime package
+shirolyzer/               Primary entry points and runtime package
+shirolyzer/commands/      Implementations of the CLI subcommands
 shirolyzer/config/        YAML config, references, theta, score baseline
 shirolyzer/tests/         Unit and regression tests
 shirolyzer/results/       Local outputs and committed result reports
@@ -120,7 +130,7 @@ research/                 Historical investigation reports
 
 ```bash
 python3 -m compileall shirolyzer
-python3 shirolyzer/check_baseline.py
+python3 -m shirolyzer check-baseline
 python3 -m unittest discover -s shirolyzer/tests -v
 ```
 

@@ -8,12 +8,12 @@
 # Fingermap tokens are two characters: a QWERTY key label followed by a finger
 # (P pinky, R ring, M middle, I index).  The three rows are in QWERTY order.
 
-# Search effort defaults live in compute.py: 28 random runs, 100000 anneal
-# iterations, and 8 ILS rounds.  They were calibrated in
+# Search effort defaults live in commands/compute.py: 28 random runs, 100000
+# anneal iterations, and 8 ILS rounds.  They were calibrated in
 # results/calibration/REPORT.md; override per run with --runs/--iters/--ils.
 # --time-budget stays optional because short budgets truncate seeds and ILS.
-# Diversity output also lives in compute.py: 0.002 primary tolerance, 0.005
-# secondary tolerance, 4 key positions minimum distance, 8 valid layouts.
+# Diversity output also lives in commands/compute.py: 0.002 primary tolerance,
+# 0.005 secondary tolerance, 4 key positions minimum distance, 8 valid layouts.
 # --polish-rounds is opt-in because it continues optimizing near-equal picks.
 general:
   physical_layout: ansi
