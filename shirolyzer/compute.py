@@ -51,6 +51,23 @@ class BudgetExceeded(Exception):
     pass
 
 
+class ConstrainedEvaluator:
+    """Secondary evaluator that rejects candidates outside the primary budget."""
+
+    def __init__(self, primary_ev, secondary_ev, limit):
+        self.primary_ev = primary_ev
+        self.secondary_ev = secondary_ev
+        self.limit = limit
+
+    def score(self, perm):
+        if self.primary_ev.score(perm) > self.limit:
+            return math.inf
+        return self.secondary_ev.score(perm)
+
+    def layout_str(self, perm):
+        return self.secondary_ev.layout_str(perm)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--seed-layout", "--layout", dest="seed_layout",
@@ -165,37 +182,37 @@ def main():
               f"primary={ipri:.4f}  {ilay}", flush=True)
 
     final = best_primary
+    best_secondary = None
     if secondary_ev is not None:
         budget = abs(best_primary["primary"]) * args.primary_sacrifice / 100.0
         limit = best_primary["primary"] + budget + 1e-12
+        constrained = ConstrainedEvaluator(primary_ev, secondary_ev, limit)
 
-        def constrained(perm):
-            pri = primary_ev.score(perm)
-            if pri > limit:
-                return float("inf")
-            return secondary_ev.score(perm)
-
-        candidates = sorted(uniq.values(), key=lambda r: (r["primary"], r["final"]))[:4]
+        primary_results = [r for r in results if not r["start"].startswith("secondary:")]
+        primary_pool = sorted(primary_results, key=lambda r: r["primary"])[:4]
         print(f"\nsecondary phase (sacrifice {args.primary_sacrifice:g}% = {budget:.3g}):", flush=True)
-        best_secondary = None
-        for r in candidates:
+        for r in primary_pool:
             if args.time_budget and time.time() - started >= args.time_budget:
                 print("time budget reached before secondary phase", flush=True)
                 break
             perm = list(slots_of(primary_ev, r["layout"]))
-            cur = constrained(perm)
+            cur = constrained.score(perm)
             if not math.isfinite(cur):
                 continue
+            best_perm, best_sec = perm[:], cur
             for it in range(max(1, args.ils)):
                 if args.time_budget and time.time() - started >= args.time_budget:
                     break
-                cand = perturb(perm, rng, rng.choice([2, 4]))
-                c = constrained(cand)
-                if math.isfinite(c) and c < cur - 1e-12:
-                    perm, cur = cand, c
-            lay = primary_ev.layout_str(perm)
-            pri = primary_ev.score(perm)
-            sec = secondary_ev.score(perm)
+                cand = perturb(best_perm, rng, rng.choice([2, 4, 6]))
+                cand_s = constrained.score(cand)
+                if not math.isfinite(cand_s):
+                    continue
+                cand, cand_s = quench(constrained, cand, cand_s, rng)
+                if cand_s < best_sec - 1e-12:
+                    best_perm, best_sec = cand[:], cand_s
+            lay = primary_ev.layout_str(best_perm)
+            pri = primary_ev.score(best_perm)
+            sec = secondary_ev.score(best_perm)
             row = {"start": f"secondary:{r['start']}", "final": sec,
                    "primary": pri, "secondary": sec, "layout": lay}
             results.append(row)
@@ -211,6 +228,9 @@ def main():
         f"primary={','.join(primary_paths)} secondary={','.join(secondary_paths)}",
         f"primary_sacrifice_pct={args.primary_sacrifice:g}",
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
+        (f"best_secondary: primary={best_secondary['primary']:.9f} "
+         f"secondary={best_secondary['secondary']:.9f} {best_secondary['layout']}"
+         if best_secondary is not None else "best_secondary: none"),
         f"selected: primary={final['primary']:.9f} "
         f"secondary={final['secondary'] if final['secondary'] is not None else float('nan'):.9f} "
         f"{final['layout']}",
@@ -233,6 +253,7 @@ def main():
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
         "results": results,
         "best_primary": best_primary,
+        "best_secondary": best_secondary,
         "selected": final,
     }, indent=1) + "\n")
     print(f"\nbest_primary: {best_primary['layout']} ({best_primary['primary']:.6f})")
