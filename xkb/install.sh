@@ -5,7 +5,7 @@
 #   xkb/install.sh [SYMBOLS_FILE] [NAME]
 #   xkb/install.sh [NAME]
 #
-# With no arguments the shipped cfgE layout (xkb/mine) is installed as "mine".
+# With no arguments the shipped layout (xkb/mine) is installed as "mine".
 # A single argument may be either a symbols file or a name under xkb/.
 #
 # setxkbmap cannot be used directly here: its -I flag *replaces* the whole

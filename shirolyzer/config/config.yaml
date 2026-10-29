@@ -17,7 +17,10 @@
 # --polish-rounds is opt-in because it continues optimizing near-equal picks.
 general:
   physical_layout: ansi
-  default_layout: ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  # Canonical layout for this repository. analyze.py uses it when --layout is
+  # omitted; compute.py uses it only as the punctuation/dead-key template.
+  # Search seeds come from references.toml, not from this value.
+  current_layout: ";ntgfjoehkrpmscuaydilbqvwxz,./"
   primary_corpus:
     - {name: shai, weight: 100}
   secondary_corpus:

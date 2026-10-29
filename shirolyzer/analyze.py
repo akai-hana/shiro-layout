@@ -2,7 +2,7 @@
 """Analyze a layout with the calibrated pattern model.
 
 Usage:
-    python3 shirolyzer/analyze.py --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+    python3 shirolyzer/analyze.py --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
         --primary-corpus corpora/shai/parsed
 """
 import argparse
@@ -23,7 +23,6 @@ from utils.fingers import DEFAULT_FINGER
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 FID2 = {0: "P", 1: "R", 2: "M", 3: "I", 4: "T"}
 FORDER = {"P": 0, "R": 1, "M": 2, "I": 3}
-DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
 
 
 def keymap(layout):
@@ -208,7 +207,7 @@ def main():
     ap.add_argument("--config", default=None,
                     help="YAML config file (default: config/config.yaml)")
     ap.add_argument("--layout", default=None,
-                    help="layout to analyze (default: config general.default_layout)")
+                    help="layout to analyze (default: config general.current_layout)")
     ap.add_argument("--name", default=None,
                     help="layout name used to derive default output paths")
     ap.add_argument("--primary-corpus", action="append", default=[],
@@ -219,7 +218,7 @@ def main():
     ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
     cfg = CFG.load_and_apply(args.config)
-    layout = args.layout or cfg.default_layout
+    layout = args.layout or cfg.current_layout
     if len(layout) != 30:
         raise SystemExit("layout must be 30 characters")
     out_path = Path(args.out) if args.out else paths.result_path("analysis", args.name)

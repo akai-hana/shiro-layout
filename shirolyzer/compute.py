@@ -20,7 +20,6 @@ from utils import scorer as SG
 from utils import xkb as XKB
 from utils.corpus import load_many
 from utils.search import LETTERS, Evaluator, dead_of, slots_of, quench, perturb
-DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
 
 
 def parse_budget(value):
@@ -191,7 +190,7 @@ def main():
         secondary_paths = CFG.corpus_labels(cfg, "secondary")
         secondary_corpus = CFG.load_corpora(cfg, "secondary")
     tables = SG.get_tables()
-    base_layout = args.seed_layout[0] if args.seed_layout else cfg.default_layout
+    base_layout = args.seed_layout[0] if args.seed_layout else cfg.current_layout
     dead = dead_of(base_layout)
     primary_ev = Evaluator(primary_corpus, dead, tables)
     secondary_ev = Evaluator(secondary_corpus, dead, tables) if secondary_corpus else None

@@ -38,13 +38,19 @@ python3 corpora/shai/parse_shai.py
 python3 corpora/spanish/parse_spanish.py
 ```
 
-Analyze the current default layout:
+Analyze the current layout:
 
 ```bash
 python3 shirolyzer/analyze.py \
-  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
   --primary-corpus corpora/shai/parsed \
   --secondary-corpus corpora/spanish/parsed
+```
+
+Render a layout as a staggered ASCII grid with its configured fingers:
+
+```bash
+python3 shirolyzer/render.py ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 Generate a layout and write it to XKB:
@@ -71,9 +77,11 @@ display.
 
 The user-facing configuration is
 [`shirolyzer/config/config.yaml`](shirolyzer/config/config.yaml).  It controls
-the physical layout, default layout, corpora and weights, primary-sacrifice
+the physical layout, current layout, corpora and weights, primary-sacrifice
 budget, fingermap, alt-finger rules, geometric conditions, objective priority
-tiers, and finger balance.
+tiers, and finger balance.  `general.current_layout` is the canonical layout
+used by `analyze.py` when `--layout` is omitted and by `compute.py` as its
+punctuation/dead-key template; search seeds come from the reference file.
 
 Reference layouts live in
 [`shirolyzer/config/references.toml`](shirolyzer/config/references.toml).

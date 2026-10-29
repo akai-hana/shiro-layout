@@ -2,7 +2,7 @@
 """Generate an XKB symbols file for an existing layout.
 
 Examples:
-    python3 shirolyzer/xkb.py --layout ";aiojvlnrwhfpeygtcmsbxquzkd,./" --name cfgE
+    python3 shirolyzer/xkb.py --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" --name shiro
     python3 shirolyzer/xkb.py --layout "$(cat layout.txt)" --out /tmp/shiro --install
 """
 import argparse

@@ -1,9 +1,10 @@
 import unittest
 
+from shirolyzer.tests.fixtures import CURRENT_LAYOUT
 from shirolyzer.utils import diversity
 
 
-A = ";tspbxgoiwndhrlyecuafkvmzjq,./"
+A = CURRENT_LAYOUT
 B = A[::-1]
 C = A[10:] + A[:10]
 

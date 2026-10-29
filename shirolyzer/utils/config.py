@@ -62,8 +62,8 @@ class Config:
         return self.general["physical_layout"]
 
     @property
-    def default_layout(self) -> str:
-        return self.general["default_layout"]
+    def current_layout(self) -> str:
+        return self.general["current_layout"]
 
     @property
     def primary_sacrifice(self) -> float:
@@ -377,9 +377,14 @@ def load(path=None) -> Config:
     if layout not in PHYSICAL_LAYOUTS:
         _fail(path, "general.physical_layout",
               f"unknown physical layout {layout!r}; expected one of {sorted(PHYSICAL_LAYOUTS)}")
-    default_layout = str(general.get("default_layout", ""))
-    if len(default_layout) != 30:
-        _fail(path, "general.default_layout", "expected a 30-character layout")
+    if "current_layout" not in general:
+        if "default_layout" in general:
+            _fail(path, "general.default_layout",
+                  "was renamed to 'current_layout'")
+        _fail(path, "general.current_layout", "missing required 30-character layout")
+    current_layout = str(general.get("current_layout", ""))
+    if len(current_layout) != 30:
+        _fail(path, "general.current_layout", "expected a 30-character layout")
     primary = _normalise_corpora(path, "general.primary_corpus", general.get("primary_corpus"))
     secondary = _normalise_corpora(path, "general.secondary_corpus", general.get("secondary_corpus"))
     sacrifice = _number(path, "general.primary_sacrifice",

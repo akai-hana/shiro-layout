@@ -5,6 +5,7 @@ from pathlib import Path
 
 import yaml
 
+from shirolyzer.tests.fixtures import CURRENT_LAYOUT
 from shirolyzer.utils import config as CFG
 from shirolyzer.utils import paths
 
@@ -22,6 +23,7 @@ class ConfigLoaderTests(unittest.TestCase):
 
     def test_default_loads(self):
         cfg = CFG.load()
+        self.assertEqual(cfg.current_layout, CURRENT_LAYOUT)
         self.assertEqual(len(cfg.finger_tokens), 30)
         self.assertEqual(cfg.fingermap["A"], "P")
         self.assertEqual(cfg.model_variant, "A")

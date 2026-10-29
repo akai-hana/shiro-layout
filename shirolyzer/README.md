@@ -22,7 +22,7 @@ pip install -r requirements.txt
 
 ## Quick start
 
-Build the parsed corpora, analyze the default layout, and generate an XKB
+Build the parsed corpora, analyze the current layout, and generate an XKB
 symbols file:
 
 ```bash
@@ -30,13 +30,22 @@ python3 corpora/shai/parse_shai.py
 python3 corpora/spanish/parse_spanish.py
 
 python3 shirolyzer/analyze.py \
-  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
   --primary-corpus corpora/shai/parsed \
   --secondary-corpus corpora/spanish/parsed \
   --name shiro
 
 python3 shirolyzer/compute.py --name shiro --xkb --xkb-name shiro
 xkb/install.sh shiro
+```
+
+Render any layout as a staggered ASCII grid; by default each key is shown with
+its configured finger, like the `fingermap` in `config.yaml`:
+
+```bash
+python3 shirolyzer/render.py ";ntgfjoehkrpmscuaydilbqvwxz,./"
+python3 shirolyzer/render.py --plain ";ntgfjoehkrpmscuaydilbqvwxz,./"
+python3 shirolyzer/render.py --both ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 `compute.py` with defaults is a long-running search.  See
@@ -54,6 +63,7 @@ for the way valid layouts are reported.
 | `shirolyzer/compare.py` | Rank TOML reference layouts |
 | `shirolyzer/compute.py` | Generate and validate layouts |
 | `shirolyzer/xkb.py` | Convert an existing layout to XKB symbols |
+| `shirolyzer/render.py` | Print a layout as a staggered, finger-annotated ASCII grid |
 | `shirolyzer/check_baseline.py` | Regression check for references and audit counts |
 | `shirolyzer/config/` | YAML config, references, model theta, score baseline |
 | `shirolyzer/utils/` | Runtime model, corpus, search, and output modules |
@@ -78,7 +88,7 @@ An abridged view of the main sections:
 ```yaml
 general:
   physical_layout: ansi
-  default_layout: ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  current_layout: ";ntgfjoehkrpmscuaydilbqvwxz,./"
   primary_corpus:
     - {name: shai, weight: 100}
   secondary_corpus:
@@ -90,6 +100,11 @@ model:
   variant: A
   theta_file: model/theta_geo_A_all.json
 ```
+
+`general.current_layout` is the canonical layout for this repository.
+`analyze.py` uses it when `--layout` is omitted, and `compute.py` uses it only
+to choose punctuation/dead-key positions.  Search seeds come from
+`references.toml`, not from this setting.
 
 The remaining sections control the search:
 
@@ -132,7 +147,7 @@ error that names the config location.
 ```toml
 [[reference]]
 name = "shiro"
-layout = ";tspbxgoiwndhrlyecuafkvmzjq,./"
+layout = ";ntgfjoehkrpmscuaydilbqvwxz,./"
 primary_score = 3.520201897
 secondary_score = 3.704852567
 seed = 20261029
@@ -185,13 +200,13 @@ source for debugging.
 
 ```bash
 python3 shirolyzer/analyze.py \
-  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
   --primary-corpus corpora/shai/parsed \
   --secondary-corpus corpora/spanish/parsed \
   --name shiro
 ```
 
-With no `--layout`, the config's `general.default_layout` is used.  With no
+With no `--layout`, the config's `general.current_layout` is used.  With no
 corpus flags, the YAML corpora are used.
 
 The report contains the primary and secondary corpus scores, bigram category
@@ -362,7 +377,7 @@ Generate symbols for an existing layout:
 
 ```bash
 python3 shirolyzer/xkb.py \
-  --layout ";tspbxgoiwndhrlyecuafkvmzjq,./" \
+  --layout ";ntgfjoehkrpmscuaydilbqvwxz,./" \
   --name shiro
 ```
 
