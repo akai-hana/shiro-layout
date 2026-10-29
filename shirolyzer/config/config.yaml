@@ -1,0 +1,75 @@
+# Shirolyzer user-facing configuration.
+#
+# This file is the single source of truth for the physical layout, corpus
+# roles, fingermap, permitted alt fingers, geometric conditions, objective
+# priorities, and target finger balance.  Fitted model parameters stay in the
+# theta file referenced by `model`.
+#
+# Fingermap tokens are two characters: a QWERTY key label followed by a finger
+# (P pinky, R ring, M middle, I index).  The three rows are in QWERTY order.
+
+general:
+  physical_layout: ansi
+  default_layout: ";tspbxgoiwndhrlyecuafkvmzjq,./"
+  primary_corpus:
+    - {name: shai, weight: 100}
+  secondary_corpus:
+    - {name: spanish, weight: 100}
+  primary_sacrifice: 0.00023   # percent of the best primary score
+
+model:
+  type: pattern
+  variant: A                   # disallow full-span M/R reverse scissor
+  theta_file: model/theta_geo_A_all.json
+
+fingermap: |
+  QR WR EM RM TM  YM UM IM OR PR
+   AP SR DM FI GI  HI JI KM LR ;P
+    ZP XR CI VI BI  NI MI ,R .R /P
+
+# Alt-finger context gates port the calibrated model's GATES_ALL table.
+# mode=only  : the non-default finger is permitted only when a context key is present
+# mode=block : the non-default finger is forbidden when a context key is present
+# mode=never : the non-default finger is always forbidden
+# Entries with `explicit: true` are enforced through the explicit context table
+# rather than left to geometry alone.  A user can also add an explicit sequence
+# override such as `{sequence: fw, fingers: [LM, LI]}`; sequence letters are QWERTY
+# positions and `fingers` supplies the finger for each position.
+alt_fingers:
+  - {key: X, finger: LM, mode: only, context: [C, A]}
+  - {key: W, finger: LM, mode: only, context: [Q, X, S]}
+  - {key: L, finger: RI, mode: only, context: [O]}
+  - {key: J, finger: RM, mode: block, context: [T, I, G], explicit: true}
+  - {key: M, finger: RM, mode: block, context: [J]}
+  - {key: C, finger: LM, mode: block, context: [R]}
+  - {key: G, finger: LM, mode: never}
+  - {key: V, finger: LM, mode: block, context: [G]}
+
+# Conditions are evaluated from top to bottom; the first matching entry wins.
+# `allow: false` forbids a matching scissor, `allow: true` permits it.
+conditions:
+  - {type: scissors, distance: full, reverse: true, fingers: [LP, LR, LM, RM, RR, RP], allow: false}
+  - {type: scissors, distance: half, fingers: [LP, RP], allow: false}
+  - {type: scissors, distance: half, allow: true}
+  - {type: spread, max_extra: 2.0, allow: false}
+  - {type: separation, min_width: 1.9, fingers: [LP, LI], allow: false}
+  - {type: crossing, deficit: 0.30, allow: false}
+
+# Higher tiers are more important.  Items in one list share a tier.
+priority_list:
+  - sfbs-sfts
+  - [scissors, redirects]
+  - [rolls, alternation]
+  - finger_balance
+
+# Target share of strokes per finger in percent.  The calibrated model uses the
+# same target for both hands: P 18%, R 25%, M 28%, I 29%.
+finger_balance:
+  LP: 18
+  LR: 25
+  LM: 28
+  LI: 29
+  RP: 18
+  RR: 25
+  RM: 28
+  RI: 29

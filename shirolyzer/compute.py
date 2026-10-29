@@ -12,6 +12,7 @@ import time
 from pathlib import Path
 
 from utils import comfort as cg
+from utils import config as CFG
 from utils import paths
 from utils import references as R
 from utils import scorer as SG
@@ -61,6 +62,8 @@ class ConstrainedEvaluator:
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--config", default=None,
+                    help="YAML config file (default: config/config.yaml)")
     ap.add_argument("--seed-layout", "--layout", dest="seed_layout",
                     action="append", default=[],
                     help="additional starting layout (repeatable)")
@@ -72,8 +75,9 @@ def main():
                     help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
     ap.add_argument("--references", default=str(paths.REFERENCES_FILE),
                     help="TOML reference layouts (default: config/references.toml)")
-    ap.add_argument("--primary-sacrifice", type=float, default=0.00023,
-                    help="percent of the best primary score allowed for secondary tuning")
+    ap.add_argument("--primary-sacrifice", type=float, default=None,
+                    help="percent of the best primary score allowed for secondary tuning "
+                         "(default: config general.primary_sacrifice)")
     ap.add_argument("--runs", type=int, default=24)
     ap.add_argument("--iters", type=int, default=60000)
     ap.add_argument("--ils", type=int, default=6)
@@ -83,9 +87,12 @@ def main():
     ap.add_argument("--out", default=None)
     ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
+    cfg = CFG.load_and_apply(args.config)
     out_path = Path(args.out) if args.out else paths.result_path("compute", args.name)
     out_json = (Path(args.out_json) if args.out_json
                 else paths.result_path("compute", args.name, suffix=".json"))
+    primary_sacrifice = (args.primary_sacrifice if args.primary_sacrifice is not None
+                         else cfg.primary_sacrifice)
 
     started = time.time()
     seed_generated = args.seed is None
@@ -93,13 +100,20 @@ def main():
         args.seed = random.SystemRandom().randint(0, 2**31 - 1)
     print(f"seed={args.seed}{' (generated)' if seed_generated else ''}", flush=True)
     rng = random.Random(args.seed)
-    primary_paths = args.primary_corpus or [str(paths.CORPUS_ROOT / "shai" / "parsed")]
-    secondary_paths = (args.secondary_corpus
-                       or [str(paths.CORPUS_ROOT / "spanish" / "parsed")])
-    primary_corpus = load_many(primary_paths)
-    secondary_corpus = load_many(secondary_paths) if secondary_paths else None
+    if args.primary_corpus:
+        primary_paths = args.primary_corpus
+        primary_corpus = load_many(primary_paths)
+    else:
+        primary_paths = CFG.corpus_labels(cfg, "primary")
+        primary_corpus = CFG.load_corpora(cfg, "primary")
+    if args.secondary_corpus:
+        secondary_paths = args.secondary_corpus
+        secondary_corpus = load_many(secondary_paths)
+    else:
+        secondary_paths = CFG.corpus_labels(cfg, "secondary")
+        secondary_corpus = CFG.load_corpora(cfg, "secondary")
     tables = SG.get_tables()
-    base_layout = args.seed_layout[0] if args.seed_layout else DEFAULT_LAYOUT
+    base_layout = args.seed_layout[0] if args.seed_layout else cfg.default_layout
     dead = dead_of(base_layout)
     primary_ev = Evaluator(primary_corpus, dead, tables)
     secondary_ev = Evaluator(secondary_corpus, dead, tables) if secondary_corpus else None
@@ -180,13 +194,13 @@ def main():
     final = best_primary
     best_secondary = None
     if secondary_ev is not None:
-        budget = abs(best_primary["primary"]) * args.primary_sacrifice / 100.0
+        budget = abs(best_primary["primary"]) * primary_sacrifice / 100.0
         limit = best_primary["primary"] + budget + 1e-12
         constrained = ConstrainedEvaluator(primary_ev, secondary_ev, limit)
 
         primary_results = [r for r in results if not r["start"].startswith("secondary:")]
         primary_pool = sorted(primary_results, key=lambda r: r["primary"])[:4]
-        print(f"\nsecondary phase (sacrifice {args.primary_sacrifice:g}% = {budget:.3g}):", flush=True)
+        print(f"\nsecondary phase (sacrifice {primary_sacrifice:g}% = {budget:.3g}):", flush=True)
         for r in primary_pool:
             if args.time_budget and time.time() - started >= args.time_budget:
                 print("time budget reached before secondary phase", flush=True)
@@ -231,7 +245,7 @@ def main():
         f"primary={','.join(primary_paths)} secondary={','.join(secondary_paths)}",
         f"references={args.references}",
         f"reference_added={added_name or ''}",
-        f"primary_sacrifice_pct={args.primary_sacrifice:g}",
+        f"primary_sacrifice_pct={primary_sacrifice:g}",
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
         (f"best_secondary: primary={best_secondary['primary']:.9f} "
          f"secondary={best_secondary['secondary']:.9f} {best_secondary['layout']}"
@@ -255,7 +269,7 @@ def main():
         "primary_corpora": primary_paths,
         "secondary_corpora": secondary_paths,
         "references": args.references,
-        "primary_sacrifice_pct": args.primary_sacrifice,
+        "primary_sacrifice_pct": primary_sacrifice,
         "elapsed_seconds": time.time() - started,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
         "results": results,

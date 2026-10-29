@@ -113,6 +113,14 @@ class Corpus:
             f"cannot resolve corpus {path!r}: expected a parsed directory, a corpus "
             "directory containing parsed/, or a raw .txt/.xz/.zip source")
 
+    def scaled(self, factor):
+        factor = float(factor)
+        if factor == 1.0:
+            return self
+        return Corpus({k: v * factor for k, v in self.L.items()},
+                      {k: v * factor for k, v in self.B.items()},
+                      {k: v * factor for k, v in self.T.items()})
+
     @classmethod
     def merge(cls, corpora):
         corpora = list(corpora)
