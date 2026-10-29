@@ -38,9 +38,9 @@ fingermap: |
 alt_fingers:
   - {key: X, finger: LM, mode: only, context: [C, A]}
   - {key: W, finger: LM, mode: only, context: [Q, X, S]}
-  - {key: L, finger: LI, mode: only, context: [O]}
-  - {key: J, finger: LM, mode: block, context: [T, I, G], explicit: true}
-  - {key: M, finger: LM, mode: block, context: [J]}
+  - {key: L, finger: RI, mode: only, context: [O]}
+  - {key: J, finger: RM, mode: block, context: [T, I, G], explicit: true}
+  - {key: M, finger: RM, mode: block, context: [J]}
   - {key: C, finger: LM, mode: block, context: [R]}
   - {key: G, finger: LM, mode: never}
   - {key: V, finger: LM, mode: block, context: [G]}
