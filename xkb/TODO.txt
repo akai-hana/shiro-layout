@@ -1,1 +1,3 @@
-make a script that takes the computed layout off of the analyzer and automatically makes a xkb script to install it here
+Resolved: use `python3 shirolyzer/xkb.py --layout "<30 chars>" --name <name>`
+to generate symbols for an existing layout, `compute.py --xkb` to write the
+selected layout automatically, and `xkb/install.sh <name>` to install it.

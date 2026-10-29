@@ -53,6 +53,32 @@ Not all defined alt-fingers are equal: they
 
 <!--TODO: make it so that sacrifice can be defined under specific parameters: % of rolls, % of SFBs, % of redirects...-->
 
+### XKB output
+
+`compute.py --xkb` writes the selected layout to `xkb/<name>`, where the default
+name is a safe hash-derived name.  Use `--xkb-name` to choose a name; the
+shipped `xkb/mine` is only overwritten when `--xkb-name mine` is passed
+explicitly.
+
+To convert an existing layout without running the generator:
+
+```bash
+python3 shirolyzer/xkb.py --layout ";aiojvlnrwhfpeygtcmsbxquzkd,./" --name cfgE
+python3 shirolyzer/xkb.py --layout "$(cat layout.txt)" --out xkb/shiro --install
+```
+
+Install a generated symbols file (or the default `xkb/mine`) with:
+
+```bash
+xkb/install.sh            # installs xkb/mine as "mine"
+xkb/install.sh cfgE       # installs xkb/cfgE
+xkb/install.sh FILE NAME  # installs an arbitrary symbols file under NAME
+```
+
+The generated symbols use the same punctuation mapping as `xkb/mine`, keep the
+apostrophe on both `<AC11>` and the ISO `<LSGT>` key, and can be compiled with
+`xkbcomp` against an Xvfb display for a dry-run check.
+
 ## Analysis
 > Details about shirolyzer's layout generation
 
