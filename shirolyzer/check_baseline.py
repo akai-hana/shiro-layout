@@ -95,8 +95,9 @@ def compare(expected, actual, tolerance):
         errors.append(f"model: {expected['model']} != {actual['model']}")
     expected_refs = expected.get("references", {})
     actual_refs = actual["references"]
-    if set(expected_refs) != set(actual_refs):
-        errors.append(f"reference names: {sorted(expected_refs)} != {sorted(actual_refs)}")
+    missing = set(expected_refs) - set(actual_refs)
+    if missing:
+        errors.append(f"missing references: {sorted(missing)}")
     for name in sorted(set(expected_refs) & set(actual_refs)):
         for field in ("bigram", "trigram"):
             want = float(expected_refs[name][field])

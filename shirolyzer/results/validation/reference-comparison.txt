@@ -1,0 +1,10 @@
+layout                score  keys
+calibration-full     3.394053  ;ntgfjoehkrpmscuaydilbqvwxz,./
+shiro              3.543093  ;tspbxgoiwndhrlyecuafkvmzjq,./
+gallium            3.588507  bldcvjfou,nrtsgyhaeixqmwzkp';.
+semimak            3.622450  flhvzqwuoysrntkcdeaix'bmjpg/,/
+sturdy             3.639963  vmlcpxfoujsrtdy.naeizkqgwbh';,
+canary             3.668599  wlypkzxou;crstbfneiajvdgqmh/,.
+colemak-dh         3.812333  qwfpbjluy;arstgmneiozxcdvkh,./
+colemak            3.820607  qwfpgjluy;arstdhneiozxcvbkm,./
+qwerty             4.266963  qwertyuiopasdfghjkl;zxcvbnm,./

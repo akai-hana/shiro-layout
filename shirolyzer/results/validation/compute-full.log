@@ -1,0 +1,55 @@
+seed=20261029
+start                  final   primary  layout
+qwerty                3.5232    3.5232  ;nsdvjoitkrpchmuaygelbqfwxz,./
+colemak               3.5249    3.5249  ;htpfjoicwrndsmuaygelbqvkxz,./
+colemak-dh            3.5357    3.5357  ;trhwjoinqsmldcuaypefvkgbxz,./
+canary                3.5246    3.5246  ;rtcfxoehplndswuaybimqgvkjz,./
+sturdy                3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+gallium               3.5249    3.5249  ;htpfjoicwrndsmuaygelbqvkxz,./
+semimak               3.5241    3.5241  ;dnpvjoitkrchsmuaygelbfwqxz,./
+shiro                 3.5231    3.5231  ;nsdfquitkrpchmoaygelbxvwjz,./
+rand20262029          3.5315    3.5315  ;htcfjoinqrldswuaypemkgvbxz,./
+rand20262030          3.5246    3.5246  ;rtcfxoehplndswuaybimqgvkjz,./
+rand20262031          3.5355    3.5355  ;trngxoehpsdlmcuaybifkqwvjz,./
+rand20262032          3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262033          3.5232    3.5232  ;nsdvjoitkrpchmuaygelbqfwxz,./
+rand20262034          3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262035          3.5281    3.5281  ;nshwjoitkrpmdcuaygelqfbvxz,./
+rand20262036          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262037          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262038          3.5472    3.5472  ;aegkvdtnmiouhpcslbryzjfqwx,./
+rand20262039          3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262040          3.5404    3.5404  ;aepkwsntgiouhbmcldryzjfxvq,./
+rand20262041          3.5202    3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262042          3.5246    3.5246  ;rtcfxoehplndswuaybimqgvkjz,./
+rand20262043          3.5244    3.5244  ;ntgwjoehklrpscuaydimqfvbxz,./
+rand20262044          3.5287    3.5287  ;rtcfkbeaylndsgphuoimxzvwqj,./
+rand20262045          3.5202    3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262046          3.5231    3.5231  ;ntckxoehplrgswuaydimqvfbjz,./
+rand20262047          3.5244    3.5244  ;ntgwjoehklrpscuaydimqfvbxz,./
+rand20262048          3.5247    3.5247  ;ntcfjoehklrpsguaydimqvwbxz,./
+rand20262049          3.5287    3.5287  ;rtcfkbeaylndsgphuoimxzvwqj,./
+rand20262050          3.5202    3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262051          3.5599    3.5599  ;atmwkleibcodsphruyngqfvzxj,./
+rand20262052          3.5202    3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262053          3.5249    3.5249  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262054          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262055          3.5313    3.5313  ;rtcfjoehknlpsmuaydibqgvwxz,./
+rand20262056          3.5249    3.5249  ;htpfjoicwrndsmuaygelbqvkxz,./
+
+ILS (primary):
+  ILS1 rand20262041     3.5202 -> 3.5202 primary=3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  ILS2 rand20262036     3.5218 -> 3.5202 primary=3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  ILS3 rand20262046     3.5231 -> 3.5218 primary=3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+  ILS4 shiro            3.5231 -> 3.5202 primary=3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+
+secondary phase (sacrifice 0.00023% = 8.1e-06):
+  rand20262041     primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  rand20262045     primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  rand20262050     primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  rand20262052     primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+appended reference 'calibration-full' to /home/akai/git/layout-opencode-investigation/shirolyzer/config/references.toml
+
+best_primary: ;ntgfjoehkrpmscuaydilbqvwxz,./ (3.520202)
+selected: ;ntgfjoehkrpmscuaydilbqvwxz,./
+wrote shirolyzer/results/validation/compute-full.txt and shirolyzer/results/validation/compute-full.json (2205s)
