@@ -1,0 +1,138 @@
+layout: ;ntgfjoehkrpmscuaydilbqvwxz,./
+grid (QWERTY order, left/right split 5+5):
+  ;ntgf | joehk
+  rpmsc | uaydi
+  lbqvw | xz,./
+primary=3.394053333  corpus=shai
+secondary=3.494871416  corpus=spanish
+
+== bigram categories (% of letter bigrams, chosen fingering) ==
+  sfb                0.00
+  scissor_IM_hsb     0.26
+  scissor_IM_fsb     0.00
+  scissor_MR         0.00
+  scissor_RP         0.00
+  roll_in           11.83
+  roll_out           7.06
+  leap               8.84
+  alt               69.43
+  hand_alternation  69.43
+  repeat             2.83
+
+== worst bigrams (chosen cost, fingering, count) ==
+  cw  n=  192500    8.94  II
+  cv  n=  324000    8.74  II
+  wc  n=  671600    8.64  II
+  vc  n=  250600    8.44  II
+  zj  n=    3200    6.00  MI
+  jz  n=    7500    6.00  IM
+  qf  n=   18400    5.99  MI
+  fq  n=   14500    5.99  IM
+  xj  n=   11700    5.87  IM
+  jx  n=    2600    5.87  MI
+  zo  n= 3341500    5.66  IM
+  oz  n= 1698000    5.66  MI
+  vf  n=  138000    5.64  IM
+  fv  n=   99600    5.64  MI
+  qg  n=    5100    5.44  IM
+  gq  n=   19800    5.44  MI
+  lr  n= 3987600    5.27  PR
+  rl  n=26101200    5.07  RP
+  za  n= 6189900    4.92  IM
+  az  n= 6582000    4.92  MI
+
+== scissors (weight=cost*n, kind, fingering) ==
+  di  n=143806800  cost= 2.28  PR   RP
+  pr  n=138795600  cost= 2.28  PR   RP
+  id  n=105842100  cost= 2.57  PR   PR
+  bl  n=74150600  cost= 2.93  PR   RP
+  rm  n=46456200  cost= 2.62  PM   PM
+  hy  n=13624100  cost= 2.59  RM   RM
+  yi  n=12623500  cost= 2.62  PM   MP
+  rp  n=11293200  cost= 2.57  PR   PR
+  nm  n= 6764000  cost= 2.40  RM   RM
+  lb  n= 3196200  cost= 3.29  PR   PR
+  mr  n= 2300900  cost= 2.62  PM   MP
+  mn  n= 1935600  cost= 2.37  RM   MR
+  kd  n=  470600  cost= 3.64  RM   RM
+  iy  n=  593200  cost= 2.62  PM   PM
+  dk  n=  278900  cost= 3.47  RM   MR
+
+== trigram patterns (chosen fingering, % of trigrams) ==
+  alternate         42.60
+  hand_alternation  42.60
+  inroll            28.28
+  outroll           16.48
+  total_rolls       44.76
+  onehand            2.78
+  redirect           2.27
+  redirect_weak      0.75
+  total_redirects    3.03
+  sfb_tri            6.83
+  other              0.00
+
+== finger load (% of all strokes) ==
+  L: P=11.67%  R=10.69%  M=13.99%  I=12.74%
+  R: P= 8.72%  R= 8.55%  M=20.35%  I=13.29%
+
+== alpha fingering guide (trigram DP) ==
+  a@J  default I  I=95.8% M=4.2%
+      alt M: ual:21480400, aus:16320700, ula:13936200, atu:12529700, ura:11198000
+  b@X  default R  R=81.8% I=17.9% M=0.2%
+      alt I: ber:22706400, bri:10551800, rob:9906500, bra:9800000, bro:8549600
+      alt M: mbr:1037700, rbs:470300, rbl:185200, lbr:132900, sbr:100900
+  c@G  default I  I=100.0%
+  d@L  default R  R=97.1% M=2.7% I=0.2%
+      alt M: did:20444200, aid:16312500, dia:10356300, idi:3668800, dio:3271200
+      alt I: hid:1024800, thd:723600, hdr:373200, ldh:290600, ndh:209800
+  e@I  default M  M=99.9% R=0.1%
+      alt R: oje:4002900, eou:1174700, exu:998700, oxe:589900, joe:589000
+  f@T  default M  M=79.7% I=20.3%
+      alt I: fin:23376600, fte:17026000, aft:15358100, inf:11729600, nfo:9388600
+  g@R  default M  M=90.2% I=7.7% R=2.1%
+      alt I: ght:44808200, get:26706300, tag:6555200, got:5670000, gat:5668100
+      alt R: gle:6742800, fig:4508500, gla:3386500, glo:2898500, gli:2298100
+  h@O  default R  R=98.7% M=1.3%
+      alt M: had:17860700, hai:5141200, hly:2301500, hod:2196200, hid:1024800
+  i@;  default P  P=98.7% R=1.3%
+      alt R: aid:16312500, ize:11689700, dia:10356300, did:10222100, idi:7337600
+  j@Y  default M  M=50.2% I=49.8%
+      alt I: jec:8196500, oje:4002900, bje:3330000, joy:3153900, maj:2835000
+  k@P  default R  R=100.0% M=0.0%
+      alt M: zik:30900, yik:26600, kyi:9200, kiz:6000, izk:4800
+  l@Z  default P  P=99.8% R=0.1% M=0.0% I=0.0%
+      alt R: scl:911000, lst:752200, rpl:559700, tml:324700, tfl:215800
+      alt M: lbl:86200, blb:1400
+      alt I: lrb:3500, brl:2700, rlr:1800, lrl:1200
+  m@D  default M  M=80.1% I=17.5% R=2.4%
+      alt I: men:60980600, man:39954800, tim:32254800, min:30960500, mat:25129000
+      alt R: mag:8503900, fam:7207400, gam:6693900, mig:5578100, gem:3383600
+  n@W  default R  R=99.3% M=0.7%
+      alt M: ban:7803900, bin:4752900, ben:4691100, nab:3388400, bon:2772000
+  o@U  default M  M=87.4% I=12.3% R=0.4%
+      alt I: ome:62565700, one:59027900, ook:52067200, ove:49682400, ore:49635300
+      alt R: roj:4025400, job:3460700, jor:3006400, njo:2641100, obj:1700200
+  p@S  default R  R=98.9% M=0.9% I=0.2%
+      alt M: pub:6100800, rpr:2752700, pab:1046900, rsp:862500, rpl:559700
+      alt I: inp:707500, unp:676900, npu:625300, npr:478100, onp:245600
+  q@C  default I  I=91.7% M=8.3%
+      alt M: squ:2423800, cqu:1121800, acq:1078000, liq:663900, esq:178500
+  r@A  default P  P=95.6% R=4.4% M=0.0%
+      alt R: ber:22706400, rst:18028600, bri:10551800, rob:9906500, arl:9823000
+      alt M: rlr:3600, lrb:3500, brl:2700, lrl:600
+  s@F  default I  I=91.3% M=8.7%
+      alt M: was:50705500, ces:34131000, ves:17194400, sec:13261900, suc:11530000
+  t@E  default M  M=99.9% R=0.1%
+      alt R: ftw:1666500, gst:674800, tsc:255400, stw:195400, cst:192600
+  u@H  default I  I=99.9% M=0.1%
+      alt M: dju:1134800, exu:998700, jui:433900, uxe:131100, uja:52800
+  v@V  default I  I=99.4% M=0.6%
+      alt M: wev:4879300, wav:1184500, wiv:152600, vow:113700, wov:100800
+  w@B  default I  I=100.0%
+  x@N  default I  I=98.0% M=2.0%
+      alt M: xua:882400, lux:821800, xur:406000, uxu:402300, nux:283000
+  y@K  default M  M=57.7% R=25.5% I=16.8%
+      alt R: you:142461600, yea:20208200, ory:11125100, aye:6744100, yon:5715600
+      alt I: hey:34037300, ery:27307200, ely:19066100, ney:6893000, yer:6422300
+  z@M  default I  I=95.1% M=4.9%
+      alt M: uzz:1119600, izo:741600, uiz:558400, buz:240200, puz:177400

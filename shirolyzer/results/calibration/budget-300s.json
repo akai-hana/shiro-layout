@@ -1,0 +1,102 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-budget-300s.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 175.28828477859497,
+ "time_budget_seconds": 300.0,
+ "completed_runs": 3,
+ "completed_iterations": 270000,
+ "completed_ils_rounds": 3,
+ "completed_secondary_rounds": 2,
+ "runs": 1,
+ "iters": 60000,
+ "ils": 1,
+ "results": [
+  {
+   "start": "qwerty",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "ILS1:qwerty",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "secondary:qwerty",
+   "final": 3.6454839801840597,
+   "primary": 3.521783724807672,
+   "secondary": 3.6454839801840597,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "secondary:ILS1:qwerty",
+   "final": 3.6454839801840597,
+   "primary": 3.521783724807672,
+   "secondary": 3.6454839801840597,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand2234",
+   "final": 3.5396203602756815,
+   "primary": 3.5396203602756815,
+   "secondary": null,
+   "layout": ";aebkwsntgiouhpmcldryxzfjvq,./"
+  },
+  {
+   "start": "ILS2:rand2234",
+   "final": 3.5396203602756815,
+   "primary": 3.5396203602756815,
+   "secondary": null,
+   "layout": ";aebkwsntgiouhpmcldryxzfjvq,./"
+  },
+  {
+   "start": "ILS3:shiro",
+   "final": 3.5406950803134047,
+   "primary": 3.5406950803134047,
+   "secondary": null,
+   "layout": ";aebkfcntgiouhpmsldryxzqjwv,./"
+  },
+  {
+   "start": "shiro",
+   "final": 3.540986689885997,
+   "primary": 3.540986689885997,
+   "secondary": null,
+   "layout": ";aemkwsntbiouhpcgldryzjfqvx,./"
+  }
+ ],
+ "best_primary": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "best_secondary": {
+  "start": "secondary:qwerty",
+  "final": 3.6454839801840597,
+  "primary": 3.521783724807672,
+  "secondary": 3.6454839801840597,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "selected": {
+  "start": "secondary:qwerty",
+  "final": 3.6454839801840597,
+  "primary": 3.521783724807672,
+  "secondary": 3.6454839801840597,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "reference_added": "budget-300s",
+ "xkb": null
+}

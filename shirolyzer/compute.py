@@ -13,6 +13,7 @@ from pathlib import Path
 
 from utils import comfort as cg
 from utils import config as CFG
+from utils import diversity as DIV
 from utils import paths
 from utils import references as R
 from utils import scorer as SG
@@ -61,6 +62,48 @@ class ConstrainedEvaluator:
         return self.secondary_ev.layout_str(perm)
 
 
+def polish_candidates(results, primary_ev, secondary_ev, args, rng):
+    """Polish distinct near-best primary layouts until a pass stops helping."""
+    rows = [r for r in results if not r["start"].startswith("secondary:")]
+    ref = min(rows, key=lambda r: (r["primary"], r["final"]))
+    candidates, _ = DIV.select_valid_layouts(
+        rows, ref, primary_tolerance=args.valid_tolerance,
+        secondary_tolerance=args.secondary_tolerance,
+        min_distance=args.min_layout_distance,
+        max_valid=args.polish_candidates)
+    polished = []
+    rounds_done = 0
+    iterations_done = 0
+    for i, row in enumerate(candidates, 1):
+        best = list(slots_of(primary_ev, row["layout"]))
+        best_s = primary_ev.score(best)
+        start_s = best_s
+        passes = 0
+        for round_idx in range(max(1, args.polish_rounds)):
+            cand = perturb(best, rng, rng.choice([4, 6, 8]))
+            cand, cs = quench(primary_ev, cand, primary_ev.score(cand), rng)
+            cand, cs = primary_ev.anneal(
+                cand, iters=max(1, args.iters),
+                seed=args.seed + 100003 + 17 * round_idx + i)
+            cand, cs = quench(primary_ev, cand, cs, rng)
+            rounds_done += 1
+            passes += 1
+            iterations_done += max(1, args.iters)
+            if cs < best_s - 1e-12:
+                best, best_s = cand[:], cs
+            else:
+                break
+        layout = primary_ev.layout_str(best)
+        primary = primary_ev.score(best)
+        secondary = secondary_ev.score(best) if secondary_ev is not None else None
+        new = {"start": f"polish:{row['start']}", "final": best_s,
+               "primary": primary, "secondary": secondary, "layout": layout}
+        polished.append(new)
+        print(f"  polish{i} {row['start']:16s} {start_s:.4f} -> {best_s:.4f} "
+              f"primary={primary:.4f} rounds={passes}  {layout}", flush=True)
+    return polished, rounds_done, iterations_done
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--config", default=None,
@@ -79,12 +122,37 @@ def main():
     ap.add_argument("--primary-sacrifice", type=float, default=None,
                     help="percent of the best primary score allowed for secondary tuning "
                          "(default: config general.primary_sacrifice)")
-    ap.add_argument("--runs", type=int, default=24)
-    ap.add_argument("--iters", type=int, default=60000)
-    ap.add_argument("--ils", type=int, default=6)
+    ap.add_argument("--runs", type=int, default=28,
+                    help="random restarts in addition to reference seeds (default: 28)")
+    ap.add_argument("--iters", type=int, default=100000,
+                    help="anneal iterations per run (default: 100000)")
+    ap.add_argument("--ils", type=int, default=8,
+                    help="ILS rounds per top layout (default: 8)")
+    ap.add_argument("--valid-tolerance", type=float, default=0.002,
+                    help="primary-score window for comparable valid layouts "
+                         "(default: 0.002)")
+    ap.add_argument("--secondary-tolerance", type=float, default=0.005,
+                    help="secondary-score window for comparable valid layouts "
+                         "(default: 0.005)")
+    ap.add_argument("--min-layout-distance", type=int, default=4,
+                    help="minimum differing key positions between valid layouts "
+                         "(default: 4)")
+    ap.add_argument("--max-valid", type=int, default=8,
+                    help="maximum valid layouts to report; 0 means no limit "
+                         "(default: 8)")
+    ap.add_argument("--polish-rounds", type=int, default=0,
+                    help="maximum polish passes over distinct candidates; "
+                         "0 disables polishing (default: 0)")
+    ap.add_argument("--polish-candidates", type=int, default=4,
+                    help="number of distinct primary candidates to polish "
+                         "(default: 4)")
+    ap.add_argument("--append-references", default=None,
+                    help="TOML file for valid layouts (default: --references)")
     ap.add_argument("--seed", type=int,
                     help="RNG seed; omitted means generate and record one")
-    ap.add_argument("--time-budget", type=parse_budget)
+    ap.add_argument("--time-budget", type=parse_budget, metavar="DURATION",
+                    help="wall-clock budget such as 90, 30s, 10m, or 1h "
+                         "(default: no limit; stops between operations)")
     ap.add_argument("--xkb", action="store_true",
                     help="write the selected layout to xkb/<name>")
     ap.add_argument("--xkb-name", default=None,
@@ -100,6 +168,11 @@ def main():
                          else cfg.primary_sacrifice)
 
     started = time.time()
+    completed_runs = 0
+    completed_iterations = 0
+    completed_ils_rounds = 0
+    completed_secondary_rounds = 0
+    completed_polish_rounds = 0
     seed_generated = args.seed is None
     if seed_generated:
         args.seed = random.SystemRandom().randint(0, 2**31 - 1)
@@ -144,7 +217,7 @@ def main():
     best_primary = None
     print(f"{'start':18s} {'final':>9s} {'primary':>9s}  layout", flush=True)
     for name, start in seeds:
-        if args.time_budget and time.time() - started >= args.time_budget:
+        if args.time_budget and results and time.time() - started >= args.time_budget:
             print("time budget reached; saving best so far", flush=True)
             break
         perm = start[:]
@@ -155,6 +228,8 @@ def main():
             perm, cs = quench(primary_ev, perm, cs, rng)
         except Exception:
             raise
+        completed_runs += 1
+        completed_iterations += args.iters
         lay = primary_ev.layout_str(perm)
         pri = primary_ev.score(perm)
         results.append({"start": name, "final": cs, "primary": pri,
@@ -185,6 +260,8 @@ def main():
             cand, cs = quench(primary_ev, cand, primary_ev.score(cand), rng)
             cand, cs = primary_ev.anneal(cand, iters=max(1, args.iters // 2), seed=51 + it)
             cand, cs = quench(primary_ev, cand, cs, rng)
+            completed_ils_rounds += 1
+            completed_iterations += max(1, args.iters // 2)
             if cs < best_s - 1e-12:
                 best, best_s = cand[:], cs
         ilay = primary_ev.layout_str(best)
@@ -195,6 +272,17 @@ def main():
             best_primary = results[-1]
         print(f"  ILS{rank} {r['start']:16s} {r['final']:.4f} -> {best_s:.4f} "
               f"primary={ipri:.4f}  {ilay}", flush=True)
+
+    if args.polish_rounds > 0:
+        print("\npolish (primary):", flush=True)
+        polished, polish_rounds, polish_iterations = polish_candidates(
+            results, primary_ev, secondary_ev, args, rng)
+        completed_polish_rounds += polish_rounds
+        completed_iterations += polish_iterations
+        results.extend(polished)
+        for row in polished:
+            if row["primary"] < best_primary["primary"]:
+                best_primary = row
 
     final = best_primary
     best_secondary = None
@@ -231,18 +319,55 @@ def main():
             row = {"start": f"secondary:{r['start']}", "final": sec,
                    "primary": pri, "secondary": sec, "layout": lay}
             results.append(row)
+            completed_secondary_rounds += 1
             if best_secondary is None or sec < best_secondary["secondary"]:
                 best_secondary = row
             print(f"  {r['start']:16s} primary={pri:.6f} secondary={sec:.6f}  {lay}", flush=True)
         if best_secondary is not None:
             final = best_secondary
+        budget = abs(best_primary["primary"]) * primary_sacrifice / 100.0
+        limit = best_primary["primary"] + budget + 1e-12
+        eligible = [r for r in results
+                    if r.get("secondary") is not None and r["primary"] <= limit]
+        if eligible:
+            best_secondary = min(eligible, key=lambda r: r["secondary"])
+            final = best_secondary
 
-    added_name = R.append_reference(
-        args.name or f"shiro-{args.seed}", final["layout"],
-        primary_score=final["primary"], secondary_score=final["secondary"],
-        seed=args.seed, path=args.references)
-    if added_name:
-        print(f"appended reference {added_name!r} to {args.references}")
+    valid_rows, valid_truncated = DIV.select_valid_layouts(
+        results, best_primary, primary_tolerance=args.valid_tolerance,
+        secondary_tolerance=args.secondary_tolerance,
+        min_distance=args.min_layout_distance, max_valid=args.max_valid)
+    if not any(row["layout"] == final["layout"] for row in valid_rows):
+        merged = next((row for row in DIV.merge_results(results)
+                       if row["layout"] == final["layout"]), None)
+        valid_rows.append(merged or final)
+    if not valid_rows:
+        valid_rows = [final]
+    valid_rows.sort(key=lambda row: (
+        row["layout"] != final["layout"], row["primary"],
+        row["secondary"] if row["secondary"] is not None else math.inf))
+    selection_status = ("clear_winner" if len(valid_rows) == 1
+                        else "multiple_valid")
+    final = valid_rows[0]
+
+    append_path = (Path(args.append_references) if args.append_references
+                   else Path(args.references))
+    existing_names = {entry["layout"]: entry["name"]
+                      for entry in R.load_references(append_path)}
+    base_name = args.name or f"shiro-{args.seed}"
+    added_names = []
+    for i, row in enumerate(valid_rows):
+        requested = base_name if i == 0 else f"{base_name}-{i + 1}"
+        added = R.append_reference(
+            requested, row["layout"], primary_score=row["primary"],
+            secondary_score=row.get("secondary"), seed=args.seed,
+            path=append_path)
+        if added:
+            existing_names[row["layout"]] = added
+            added_names.append(added)
+            print(f"appended reference {added!r} to {append_path}")
+        row["reference_name"] = existing_names.get(row["layout"])
+    added_name = added_names[0] if added_names else None
 
     xkb_path = None
     if args.xkb:
@@ -256,8 +381,15 @@ def main():
         f"seed={args.seed} generated={str(seed_generated).lower()}",
         f"primary={','.join(primary_paths)} secondary={','.join(secondary_paths)}",
         f"references={args.references}",
+        f"append_references={append_path}",
         f"reference_added={added_name or ''}",
+        f"references_added={','.join(added_names)}",
         f"primary_sacrifice_pct={primary_sacrifice:g}",
+        f"selection={selection_status} "
+        f"valid_layouts_truncated={str(valid_truncated).lower()}",
+        (f"completed_runs={completed_runs} completed_iterations={completed_iterations} "
+         f"completed_ils_rounds={completed_ils_rounds} "
+         f"completed_secondary_rounds={completed_secondary_rounds}"),
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
         (f"best_secondary: primary={best_secondary['primary']:.9f} "
          f"secondary={best_secondary['secondary']:.9f} {best_secondary['layout']}"
@@ -265,6 +397,7 @@ def main():
         f"selected: primary={final['primary']:.9f} "
         f"secondary={final['secondary'] if final['secondary'] is not None else float('nan'):.9f} "
         f"{final['layout']}",
+        *DIV.format_valid_layouts(valid_rows, selection_status, valid_truncated),
         "",
         f"{'start':24s} {'primary':>10s} {'secondary':>10s}  layout",
     ]
@@ -283,16 +416,36 @@ def main():
         "references": args.references,
         "primary_sacrifice_pct": primary_sacrifice,
         "elapsed_seconds": time.time() - started,
+        "time_budget_seconds": args.time_budget,
+        "completed_runs": completed_runs,
+        "completed_iterations": completed_iterations,
+        "completed_ils_rounds": completed_ils_rounds,
+        "completed_secondary_rounds": completed_secondary_rounds,
+        "completed_polish_rounds": completed_polish_rounds,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
+        "polish_rounds": args.polish_rounds,
+        "polish_candidates": args.polish_candidates,
+        "valid_tolerance": args.valid_tolerance,
+        "secondary_tolerance": args.secondary_tolerance,
+        "min_layout_distance": args.min_layout_distance,
+        "max_valid": args.max_valid,
         "results": results,
         "best_primary": best_primary,
         "best_secondary": best_secondary,
         "selected": final,
+        "selection_status": selection_status,
+        "valid_layouts": DIV.valid_payload(valid_rows),
+        "valid_layouts_truncated": valid_truncated,
         "reference_added": added_name,
+        "references_added": added_names,
+        "append_references": str(append_path),
         "xkb": str(xkb_path) if xkb_path is not None else None,
     }, indent=1) + "\n")
     print(f"\nbest_primary: {best_primary['layout']} ({best_primary['primary']:.6f})")
-    print(f"selected: {final['layout']}")
+    print(f"selected: {final['layout']} ({selection_status})")
+    for line in DIV.format_valid_layouts(valid_rows, selection_status,
+                                         valid_truncated):
+        print(line)
     print(f"wrote {out_path} and {out_json} ({time.time() - started:.0f}s)")
 
 

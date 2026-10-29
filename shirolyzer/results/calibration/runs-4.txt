@@ -1,0 +1,23 @@
+seed=1234 generated=false
+primary=shai secondary=spanish
+references=/tmp/refs-cal-runs-4.toml
+reference_added=runs-4
+primary_sacrifice_pct=0.00023
+completed_runs=6 completed_iterations=160000 completed_ils_rounds=4 completed_secondary_rounds=2
+best_primary: primary=3.523222953 ;nsdvjoitkrpchmuaygelbqfwxz,./
+best_secondary: primary=3.523222953 secondary=3.672136397 ;nsdvjoitkrpchmuaygelbqfwxz,./
+selected: primary=3.523222953 secondary=3.672136397 ;nsdvjoitkrpchmuaygelbqfwxz,./
+
+start                       primary  secondary  layout
+qwerty                     3.523223        nan  ;nsdvjoitkrpchmuaygelbqfwxz,./
+ILS1:qwerty                3.523223        nan  ;nsdvjoitkrpchmuaygelbqfwxz,./
+secondary:qwerty           3.523223   3.672136  ;nsdvjoitkrpchmuaygelbqfwxz,./
+secondary:ILS1:qwerty      3.523223   3.672136  ;nsdvjoitkrpchmuaygelbqfwxz,./
+rand2237                   3.524281        nan  ;snpbjoitkrchdmuaygelqfwvxz,./
+ILS2:rand2237              3.524281        nan  ;snpbjoitkrchdmuaygelqfwvxz,./
+rand2236                   3.524897        nan  ;ntckjoehblrpsguaydimqvfwxz,./
+ILS3:rand2236              3.524897        nan  ;ntckjoehblrpsguaydimqvfwxz,./
+shiro                      3.524948        nan  ;snpfquitkrchdmoaygelxbwvjz,./
+ILS4:shiro                 3.524948        nan  ;snpfquitkrchdmoaygelxbwvjz,./
+rand2235                   3.528927        nan  ;rtgfkbeaylndscphuoimxqvwjz,./
+rand2234                   3.531675        nan  ;ntckjuiswlrdhpoaygemqbfvxz,./

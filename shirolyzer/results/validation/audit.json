@@ -1,0 +1,28 @@
+{
+ "config": null,
+ "probe_checks": {
+  "passed": 37,
+  "total": 37
+ },
+ "rulings": {
+  "passed": 166,
+  "total": 166
+ },
+ "corpora": {
+  "/home/akai/git/layout-opencode-investigation/corpora/shai/parsed": {
+   "role": "primary",
+   "letters": 418381828,
+   "bigrams": 327253737,
+   "trigrams": 240524895
+  },
+  "/home/akai/git/layout-opencode-investigation/corpora/spanish/parsed": {
+   "role": "secondary",
+   "letters": 8584068,
+   "bigrams": 6723441,
+   "trigrams": 4983706
+  }
+ },
+ "anchors": [
+  "71/204 default-finger pairs more than 0.25 away from the shipped price"
+ ]
+}

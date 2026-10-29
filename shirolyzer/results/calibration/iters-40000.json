@@ -1,0 +1,102 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-iters-40000.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 174.24359011650085,
+ "time_budget_seconds": 900.0,
+ "completed_runs": 3,
+ "completed_iterations": 180000,
+ "completed_ils_rounds": 3,
+ "completed_secondary_rounds": 2,
+ "runs": 1,
+ "iters": 40000,
+ "ils": 1,
+ "results": [
+  {
+   "start": "shiro",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "ILS1:shiro",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "secondary:shiro",
+   "final": 3.6454839801840597,
+   "primary": 3.521783724807672,
+   "secondary": 3.6454839801840597,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "secondary:ILS1:shiro",
+   "final": 3.6454839801840597,
+   "primary": 3.521783724807672,
+   "secondary": 3.6454839801840597,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand2234",
+   "final": 3.5242808029027497,
+   "primary": 3.5242808029027497,
+   "secondary": null,
+   "layout": ";snpbjoitkrchdmuaygelqfwvxz,./"
+  },
+  {
+   "start": "ILS2:rand2234",
+   "final": 3.5242808029027497,
+   "primary": 3.5242808029027497,
+   "secondary": null,
+   "layout": ";snpbjoitkrchdmuaygelqfwvxz,./"
+  },
+  {
+   "start": "qwerty",
+   "final": 3.540381478973316,
+   "primary": 3.540381478973316,
+   "secondary": null,
+   "layout": ";aepkwsntgiouhbmcldryzjfxvq,./"
+  },
+  {
+   "start": "ILS3:qwerty",
+   "final": 3.540381478973316,
+   "primary": 3.540381478973316,
+   "secondary": null,
+   "layout": ";aepkwsntgiouhbmcldryzjfxvq,./"
+  }
+ ],
+ "best_primary": {
+  "start": "shiro",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "best_secondary": {
+  "start": "secondary:shiro",
+  "final": 3.6454839801840597,
+  "primary": 3.521783724807672,
+  "secondary": 3.6454839801840597,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "selected": {
+  "start": "secondary:shiro",
+  "final": 3.6454839801840597,
+  "primary": 3.521783724807672,
+  "secondary": 3.6454839801840597,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "reference_added": "iters-40000",
+ "xkb": null
+}

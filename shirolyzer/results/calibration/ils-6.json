@@ -1,0 +1,102 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-ils-6.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 499.02543807029724,
+ "time_budget_seconds": 900.0,
+ "completed_runs": 3,
+ "completed_iterations": 240000,
+ "completed_ils_rounds": 18,
+ "completed_secondary_rounds": 2,
+ "runs": 1,
+ "iters": 20000,
+ "ils": 6,
+ "results": [
+  {
+   "start": "ILS2:shiro",
+   "final": 3.520201897371135,
+   "primary": 3.520201897371135,
+   "secondary": null,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "ILS3:rand2234",
+   "final": 3.520201897371135,
+   "primary": 3.520201897371135,
+   "secondary": null,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "secondary:ILS2:shiro",
+   "final": 3.7048525673778663,
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "secondary:ILS3:rand2234",
+   "final": 3.7048525673778663,
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "qwerty",
+   "final": 3.523222952704046,
+   "primary": 3.523222952704046,
+   "secondary": null,
+   "layout": ";nsdvjoitkrpchmuaygelbqfwxz,./"
+  },
+  {
+   "start": "ILS1:qwerty",
+   "final": 3.523222952704046,
+   "primary": 3.523222952704046,
+   "secondary": null,
+   "layout": ";nsdvjoitkrpchmuaygelbqfwxz,./"
+  },
+  {
+   "start": "shiro",
+   "final": 3.524948363966544,
+   "primary": 3.524948363966544,
+   "secondary": null,
+   "layout": ";snpfquitkrchdmoaygelxbwvjz,./"
+  },
+  {
+   "start": "rand2234",
+   "final": 3.531675130117804,
+   "primary": 3.531675130117804,
+   "secondary": null,
+   "layout": ";ntckjuiswlrdhpoaygemqbfvxz,./"
+  }
+ ],
+ "best_primary": {
+  "start": "ILS2:shiro",
+  "final": 3.520201897371135,
+  "primary": 3.520201897371135,
+  "secondary": null,
+  "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+ },
+ "best_secondary": {
+  "start": "secondary:ILS2:shiro",
+  "final": 3.7048525673778663,
+  "primary": 3.520201897371135,
+  "secondary": 3.7048525673778663,
+  "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+ },
+ "selected": {
+  "start": "secondary:ILS2:shiro",
+  "final": 3.7048525673778663,
+  "primary": 3.520201897371135,
+  "secondary": 3.7048525673778663,
+  "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+ },
+ "reference_added": "ils-6",
+ "xkb": null
+}

@@ -1,0 +1,47 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-budget-30s.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 30.97062397003174,
+ "time_budget_seconds": 30.0,
+ "completed_runs": 1,
+ "completed_iterations": 60000,
+ "completed_ils_rounds": 0,
+ "completed_secondary_rounds": 0,
+ "runs": 1,
+ "iters": 60000,
+ "ils": 1,
+ "results": [
+  {
+   "start": "qwerty",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  }
+ ],
+ "best_primary": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "best_secondary": null,
+ "selected": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "reference_added": "budget-30s",
+ "xkb": null
+}

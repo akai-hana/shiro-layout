@@ -1,0 +1,55 @@
+seed=20261029 generated=false
+primary=shai secondary=spanish
+references=/home/akai/git/layout-opencode-investigation/shirolyzer/config/references.toml
+reference_added=calibration-full
+primary_sacrifice_pct=0.00023
+completed_runs=36 completed_iterations=5200000 completed_ils_rounds=32 completed_secondary_rounds=4
+best_primary: primary=3.520201897 ;ntgfjoehkrpmscuaydilbqvwxz,./
+best_secondary: primary=3.520201897 secondary=3.704852567 ;ntgfjoehkrpmscuaydilbqvwxz,./
+selected: primary=3.520201897 secondary=3.704852567 ;ntgfjoehkrpmscuaydilbqvwxz,./
+
+start                       primary  secondary  layout
+rand20262041               3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262045               3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262050               3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262052               3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+ILS1:rand20262041          3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+ILS2:rand20262036          3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+ILS4:shiro                 3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:rand20262041     3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:rand20262045     3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:rand20262050     3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:rand20262052     3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+rand20262036               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262037               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262054               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+ILS3:rand20262046          3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262046               3.523090        nan  ;ntckxoehplrgswuaydimqvfbjz,./
+shiro                      3.523150        nan  ;nsdfquitkrpchmoaygelbxvwjz,./
+qwerty                     3.523223        nan  ;nsdvjoitkrpchmuaygelbqfwxz,./
+rand20262033               3.523223        nan  ;nsdvjoitkrpchmuaygelbqfwxz,./
+semimak                    3.524111        nan  ;dnpvjoitkrchsmuaygelbfwqxz,./
+rand20262043               3.524399        nan  ;ntgwjoehklrpscuaydimqfvbxz,./
+rand20262047               3.524399        nan  ;ntgwjoehklrpscuaydimqfvbxz,./
+canary                     3.524591        nan  ;rtcfxoehplndswuaybimqgvkjz,./
+rand20262030               3.524591        nan  ;rtcfxoehplndswuaybimqgvkjz,./
+rand20262042               3.524591        nan  ;rtcfxoehplndswuaybimqgvkjz,./
+rand20262048               3.524659        nan  ;ntcfjoehklrpsguaydimqvwbxz,./
+colemak                    3.524889        nan  ;htpfjoicwrndsmuaygelbqvkxz,./
+gallium                    3.524889        nan  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262053               3.524889        nan  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262056               3.524889        nan  ;htpfjoicwrndsmuaygelbqvkxz,./
+sturdy                     3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262032               3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262034               3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262039               3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262035               3.528067        nan  ;nshwjoitkrpmdcuaygelqfbvxz,./
+rand20262044               3.528677        nan  ;rtcfkbeaylndsgphuoimxzvwqj,./
+rand20262049               3.528677        nan  ;rtcfkbeaylndsgphuoimxzvwqj,./
+rand20262055               3.531307        nan  ;rtcfjoehknlpsmuaydibqgvwxz,./
+rand20262029               3.531460        nan  ;htcfjoinqrldswuaypemkgvbxz,./
+rand20262031               3.535455        nan  ;trngxoehpsdlmcuaybifkqwvjz,./
+colemak-dh                 3.535661        nan  ;trhwjoinqsmldcuaypefvkgbxz,./
+rand20262040               3.540381        nan  ;aepkwsntgiouhbmcldryzjfxvq,./
+rand20262038               3.547160        nan  ;aegkvdtnmiouhpcslbryzjfqwx,./
+rand20262051               3.559907        nan  ;atmwkleibcodsphruyngqfvzxj,./

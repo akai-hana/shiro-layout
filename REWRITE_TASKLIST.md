@@ -58,7 +58,12 @@ The following decisions were confirmed during planning:
    - New defaults will be chosen from that data.
 8. **Reference list:** `shirolyzer/config/references.toml`.
    - `compare.py` reads references from this file instead of hard-coded `REF` data.
-   - `compute.py` appends its final layout to this file when a run finishes.
+   - `compute.py` appends its selected layout(s) to this file when a run finishes.
+9. **Diversity-aware validation:** comparable results are clustered by score and layout distance.
+   - A single winner is selected only when it is clearly better than every materially different
+     layout.
+   - Otherwise all comparable, materially different layouts are reported as valid results and
+     appended to the reference list.
 
 ---
 
@@ -106,7 +111,7 @@ Branches are created in the order below, from an up-to-date `main`. Never commit
 | 2 | `core` | Package layout, entry points, imports, paths, two-phase search | Analyzer works corpus-independently and regression scores match |
 | 3 | `config` | YAML schema, fingermap, alt fingers, conditions, priorities | Default config reproduces current behaviour |
 | 4 | `xkb` | XKB generation and installer workflow | Generated symbols match existing symbols for the same layout |
-| 5 | `calibration` | Time-budget flag, tuning experiments, new defaults | New defaults justified by recorded results |
+| 5 | `calibration` | Time-budget flag, tuning experiments, new defaults, diversity-aware validation | New defaults justified and validation reports a clear winner or all valid layouts |
 | 6 | `docs` | READMEs, usage docs, final stale-reference cleanup | Final checks pass and docs match the implementation |
 
 Rules:
@@ -623,10 +628,27 @@ Branch exit: `xkb` merges to `main`; create `calibration` from the updated `main
 - [ ] **T4 — Run the post-rewrite validation and refresh references**
   - Issue: #36
   - Commit: `results: record post-rewrite validation run`
-  - Run the full compute pipeline with the new defaults, audit the winner, and append the final
-    layout(s) to `config/references.toml`.
+  - Run the full compute pipeline with the new defaults, audit the winner, and save the
+    validation artifacts.
   - Compare against pre-rewrite reference results and record any improvements or regressions.
-  - Done when the validation artifacts are saved and references include the new layout.
+  - Done when the validation artifacts are saved; selection and multi-result presentation are
+    handled by T5.
+
+- [ ] **T5 — Add diversity-aware validation and multi-result presentation**
+  - Issue: #39
+  - Commit: `compute: report diverse valid layouts`
+  - Cluster unique final layouts by primary and secondary score within configurable tolerances,
+    then by layout distance so that only materially different letter distributions are kept.
+  - Polish the top distinct candidates with repeated quench/anneal/ILS passes until a full pass
+    improves none of them.
+  - Select one winner only when it is clearly better; otherwise report every comparable,
+    materially different layout as a valid result.
+  - Present all valid layouts in the text and JSON output (`valid_layouts`) and append each valid
+    layout to `config/references.toml` with a unique name.
+  - Add tests for distance, tolerance clustering, clear-winner selection, multi-result
+    selection, and output rendering.
+  - Done when a validation run reports either a clear winner or multiple valid layouts and the
+    full test suite passes.
 
 Branch exit: `calibration` merges to `main`; create `docs` from the updated `main`.
 
@@ -636,7 +658,8 @@ Branch exit: `calibration` merges to `main`; create `docs` from the updated `mai
   - Issue: #37
   - Commit: `docs: update analyzer documentation`
   - Update `shirolyzer/README.md` and the root `README.md` for the new structure, YAML config,
-    corpus commands, two-phase search, references TOML, and XKB workflow.
+    corpus commands, two-phase search, diversity-aware valid layouts, references TOML, and XKB
+    workflow.
   - Remove references to `core/`, `analysis/`, `corpus/`, `scorer2`, `search2`, and old script
     names.
   - Done when every documented command matches the implemented CLI.
@@ -673,6 +696,7 @@ Branch exit: `docs` merges to `main`; the rewrite is complete.
 | Higher iteration default | T3 |
 | Higher run default, determined experimentally | T2, T3 |
 | Higher ILS default | T2, T3 |
+| Diversity-aware validation and multi-result output | T5 |
 | Auto-generated seed, CLI override | K9 |
 | `utils/` contains ansi, comfort, fingers, search, scorer | K3, K4, K5 |
 | ANSI geometry in its own one-word physical-layout package | K5 |

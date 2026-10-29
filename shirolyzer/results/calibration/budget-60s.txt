@@ -1,0 +1,13 @@
+seed=1234 generated=false
+primary=shai secondary=spanish
+references=/tmp/refs-cal-budget-60s.toml
+reference_added=budget-60s
+primary_sacrifice_pct=0.00023
+completed_runs=2 completed_iterations=120000 completed_ils_rounds=0 completed_secondary_rounds=0
+best_primary: primary=3.521783725 ;dnpfjoitkrchsmuaygelbqvwxz,./
+best_secondary: none
+selected: primary=3.521783725 secondary=nan ;dnpfjoitkrchsmuaygelbqvwxz,./
+
+start                       primary  secondary  layout
+qwerty                     3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+shiro                      3.540987        nan  ;aemkwsntbiouhpcgldryzjfqvx,./

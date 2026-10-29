@@ -1,0 +1,17 @@
+seed=1234
+start                  final   primary  layout
+qwerty                3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+shiro                 3.5410    3.5410  ;aemkwsntbiouhpcgldryzjfqvx,./
+rand2234              3.5396    3.5396  ;aebkwsntgiouhpmcldryxzfjvq,./
+
+ILS (primary):
+  ILS1 qwerty           3.5218 -> 3.5218 primary=3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+time budget reached during ILS; saving best so far
+
+secondary phase (sacrifice 0.00023% = 8.1e-06):
+time budget reached before secondary phase
+appended reference 'budget-120s' to /tmp/refs-cal-budget-120s.toml
+
+best_primary: ;dnpfjoitkrchsmuaygelbqvwxz,./ (3.521784)
+selected: ;dnpfjoitkrchsmuaygelbqvwxz,./
+wrote /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/budget-120s.txt and /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/budget-120s.json (123s)

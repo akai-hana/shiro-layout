@@ -1,0 +1,51 @@
+seed=20261030
+start                  final   primary  layout
+t4-winner             3.5202    3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+t4-runner-up          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262030          3.5244    3.5244  ;ntgwjoehklrpscuaydimqfvbxz,./
+rand20262031          3.5346    3.5346  ;thcfqunijrdmswoapyelkvgbxz,./
+rand20262032          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262033          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262034          3.5249    3.5249  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262035          3.5396    3.5396  ;aebkwsntgiouhpmcldryxzfjvq,./
+rand20262036          3.5456    3.5456  ;aefkwmtlbiouhpcsdnryxzqjgv,./
+rand20262037          3.5276    3.5276  ;tncfxoehprgbsmuaydilkqvwjz,./
+rand20262038          3.5307    3.5307  ;rtgvkbeaylndscphuoimxqwzfj,./
+rand20262039          3.5247    3.5247  ;ntgvjoehklrpscuaydimqfbwxz,./
+rand20262040          3.5249    3.5249  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262041          3.5302    3.5302  ;nsdvjoitklrchpuaygemqfbwxz,./
+rand20262042          3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262043          3.5294    3.5294  ;hspwjoitkrndcmuaygelbfvqxz,./
+rand20262044          3.5307    3.5307  ;rtgvkbeaylndscphuoimxqwzfj,./
+rand20262045          3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262046          3.5463    3.5463  ;aemkvgtrbiouhpcsdnlyzjfqwx,./
+rand20262047          3.5350    3.5350  ;rtpfjoinbcldsmuayhegqkvwxz,./
+rand20262048          3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262049          3.5301    3.5301  ;rspfjoitgnlchmuaydebqvkwxz,./
+rand20262050          3.5493    3.5493  ;aemkfgtnbiouhdcslpryzjxqwv,./
+rand20262051          3.5275    3.5275  ;htmwqoerxcndspuayligbfvkjz,./
+rand20262052          3.5276    3.5276  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262053          3.5390    3.5390  ;tnswkpeaxrdmcgyhuoilqzvbfj,./
+
+ILS (primary):
+  ILS1 t4-winner        3.5202 -> 3.5202 primary=3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  ILS2 t4-runner-up     3.5218 -> 3.5218 primary=3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+  ILS3 rand20262030     3.5244 -> 3.5244 primary=3.5244  ;ntgwjoehklrpscuaydimqfvbxz,./
+  ILS4 rand20262039     3.5247 -> 3.5247 primary=3.5247  ;ntcfjoehklrpsguaydimqvwbxz,./
+
+polish (primary):
+  polish1 t4-winner        3.5202 -> 3.5202 primary=3.5202 rounds=1  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  polish2 t4-runner-up     3.5218 -> 3.5218 primary=3.5218 rounds=1  ;dnpfjoitkrchsmuaygelbqvwxz,./
+
+secondary phase (sacrifice 0.00023% = 8.1e-06):
+  t4-winner        primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  ILS1:t4-winner   primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  polish:t4-winner primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+appended reference 't5-diversity-2' to shirolyzer/config/references.toml
+
+best_primary: ;ntgfjoehkrpmscuaydilbqvwxz,./ (3.520202)
+selected: ;ntgfjoehkrpmscuaydilbqvwxz,./ (multiple_valid)
+valid_layouts=2 status=multiple_valid
+  valid1: primary=3.520201897 secondary=3.704852567 ;ntgfjoehkrpmscuaydilbqvwxz,./
+  valid2: primary=3.521783725 secondary=3.645483980 ;dnpfjoitkrchsmuaygelbqvwxz,./
+wrote shirolyzer/results/validation/t5-polish.txt and shirolyzer/results/validation/t5-polish.json (965s)

@@ -32,3 +32,17 @@ layout = "flhvzqwuoysrntkcdeaix'bmjpg/,/"
 [[reference]]
 name = "shiro"
 layout = ";tspbxgoiwndhrlyecuafkvmzjq,./"
+
+[[reference]]
+name = "calibration-full"
+layout = ";ntgfjoehkrpmscuaydilbqvwxz,./"
+primary_score = 3.520201897
+secondary_score = 3.704852567
+seed = 20261029
+
+[[reference]]
+name = "t5-diversity-2"
+layout = ";dnpfjoitkrchsmuaygelbqvwxz,./"
+primary_score = 3.521783725
+secondary_score = 3.645483980
+seed = 20261030
