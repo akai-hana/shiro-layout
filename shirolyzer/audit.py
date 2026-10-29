@@ -1,18 +1,22 @@
 #!/usr/bin/env python3
-"""audit_geo.py -- the round-8 questionnaire audit (analysis/audit_shai.py hard probes and
-hard checks) run on the PATTERN model, plus the full ruling table.
-usage: python3 audit_geo.py [A:all|A:no_WX]"""
-import sys, os, itertools
+"""Questionnaire and ruling audit for the pattern model.
+
+usage: python3 shirolyzer/audit.py [--config A:all] [--out PATH]"""
+import argparse, sys, os, itertools
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 import comfort_geo as cg, gates as GT, fitlib as FL, rulings as RL
 import scorer_geo as SG
 from comfort_geo import KI, KEYS, FINGERS, NF
 
-cfgname = sys.argv[1] if len(sys.argv) > 1 else "A:all"
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument("config", nargs="?", default="A:all")
+ap.add_argument("--out", default=None)
+args = ap.parse_args()
+cfgname = args.config
 model, gname = SG.load_model(cfgname)
 tabs = model.tables()
-DEFAULT = {"Q":"R","W":"R","E":"M","R":"M","T":"M","Y":"M","U":"M","I":"M","O":"R","P":"R","A":"P","S":"R","D":"M","F":"I","G":"I","H":"I","J":"I","K":"M","L":"R",";":"P","Z":"P","X":"R","C":"I","V":"I","B":"I","N":"I","M":"I",",":"R",".":"R","/":"P"}
+DEFAULT = cg.DEFAULT_FINGER
 
 
 def probe_rows(seq):
@@ -127,4 +131,6 @@ for r, ok, l, txt in det:
     out(f"  [{'PASS' if ok else 'FAIL'}] {r.id:16s} {txt}")
 out(f"rulings: {sum(d[1] for d in det)}/{len(det)}")
 for d in anch: out(f"anchor (not a ruling): {d[3]}")
-open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"audit_geo_{cfgname.replace(':','_')}.txt"), "w").write("\n".join(lines))
+out_path = args.out or os.path.join(os.path.dirname(os.path.abspath(__file__)), "results", f"audit_{cfgname.replace(':','_')}.txt")
+os.makedirs(os.path.dirname(os.path.abspath(out_path)), exist_ok=True)
+open(out_path, "w").write("\n".join(lines))
