@@ -219,7 +219,7 @@ Any other match must be fixed.
   - Support the same `--source`, `--url`, `--check`, `--write`, and `--keep-source` options as C3.
   - Done when a fresh run produces valid parsed JSON and leaves no source archive behind.
 
-- [ ] **C5 — Add corpus and Python cache ignores**
+- [x] **C5 — Add corpus and Python cache ignores**
   - Issue: #7
   - Commit: `corpus: ignore downloaded corpus sources and caches`
   - Extend `.gitignore` for downloaded corpus archives, decompressed/extracted raw sources,
