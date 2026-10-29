@@ -84,7 +84,8 @@ def main():
     ap.add_argument("--runs", type=int, default=24)
     ap.add_argument("--iters", type=int, default=60000)
     ap.add_argument("--ils", type=int, default=6)
-    ap.add_argument("--seed", type=int)
+    ap.add_argument("--seed", type=int,
+                    help="RNG seed; omitted means generate and record one")
     ap.add_argument("--time-budget", type=parse_budget)
     ap.add_argument("--out", default=None)
     ap.add_argument("--out-json", default=None)
@@ -94,9 +95,10 @@ def main():
                 else paths.result_path("compute", args.name, suffix=".json"))
 
     started = time.time()
-    if args.seed is None:
+    seed_generated = args.seed is None
+    if seed_generated:
         args.seed = random.SystemRandom().randint(0, 2**31 - 1)
-    print(f"seed={args.seed}", flush=True)
+    print(f"seed={args.seed}{' (generated)' if seed_generated else ''}", flush=True)
     rng = random.Random(args.seed)
     primary_paths = args.primary_corpus or [str(paths.CORPUS_ROOT / "shai" / "parsed")]
     secondary_paths = (args.secondary_corpus
@@ -224,7 +226,7 @@ def main():
 
     results.sort(key=lambda r: (r["primary"], r["final"]))
     out_lines = [
-        f"seed={args.seed}",
+        f"seed={args.seed} generated={str(seed_generated).lower()}",
         f"primary={','.join(primary_paths)} secondary={','.join(secondary_paths)}",
         f"primary_sacrifice_pct={args.primary_sacrifice:g}",
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
@@ -246,6 +248,7 @@ def main():
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps({
         "seed": args.seed,
+        "seed_generated": seed_generated,
         "primary_corpora": primary_paths,
         "secondary_corpora": secondary_paths,
         "primary_sacrifice_pct": args.primary_sacrifice,
