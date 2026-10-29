@@ -164,7 +164,7 @@ for _k, _f in _DEF.items():
 
 
 # =============================================================== ROUND 8 (2026-10-26)
-# Source: analysis/audit_shai.py hard probes + scorer2 _ALT_CONTEXTS/_ALT_BLOCKS
+# Source: hard probes and the configured alt-context gates.
 # (REPORT_round8.md section 3).  Keys are physical QWERTY positions.
 #   cons : the fingerings satisfying (req / forbid) must beat all others by a margin
 #          data = dict(keys, req=((pos,"fingers"),..), forbid=((pos,finger),..), margin)

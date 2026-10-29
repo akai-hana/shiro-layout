@@ -1,13 +1,10 @@
 import sys, os, time
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 import numpy as np
 from scipy.optimize import differential_evolution
-from utils import comfort as cg, fitlib as FL
-try:
-    from . import fit2
-except ImportError:
-    import fit2
+
+from ..utils import comfort as cg, fitlib as FL
+from . import fit2
 
 FREEZE = {"e_dn": 0.14, "e_up_I": 0.08, "e_up_P": 1.0, "e_lat": 0.20, "r_MI": -0.275, "r_RM_in": -0.35, "r_RM_out": -0.20,
           "r_PR_out": -0.14, "r_PR_in": 0.06, "leap2": 0.15, "leap3": 0.35, "leap_P": 0.15}
