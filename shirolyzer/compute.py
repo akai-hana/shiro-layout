@@ -79,9 +79,12 @@ def main():
     ap.add_argument("--primary-sacrifice", type=float, default=None,
                     help="percent of the best primary score allowed for secondary tuning "
                          "(default: config general.primary_sacrifice)")
-    ap.add_argument("--runs", type=int, default=24)
-    ap.add_argument("--iters", type=int, default=60000)
-    ap.add_argument("--ils", type=int, default=6)
+    ap.add_argument("--runs", type=int, default=28,
+                    help="random restarts in addition to reference seeds (default: 28)")
+    ap.add_argument("--iters", type=int, default=100000,
+                    help="anneal iterations per run (default: 100000)")
+    ap.add_argument("--ils", type=int, default=8,
+                    help="ILS rounds per top layout (default: 8)")
     ap.add_argument("--seed", type=int,
                     help="RNG seed; omitted means generate and record one")
     ap.add_argument("--time-budget", type=parse_budget, metavar="DURATION",

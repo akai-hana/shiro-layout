@@ -26,6 +26,18 @@ The **shirolyzer** is an alt keyboard layout analyzer and generator, initially b
 ## Generation
 > shirolyzer's layout generation capabilities and specifications
 
+### Search effort
+
+`compute.py` defaults to 28 random restarts in addition to the layouts loaded
+from `config/references.toml`, 100000 anneal iterations per run, and 8 ILS
+rounds per top layout.  These values are calibrated in
+`results/calibration/REPORT.md`: the primary score plateaus around 40k
+iterations and ten total seeds, while additional ILS rounds keep improving the
+best result.  Override them per run with `--runs`, `--iters`, and `--ils`.
+
+`--time-budget` is optional.  It accepts seconds or `30m`-style strings and
+stops between runs/ILS rounds, always saving the best result found so far.
+
 ### Corpora
 
 On layout generation, it is capable of taking corpora under different weightings and weightings of priority:

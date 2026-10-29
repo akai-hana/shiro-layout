@@ -8,6 +8,10 @@
 # Fingermap tokens are two characters: a QWERTY key label followed by a finger
 # (P pinky, R ring, M middle, I index).  The three rows are in QWERTY order.
 
+# Search effort defaults live in compute.py: 28 random runs, 100000 anneal
+# iterations, and 8 ILS rounds.  They were calibrated in
+# results/calibration/REPORT.md; override per run with --runs/--iters/--ils.
+# --time-budget stays optional because short budgets truncate seeds and ILS.
 general:
   physical_layout: ansi
   default_layout: ";tspbxgoiwndhrlyecuafkvmzjq,./"
