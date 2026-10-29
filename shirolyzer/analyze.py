@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from utils import comfort as cg
+from utils import config as CFG
 from utils import paths
 from utils import scorer as SG
 from utils.corpus import load_many
@@ -204,7 +205,10 @@ def fingering_guide(layout, corpus, tables):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--layout", default=DEFAULT_LAYOUT)
+    ap.add_argument("--config", default=None,
+                    help="YAML config file (default: config/config.yaml)")
+    ap.add_argument("--layout", default=None,
+                    help="layout to analyze (default: config general.default_layout)")
     ap.add_argument("--name", default=None,
                     help="layout name used to derive default output paths")
     ap.add_argument("--primary-corpus", action="append", default=[],
@@ -214,33 +218,43 @@ def main():
     ap.add_argument("--out", default=None)
     ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
-    if len(args.layout) != 30:
+    cfg = CFG.load_and_apply(args.config)
+    layout = args.layout or cfg.default_layout
+    if len(layout) != 30:
         raise SystemExit("layout must be 30 characters")
     out_path = Path(args.out) if args.out else paths.result_path("analysis", args.name)
     out_json = (Path(args.out_json) if args.out_json
                 else paths.result_path("analysis", args.name, suffix=".json"))
-    primary_paths = (args.primary_corpus
-                     or [str(paths.CORPUS_ROOT / "shai" / "parsed")])
-    secondary_paths = args.secondary_corpus
-    corpus = load_many(primary_paths)
+    if args.primary_corpus:
+        primary_paths = args.primary_corpus
+        corpus = load_many(primary_paths)
+    else:
+        primary_paths = CFG.corpus_labels(cfg, "primary")
+        corpus = CFG.load_corpora(cfg, "primary")
+    if args.secondary_corpus:
+        secondary_paths = args.secondary_corpus
+        secondary_corpus = load_many(secondary_paths)
+    else:
+        secondary_paths = CFG.corpus_labels(cfg, "secondary")
+        secondary_corpus = CFG.load_corpora(cfg, "secondary")
     tables = SG.get_tables()
-    cats, worst, scissors = category_report(args.layout, corpus, tables)
-    pats = trigram_patterns(args.layout, corpus, tables)
-    use = finger_usage(args.layout, corpus, tables)
-    guide = fingering_guide(args.layout, corpus, tables)
-    primary_score = score_layout(args.layout, corpus, tables)
+    cats, worst, scissors = category_report(layout, corpus, tables)
+    pats = trigram_patterns(layout, corpus, tables)
+    use = finger_usage(layout, corpus, tables)
+    guide = fingering_guide(layout, corpus, tables)
+    primary_score = score_layout(layout, corpus, tables)
     secondary_score = None
-    if secondary_paths:
-        secondary_score = score_layout(args.layout, load_many(secondary_paths), tables)
+    if secondary_corpus is not None:
+        secondary_score = score_layout(layout, secondary_corpus, tables)
 
     lines = []
     def out(s=""):
         print(s)
         lines.append(s)
-    out(f"layout: {args.layout}")
+    out(f"layout: {layout}")
     out("grid (QWERTY order, left/right split 5+5):")
     for r in range(3):
-        row = args.layout[r * 10:(r + 1) * 10]
+        row = layout[r * 10:(r + 1) * 10]
         out(f"  {row[:5]} | {row[5:]}")
     out(f"primary={primary_score:.9f}  corpus={','.join(primary_paths)}")
     if secondary_score is not None:
@@ -253,11 +267,11 @@ def main():
     out()
     out("== worst bigrams (chosen cost, fingering, count) ==")
     for cost, bg, f1, f2, cnt in worst[:20]:
-        out(f"  {bg}  n={cnt:8d}  {cost:6.2f}  {f1}{f2}")
+        out(f"  {bg}  n={cnt:8.0f}  {cost:6.2f}  {f1}{f2}")
     out()
     out("== scissors (weight=cost*n, kind, fingering) ==")
     for w, c, bg, f1, f2, cnt, pair in scissors[:15]:
-        out(f"  {bg}  n={cnt:8d}  cost={c:5.2f}  {pair:3s}  {f1}{f2}")
+        out(f"  {bg}  n={cnt:8.0f}  cost={c:5.2f}  {pair:3s}  {f1}{f2}")
     out()
     out("== trigram patterns (chosen fingering, % of trigrams) ==")
     for k in ("alternate", "hand_alternation", "inroll", "outroll", "total_rolls", "onehand",
@@ -280,7 +294,7 @@ def main():
     out_path.write_text("\n".join(lines) + "\n")
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps({
-        "layout": args.layout,
+        "layout": layout,
         "primary_score": primary_score,
         "primary_corpora": primary_paths,
         "secondary_score": secondary_score,

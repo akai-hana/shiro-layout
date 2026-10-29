@@ -122,3 +122,40 @@ class PriorityTests(unittest.TestCase):
             self.assertGreater(cg.W_SFB_SCALE, 0.0)
         finally:
             CFG.load_and_apply(paths.CONFIG_FILE)
+
+
+class IntegrationTests(unittest.TestCase):
+    def setUp(self):
+        self.raw = yaml.safe_load(paths.CONFIG_FILE.read_text(encoding="utf-8"))
+
+    def write(self, data):
+        tmp = tempfile.NamedTemporaryFile("w", suffix=".yaml", delete=False)
+        yaml.safe_dump(data, tmp)
+        tmp.close()
+        self.addCleanup(Path(tmp.name).unlink)
+        return Path(tmp.name)
+
+    def tearDown(self):
+        CFG.load_and_apply(paths.CONFIG_FILE)
+
+    def test_fingermap_edit_changes_tables(self):
+        data = copy.deepcopy(self.raw)
+        data["fingermap"] = data["fingermap"].replace("AP", "AR", 1)
+        CFG.load_and_apply(self.write(data))
+        from shirolyzer.utils import comfort as cg
+        from shirolyzer.utils import scorer as SG
+        from shirolyzer.utils.fingers import FI, KI
+        import numpy as np
+        SG.reset_tables()
+        e = cg.Model().tables()["E"]
+        self.assertEqual(int(np.argmin(e[KI["A"]])), FI["R"])
+
+    def test_alt_sequence_changes_penalty(self):
+        data = copy.deepcopy(self.raw)
+        data["alt_fingers"].append({"sequence": "as", "fingers": ["LP", "LR"]})
+        CFG.load_and_apply(self.write(data))
+        from shirolyzer.utils import gates as GT
+        from shirolyzer.utils.fingers import FI
+        mask = GT.penalty_mask(("A", "S"))
+        self.assertEqual(mask[FI["P"], FI["R"]], 0.0)
+        self.assertGreater(mask[FI["I"], FI["I"]], 0.0)

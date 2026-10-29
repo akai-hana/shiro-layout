@@ -5,15 +5,19 @@ usage: python3 shirolyzer/audit.py [--config A:all] [--out PATH]"""
 import argparse, json
 from pathlib import Path
 import numpy as np
-from utils import comfort as cg, gates as GT, fitlib as FL, paths, rulings as RL
+from utils import comfort as cg, config as CFG, gates as GT, fitlib as FL, paths, rulings as RL
 from utils.corpus import load_many
 from utils import scorer as SG
 from utils.ansi import KEYS, KI, FINGERS, FI
 from utils.fingers import NF, DEFAULT_FINGER
 
 ap = argparse.ArgumentParser(description=__doc__)
-ap.add_argument("config", nargs="?", default=None)
-ap.add_argument("--config", dest="cfg", default="A:all")
+ap.add_argument("config", nargs="?", default=None,
+                help="legacy model configuration name (default: YAML config model)")
+ap.add_argument("--model-config", dest="cfg", default=None,
+                help="legacy model configuration name, e.g. A:all")
+ap.add_argument("--config", dest="config_file", default=None,
+                help="YAML config file (default: config/config.yaml)")
 ap.add_argument("--primary-corpus", action="append", default=[],
                 help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
 ap.add_argument("--secondary-corpus", action="append", default=[],
@@ -23,6 +27,7 @@ ap.add_argument("--rulings", default=None,
 ap.add_argument("--out", default=None)
 ap.add_argument("--out-json", default=None)
 args = ap.parse_args()
+cfg = CFG.load_and_apply(args.config_file)
 cfgname = args.config or args.cfg
 if args.rulings:
     RL.RULINGS = RL.load_rulings(args.rulings)
@@ -52,7 +57,7 @@ lines = []
 def out(s=""):
     print(s); lines.append(s)
 
-out(f"config {cfgname}  (explicit alt-licence table: {sorted(GT.gate_subset('explicit'))})")
+out(f"config {cfgname or cfg.path}  (explicit alt-licence table: {sorted(GT.gate_subset('explicit'))})")
 out("=== questionnaire hard probes (physical keys; * = non-default finger) ===")
 probes = [("O-L", "OL"), ("L-O", "LO"), ("K-J-M hey", "KJM"), ("F-J-M ney", "FJM"), ("M-J yea", "MJ"), ("M-J-I yea", "MJI"),
           ("H-T-J exp", "HTJ"), ("H-W-J ext", "HWJ"), ("I-U-J age", "IUJ"), ("N-L-J equ", "NLJ"), ("V-G-J ble", "VGJ"),
@@ -133,8 +138,12 @@ for _a in KEYS:
 chk("A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)", not _asym, f"{len(_asym)} asymmetric, e.g. {_asym[:3]}" if _asym else "symmetric")
 out(f"probes+checks: {sum(checks)}/{len(checks)}")
 
+primary_paths = (args.primary_corpus
+                 or [str(cfg.corpus_path(entry)) for entry in cfg.primary_corpus])
+secondary_paths = (args.secondary_corpus
+                   or [str(cfg.corpus_path(entry)) for entry in cfg.secondary_corpus])
 corpus_info = {}
-for _label, _paths in (("primary", args.primary_corpus), ("secondary", args.secondary_corpus)):
+for _label, _paths in (("primary", primary_paths), ("secondary", secondary_paths)):
     for _path in _paths:
         _c = load_many([_path])
         corpus_info[_path] = {"role": _label, "letters": _c.total_letters,

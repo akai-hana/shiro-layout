@@ -469,3 +469,16 @@ def corpus_entries(cfg: Config, role: str) -> list[dict]:
     if role == "secondary":
         return cfg.secondary_corpus
     raise ValueError(role)
+
+
+def corpus_labels(cfg: Config, role: str) -> list[str]:
+    return [str(entry.get("path") or entry.get("name")) for entry in corpus_entries(cfg, role)]
+
+
+def load_corpora(cfg: Config, role: str):
+    from .corpus import Corpus
+    corpora = []
+    for entry in corpus_entries(cfg, role):
+        corpus = Corpus.load(cfg.corpus_path(entry))
+        corpora.append(corpus.scaled(entry["weight"]))
+    return Corpus.merge(corpora)
