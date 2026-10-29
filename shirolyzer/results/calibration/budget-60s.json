@@ -1,0 +1,54 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-budget-60s.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 63.252591371536255,
+ "time_budget_seconds": 60.0,
+ "completed_runs": 2,
+ "completed_iterations": 120000,
+ "completed_ils_rounds": 0,
+ "completed_secondary_rounds": 0,
+ "runs": 1,
+ "iters": 60000,
+ "ils": 1,
+ "results": [
+  {
+   "start": "qwerty",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "shiro",
+   "final": 3.540986689885997,
+   "primary": 3.540986689885997,
+   "secondary": null,
+   "layout": ";aemkwsntbiouhpcgldryzjfqvx,./"
+  }
+ ],
+ "best_primary": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "best_secondary": null,
+ "selected": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "reference_added": "budget-60s",
+ "xkb": null
+}

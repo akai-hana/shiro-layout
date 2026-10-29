@@ -1,0 +1,68 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-budget-120s.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 123.04152965545654,
+ "time_budget_seconds": 120.0,
+ "completed_runs": 3,
+ "completed_iterations": 210000,
+ "completed_ils_rounds": 1,
+ "completed_secondary_rounds": 0,
+ "runs": 1,
+ "iters": 60000,
+ "ils": 1,
+ "results": [
+  {
+   "start": "qwerty",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "ILS1:qwerty",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand2234",
+   "final": 3.5396203602756815,
+   "primary": 3.5396203602756815,
+   "secondary": null,
+   "layout": ";aebkwsntgiouhpmcldryxzfjvq,./"
+  },
+  {
+   "start": "shiro",
+   "final": 3.540986689885997,
+   "primary": 3.540986689885997,
+   "secondary": null,
+   "layout": ";aemkwsntbiouhpcgldryzjfqvx,./"
+  }
+ ],
+ "best_primary": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "best_secondary": null,
+ "selected": {
+  "start": "qwerty",
+  "final": 3.521783724807672,
+  "primary": 3.521783724807672,
+  "secondary": null,
+  "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+ },
+ "reference_added": "budget-120s",
+ "xkb": null
+}

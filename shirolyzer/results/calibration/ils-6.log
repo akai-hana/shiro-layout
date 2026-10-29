@@ -1,0 +1,19 @@
+seed=1234
+start                  final   primary  layout
+qwerty                3.5232    3.5232  ;nsdvjoitkrpchmuaygelbqfwxz,./
+shiro                 3.5249    3.5249  ;snpfquitkrchdmoaygelxbwvjz,./
+rand2234              3.5317    3.5317  ;ntckjuiswlrdhpoaygemqbfvxz,./
+
+ILS (primary):
+  ILS1 qwerty           3.5232 -> 3.5232 primary=3.5232  ;nsdvjoitkrpchmuaygelbqfwxz,./
+  ILS2 shiro            3.5249 -> 3.5202 primary=3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  ILS3 rand2234         3.5317 -> 3.5202 primary=3.5202  ;ntgfjoehkrpmscuaydilbqvwxz,./
+
+secondary phase (sacrifice 0.00023% = 8.1e-06):
+  ILS2:shiro       primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+  ILS3:rand2234    primary=3.520202 secondary=3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+appended reference 'ils-6' to /tmp/refs-cal-ils-6.toml
+
+best_primary: ;ntgfjoehkrpmscuaydilbqvwxz,./ (3.520202)
+selected: ;ntgfjoehkrpmscuaydilbqvwxz,./
+wrote /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/ils-6.txt and /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/ils-6.json (499s)

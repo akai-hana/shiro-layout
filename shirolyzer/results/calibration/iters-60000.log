@@ -1,0 +1,19 @@
+seed=1234
+start                  final   primary  layout
+qwerty                3.5218    3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+shiro                 3.5410    3.5410  ;aemkwsntbiouhpcgldryzjfqvx,./
+rand2234              3.5396    3.5396  ;aebkwsntgiouhpmcldryxzfjvq,./
+
+ILS (primary):
+  ILS1 qwerty           3.5218 -> 3.5218 primary=3.5218  ;dnpfjoitkrchsmuaygelbqvwxz,./
+  ILS2 rand2234         3.5396 -> 3.5396 primary=3.5396  ;aebkwsntgiouhpmcldryxzfjvq,./
+  ILS3 shiro            3.5410 -> 3.5407 primary=3.5407  ;aebkfcntgiouhpmsldryxzqjwv,./
+
+secondary phase (sacrifice 0.00023% = 8.1e-06):
+  qwerty           primary=3.521784 secondary=3.645484  ;dnpfjoitkrchsmuaygelbqvwxz,./
+  ILS1:qwerty      primary=3.521784 secondary=3.645484  ;dnpfjoitkrchsmuaygelbqvwxz,./
+appended reference 'iters-60000' to /tmp/refs-cal-iters-60000.toml
+
+best_primary: ;dnpfjoitkrchsmuaygelbqvwxz,./ (3.521784)
+selected: ;dnpfjoitkrchsmuaygelbqvwxz,./
+wrote /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/iters-60000.txt and /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/iters-60000.json (175s)

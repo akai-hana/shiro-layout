@@ -1,0 +1,19 @@
+seed=1234 generated=false
+primary=shai secondary=spanish
+references=/tmp/refs-cal-ils-3.toml
+reference_added=ils-3
+primary_sacrifice_pct=0.00023
+completed_runs=3 completed_iterations=150000 completed_ils_rounds=9 completed_secondary_rounds=2
+best_primary: primary=3.523222953 ;nsdvjoitkrpchmuaygelbqfwxz,./
+best_secondary: primary=3.523222953 secondary=3.672136397 ;nsdvjoitkrpchmuaygelbqfwxz,./
+selected: primary=3.523222953 secondary=3.672136397 ;nsdvjoitkrpchmuaygelbqfwxz,./
+
+start                       primary  secondary  layout
+qwerty                     3.523223        nan  ;nsdvjoitkrpchmuaygelbqfwxz,./
+ILS1:qwerty                3.523223        nan  ;nsdvjoitkrpchmuaygelbqfwxz,./
+secondary:qwerty           3.523223   3.672136  ;nsdvjoitkrpchmuaygelbqfwxz,./
+secondary:ILS1:qwerty      3.523223   3.672136  ;nsdvjoitkrpchmuaygelbqfwxz,./
+ILS2:shiro                 3.524221        nan  ;dnpxquitkrchsmoaygelbfvwjz,./
+shiro                      3.524948        nan  ;snpfquitkrchdmoaygelxbwvjz,./
+rand2234                   3.531675        nan  ;ntckjuiswlrdhpoaygemqbfvxz,./
+ILS3:rand2234              3.531675        nan  ;ntckjuiswlrdhpoaygemqbfvxz,./

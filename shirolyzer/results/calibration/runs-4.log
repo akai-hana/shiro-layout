@@ -1,0 +1,23 @@
+seed=1234
+start                  final   primary  layout
+qwerty                3.5232    3.5232  ;nsdvjoitkrpchmuaygelbqfwxz,./
+shiro                 3.5249    3.5249  ;snpfquitkrchdmoaygelxbwvjz,./
+rand2234              3.5317    3.5317  ;ntckjuiswlrdhpoaygemqbfvxz,./
+rand2235              3.5289    3.5289  ;rtgfkbeaylndscphuoimxqvwjz,./
+rand2236              3.5249    3.5249  ;ntckjoehblrpsguaydimqvfwxz,./
+rand2237              3.5243    3.5243  ;snpbjoitkrchdmuaygelqfwvxz,./
+
+ILS (primary):
+  ILS1 qwerty           3.5232 -> 3.5232 primary=3.5232  ;nsdvjoitkrpchmuaygelbqfwxz,./
+  ILS2 rand2237         3.5243 -> 3.5243 primary=3.5243  ;snpbjoitkrchdmuaygelqfwvxz,./
+  ILS3 rand2236         3.5249 -> 3.5249 primary=3.5249  ;ntckjoehblrpsguaydimqvfwxz,./
+  ILS4 shiro            3.5249 -> 3.5249 primary=3.5249  ;snpfquitkrchdmoaygelxbwvjz,./
+
+secondary phase (sacrifice 0.00023% = 8.1e-06):
+  qwerty           primary=3.523223 secondary=3.672136  ;nsdvjoitkrpchmuaygelbqfwxz,./
+  ILS1:qwerty      primary=3.523223 secondary=3.672136  ;nsdvjoitkrpchmuaygelbqfwxz,./
+appended reference 'runs-4' to /tmp/refs-cal-runs-4.toml
+
+best_primary: ;nsdvjoitkrpchmuaygelbqfwxz,./ (3.523223)
+selected: ;nsdvjoitkrpchmuaygelbqfwxz,./
+wrote /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/runs-4.txt and /home/akai/git/layout-opencode-investigation/shirolyzer/results/calibration/runs-4.json (263s)

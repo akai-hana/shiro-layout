@@ -1,0 +1,102 @@
+{
+ "seed": 1234,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "/tmp/refs-cal-iters-10000.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 123.92521810531616,
+ "time_budget_seconds": 900.0,
+ "completed_runs": 3,
+ "completed_iterations": 45000,
+ "completed_ils_rounds": 3,
+ "completed_secondary_rounds": 2,
+ "runs": 1,
+ "iters": 10000,
+ "ils": 1,
+ "results": [
+  {
+   "start": "qwerty",
+   "final": 3.5288299583339007,
+   "primary": 3.5288299583339007,
+   "secondary": null,
+   "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+  },
+  {
+   "start": "ILS1:qwerty",
+   "final": 3.5288299583339007,
+   "primary": 3.5288299583339007,
+   "secondary": null,
+   "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+  },
+  {
+   "start": "secondary:qwerty",
+   "final": 3.711433450952798,
+   "primary": 3.5288299583339007,
+   "secondary": 3.711433450952798,
+   "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+  },
+  {
+   "start": "secondary:ILS1:qwerty",
+   "final": 3.711433450952798,
+   "primary": 3.5288299583339007,
+   "secondary": 3.711433450952798,
+   "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+  },
+  {
+   "start": "rand2234",
+   "final": 3.5407635897090373,
+   "primary": 3.5407635897090373,
+   "secondary": null,
+   "layout": ";trngkbeaysdlmcphuoifxqwvjz,./"
+  },
+  {
+   "start": "ILS2:rand2234",
+   "final": 3.5407635897090373,
+   "primary": 3.5407635897090373,
+   "secondary": null,
+   "layout": ";trngkbeaysdlmcphuoifxqwvjz,./"
+  },
+  {
+   "start": "shiro",
+   "final": 3.541390300909232,
+   "primary": 3.541390300909232,
+   "secondary": null,
+   "layout": ";htcfxgaiwrndsmyoupelbzvkjq,./"
+  },
+  {
+   "start": "ILS3:shiro",
+   "final": 3.541390300909232,
+   "primary": 3.541390300909232,
+   "secondary": null,
+   "layout": ";htcfxgaiwrndsmyoupelbzvkjq,./"
+  }
+ ],
+ "best_primary": {
+  "start": "qwerty",
+  "final": 3.5288299583339007,
+  "primary": 3.5288299583339007,
+  "secondary": null,
+  "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+ },
+ "best_secondary": {
+  "start": "secondary:qwerty",
+  "final": 3.711433450952798,
+  "primary": 3.5288299583339007,
+  "secondary": 3.711433450952798,
+  "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+ },
+ "selected": {
+  "start": "secondary:qwerty",
+  "final": 3.711433450952798,
+  "primary": 3.5288299583339007,
+  "secondary": 3.711433450952798,
+  "layout": ";ntdvjoehkcrmsguayliwqfpbxz,./"
+ },
+ "reference_added": "iters-10000",
+ "xkb": null
+}
