@@ -1,17 +1,17 @@
 #!/usr/bin/env python3
-"""Build or verify corpus/shai from the official AKL Shai raw text.
+"""Build or verify corpora/shai from the official AKL Shai raw text.
 
-Source: corpus/shai/iweb-corpus-samples-cleaned.txt. This is the cleaned Shai
+Source: corpora/shai/iweb-corpus-samples-cleaned.txt. This is the cleaned Shai
 iWeb text shared on the alt-layout community Discord.
 
 We count maximal [a-z]+ runs after lowercasing. Space, punctuation, and every
 non-ASCII byte break a run, so the letters-only corpus contains no fabricated
 cross-punctuation pairs. Counts are stored as raw integers, matching the
-existing corpus/*_freq.json convention.
+existing corpora/*/parsed/*_freq.json convention.
 
 Usage:
-    python3 build_shai_corpus.py --check   # compare with corpus/shai, no writes
-    python3 build_shai_corpus.py --write   # rebuild corpus/shai + build_info
+    python3 corpora/shai/parse_shai.py --check   # compare with parsed/, no writes
+    python3 corpora/shai/parse_shai.py --write   # rebuild parsed/ + build_info
 """
 import argparse
 import hashlib
@@ -21,9 +21,9 @@ import time
 from collections import Counter
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "corpus" / "shai" / "iweb-corpus-samples-cleaned.txt"
-OUTDIR = ROOT / "corpus" / "shai"
+HERE = Path(__file__).resolve().parent
+SOURCE = HERE / "iweb-corpus-samples-cleaned.txt"
+OUTDIR = HERE / "parsed"
 RUN = re.compile(rb"[a-z]+")
 CHUNK = 64 << 20
 
@@ -85,9 +85,9 @@ def compare(name, new, old):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true",
-                    help="overwrite corpus/shai with raw-derived counts")
+                    help="overwrite parsed/ with raw-derived counts")
     ap.add_argument("--check", action="store_true",
-                    help="only compare against corpus/shai (default)")
+                    help="only compare against parsed/ (default)")
     args = ap.parse_args()
 
     if not SOURCE.exists():
@@ -120,7 +120,7 @@ def main():
             f"runs: {n_runs:,}",
             "processing: lowercase, maximal [a-z]+ runs; non-letters break runs",
         ]) + "\n"
-        (OUTDIR / "build_info.txt").write_text(info)
+        (HERE / "build_info.txt").write_text(info)
         print(f"wrote {OUTDIR}")
     else:
         print("check only; pass --write to rebuild")

@@ -175,7 +175,7 @@ Any other match must be fixed.
 
 ### Branch `corpus`
 
-- [ ] **C1 — Move and rename the corpus parser scripts**
+- [x] **C1 — Move and rename the corpus parser scripts**
   - Issue: #3
   - Commit: `corpus: move and rename corpus parsers`
   - Files: `shirolyzer/build_shai_corpus.py` → `corpora/shai/parse_shai.py`;

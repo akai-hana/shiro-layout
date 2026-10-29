@@ -14,8 +14,8 @@ Normalization: lowercase; Unicode NFKD then strip combining marks, so
 kept; everything else is a word boundary. Bigrams/trigrams are
 within-word only (same convention as the English corpora).
 
-Usage: python3 build_spanish_corpus.py <input_dir> <output_prefix>
-       e.g. python3 build_spanish_corpus.py /tmp/opencode/es_corpus ../corpus/spanish
+Usage: python3 corpora/spanish/parse_spanish.py [input_dir] [output_dir]
+       Defaults: input_dir=corpora/spanish/resources, output_dir=corpora/spanish/parsed
 """
 import json
 import sys
@@ -32,8 +32,12 @@ def normalize(text: str) -> str:
     return "".join(out)
 
 
+HERE = Path(__file__).resolve().parent
+
+
 def main() -> None:
-    in_dir, out_prefix = Path(sys.argv[1]), sys.argv[2]
+    in_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else HERE / "resources"
+    out_prefix = sys.argv[2] if len(sys.argv) > 2 else HERE / "parsed"
     letters: dict[str, int] = {}
     bigrams: dict[str, int] = {}
     trigrams: dict[str, int] = {}
