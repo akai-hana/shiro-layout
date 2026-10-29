@@ -1,0 +1,52 @@
+seed=20261030 generated=false
+primary=shai secondary=spanish
+references=shirolyzer/results/validation/t5-seeds.toml
+append_references=shirolyzer/config/references.toml
+reference_added=t5-diversity-2
+references_added=t5-diversity-2
+primary_sacrifice_pct=0.00023
+selection=multiple_valid valid_layouts_truncated=false
+completed_runs=26 completed_iterations=1920000 completed_ils_rounds=8 completed_secondary_rounds=3
+best_primary: primary=3.520201897 ;ntgfjoehkrpmscuaydilbqvwxz,./
+best_secondary: primary=3.520201897 secondary=3.704852567 ;ntgfjoehkrpmscuaydilbqvwxz,./
+selected: primary=3.520201897 secondary=3.704852567 ;ntgfjoehkrpmscuaydilbqvwxz,./
+valid_layouts=2 status=multiple_valid
+  valid1: primary=3.520201897 secondary=3.704852567 ;ntgfjoehkrpmscuaydilbqvwxz,./
+  valid2: primary=3.521783725 secondary=3.645483980 ;dnpfjoitkrchsmuaygelbqvwxz,./
+
+start                       primary  secondary  layout
+t4-winner                  3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+ILS1:t4-winner             3.520202        nan  ;ntgfjoehkrpmscuaydilbqvwxz,./
+polish:t4-winner           3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:t4-winner        3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:ILS1:t4-winner   3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+secondary:polish:t4-winner   3.520202   3.704853  ;ntgfjoehkrpmscuaydilbqvwxz,./
+t4-runner-up               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262032               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262033               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262048               3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+ILS2:t4-runner-up          3.521784        nan  ;dnpfjoitkrchsmuaygelbqvwxz,./
+polish:t4-runner-up        3.521784   3.645484  ;dnpfjoitkrchsmuaygelbqvwxz,./
+rand20262030               3.524399        nan  ;ntgwjoehklrpscuaydimqfvbxz,./
+ILS3:rand20262030          3.524399        nan  ;ntgwjoehklrpscuaydimqfvbxz,./
+ILS4:rand20262039          3.524659        nan  ;ntcfjoehklrpsguaydimqvwbxz,./
+rand20262039               3.524670        nan  ;ntgvjoehklrpscuaydimqfbwxz,./
+rand20262034               3.524889        nan  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262040               3.524889        nan  ;htpfjoicwrndsmuaygelbqvkxz,./
+rand20262051               3.527480        nan  ;htmwqoerxcndspuayligbfvkjz,./
+rand20262037               3.527611        nan  ;tncfxoehprgbsmuaydilkqvwjz,./
+rand20262042               3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262045               3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262052               3.527642        nan  ;rtgfkbeaylndscphuoimxzvwqj,./
+rand20262043               3.529447        nan  ;hspwjoitkrndcmuaygelbfvqxz,./
+rand20262049               3.530065        nan  ;rspfjoitgnlchmuaydebqvkwxz,./
+rand20262041               3.530217        nan  ;nsdvjoitklrchpuaygemqfbwxz,./
+rand20262038               3.530679        nan  ;rtgvkbeaylndscphuoimxqwzfj,./
+rand20262044               3.530679        nan  ;rtgvkbeaylndscphuoimxqwzfj,./
+rand20262031               3.534571        nan  ;thcfqunijrdmswoapyelkvgbxz,./
+rand20262047               3.535025        nan  ;rtpfjoinbcldsmuayhegqkvwxz,./
+rand20262053               3.539041        nan  ;tnswkpeaxrdmcgyhuoilqzvbfj,./
+rand20262035               3.539620        nan  ;aebkwsntgiouhpmcldryxzfjvq,./
+rand20262036               3.545555        nan  ;aefkwmtlbiouhpcsdnryxzqjgv,./
+rand20262046               3.546311        nan  ;aemkvgtrbiouhpcsdnlyzjfqwx,./
+rand20262050               3.549320        nan  ;aemkfgtnbiouhdcslpryzjxqwv,./

@@ -1,0 +1,8 @@
+# Distinct near-equal T4 candidates used to seed the T5 diversity polish run.
+[[reference]]
+name = "t4-winner"
+layout = ";ntgfjoehkrpmscuaydilbqvwxz,./"
+
+[[reference]]
+name = "t4-runner-up"
+layout = ";dnpfjoitkrchsmuaygelbqvwxz,./"

@@ -12,6 +12,9 @@
 # iterations, and 8 ILS rounds.  They were calibrated in
 # results/calibration/REPORT.md; override per run with --runs/--iters/--ils.
 # --time-budget stays optional because short budgets truncate seeds and ILS.
+# Diversity output also lives in compute.py: 0.002 primary tolerance, 0.005
+# secondary tolerance, 4 key positions minimum distance, 8 valid layouts.
+# --polish-rounds is opt-in because it continues optimizing near-equal picks.
 general:
   physical_layout: ansi
   default_layout: ";tspbxgoiwndhrlyecuafkvmzjq,./"

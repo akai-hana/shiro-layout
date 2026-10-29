@@ -32,7 +32,9 @@ The search converged on a single layout:
 
 The top four primary candidates all converged to this layout during ILS and the
 secondary phase, so this run selected one clear winner. It was appended to
-`shirolyzer/config/references.toml` as `calibration-full`.
+`shirolyzer/config/references.toml` as `calibration-full`.  The later T5
+diversity-aware run found a materially different runner-up with a better
+secondary score; see `T5-REPORT.md`.
 
 ## Audit
 

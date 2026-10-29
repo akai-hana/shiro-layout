@@ -1,0 +1,321 @@
+{
+ "seed": 20261030,
+ "seed_generated": false,
+ "primary_corpora": [
+  "shai"
+ ],
+ "secondary_corpora": [
+  "spanish"
+ ],
+ "references": "shirolyzer/results/validation/t5-seeds.toml",
+ "primary_sacrifice_pct": 0.00023,
+ "elapsed_seconds": 965.0993382930756,
+ "time_budget_seconds": null,
+ "completed_runs": 26,
+ "completed_iterations": 1920000,
+ "completed_ils_rounds": 8,
+ "completed_secondary_rounds": 3,
+ "completed_polish_rounds": 2,
+ "runs": 24,
+ "iters": 60000,
+ "ils": 2,
+ "polish_rounds": 3,
+ "polish_candidates": 6,
+ "valid_tolerance": 0.002,
+ "secondary_tolerance": 0.005,
+ "min_layout_distance": 4,
+ "max_valid": 8,
+ "results": [
+  {
+   "start": "t4-winner",
+   "final": 3.520201897371135,
+   "primary": 3.520201897371135,
+   "secondary": null,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "ILS1:t4-winner",
+   "final": 3.520201897371135,
+   "primary": 3.520201897371135,
+   "secondary": null,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "polish:t4-winner",
+   "final": 3.520201897371135,
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "secondary:t4-winner",
+   "final": 3.7048525673778663,
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "secondary:ILS1:t4-winner",
+   "final": 3.7048525673778663,
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "secondary:polish:t4-winner",
+   "final": 3.7048525673778663,
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663,
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  },
+  {
+   "start": "t4-runner-up",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand20262032",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand20262033",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand20262048",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "ILS2:t4-runner-up",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": null,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "polish:t4-runner-up",
+   "final": 3.521783724807672,
+   "primary": 3.521783724807672,
+   "secondary": 3.6454839801840597,
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./"
+  },
+  {
+   "start": "rand20262030",
+   "final": 3.52439922162867,
+   "primary": 3.52439922162867,
+   "secondary": null,
+   "layout": ";ntgwjoehklrpscuaydimqfvbxz,./"
+  },
+  {
+   "start": "ILS3:rand20262030",
+   "final": 3.52439922162867,
+   "primary": 3.52439922162867,
+   "secondary": null,
+   "layout": ";ntgwjoehklrpscuaydimqfvbxz,./"
+  },
+  {
+   "start": "ILS4:rand20262039",
+   "final": 3.524658885564239,
+   "primary": 3.524658885564239,
+   "secondary": null,
+   "layout": ";ntcfjoehklrpsguaydimqvwbxz,./"
+  },
+  {
+   "start": "rand20262039",
+   "final": 3.5246704945365943,
+   "primary": 3.5246704945365943,
+   "secondary": null,
+   "layout": ";ntgvjoehklrpscuaydimqfbwxz,./"
+  },
+  {
+   "start": "rand20262034",
+   "final": 3.5248888770067635,
+   "primary": 3.5248888770067635,
+   "secondary": null,
+   "layout": ";htpfjoicwrndsmuaygelbqvkxz,./"
+  },
+  {
+   "start": "rand20262040",
+   "final": 3.5248888770067635,
+   "primary": 3.5248888770067635,
+   "secondary": null,
+   "layout": ";htpfjoicwrndsmuaygelbqvkxz,./"
+  },
+  {
+   "start": "rand20262051",
+   "final": 3.527480497581216,
+   "primary": 3.527480497581216,
+   "secondary": null,
+   "layout": ";htmwqoerxcndspuayligbfvkjz,./"
+  },
+  {
+   "start": "rand20262037",
+   "final": 3.52761113581967,
+   "primary": 3.52761113581967,
+   "secondary": null,
+   "layout": ";tncfxoehprgbsmuaydilkqvwjz,./"
+  },
+  {
+   "start": "rand20262042",
+   "final": 3.52764236663461,
+   "primary": 3.52764236663461,
+   "secondary": null,
+   "layout": ";rtgfkbeaylndscphuoimxzvwqj,./"
+  },
+  {
+   "start": "rand20262045",
+   "final": 3.52764236663461,
+   "primary": 3.52764236663461,
+   "secondary": null,
+   "layout": ";rtgfkbeaylndscphuoimxzvwqj,./"
+  },
+  {
+   "start": "rand20262052",
+   "final": 3.52764236663461,
+   "primary": 3.52764236663461,
+   "secondary": null,
+   "layout": ";rtgfkbeaylndscphuoimxzvwqj,./"
+  },
+  {
+   "start": "rand20262043",
+   "final": 3.5294469659307484,
+   "primary": 3.5294469659307484,
+   "secondary": null,
+   "layout": ";hspwjoitkrndcmuaygelbfvqxz,./"
+  },
+  {
+   "start": "rand20262049",
+   "final": 3.530064898385411,
+   "primary": 3.530064898385411,
+   "secondary": null,
+   "layout": ";rspfjoitgnlchmuaydebqvkwxz,./"
+  },
+  {
+   "start": "rand20262041",
+   "final": 3.5302171684053705,
+   "primary": 3.5302171684053705,
+   "secondary": null,
+   "layout": ";nsdvjoitklrchpuaygemqfbwxz,./"
+  },
+  {
+   "start": "rand20262038",
+   "final": 3.530679027211012,
+   "primary": 3.530679027211012,
+   "secondary": null,
+   "layout": ";rtgvkbeaylndscphuoimxqwzfj,./"
+  },
+  {
+   "start": "rand20262044",
+   "final": 3.530679027211012,
+   "primary": 3.530679027211012,
+   "secondary": null,
+   "layout": ";rtgvkbeaylndscphuoimxqwzfj,./"
+  },
+  {
+   "start": "rand20262031",
+   "final": 3.534570649940791,
+   "primary": 3.534570649940791,
+   "secondary": null,
+   "layout": ";thcfqunijrdmswoapyelkvgbxz,./"
+  },
+  {
+   "start": "rand20262047",
+   "final": 3.5350247784524433,
+   "primary": 3.5350247784524433,
+   "secondary": null,
+   "layout": ";rtpfjoinbcldsmuayhegqkvwxz,./"
+  },
+  {
+   "start": "rand20262053",
+   "final": 3.5390409389161244,
+   "primary": 3.5390409389161244,
+   "secondary": null,
+   "layout": ";tnswkpeaxrdmcgyhuoilqzvbfj,./"
+  },
+  {
+   "start": "rand20262035",
+   "final": 3.5396203602756815,
+   "primary": 3.5396203602756815,
+   "secondary": null,
+   "layout": ";aebkwsntgiouhpmcldryxzfjvq,./"
+  },
+  {
+   "start": "rand20262036",
+   "final": 3.545554758719341,
+   "primary": 3.545554758719341,
+   "secondary": null,
+   "layout": ";aefkwmtlbiouhpcsdnryxzqjgv,./"
+  },
+  {
+   "start": "rand20262046",
+   "final": 3.5463106096790273,
+   "primary": 3.5463106096790273,
+   "secondary": null,
+   "layout": ";aemkvgtrbiouhpcsdnlyzjfqwx,./"
+  },
+  {
+   "start": "rand20262050",
+   "final": 3.5493204224797994,
+   "primary": 3.5493204224797994,
+   "secondary": null,
+   "layout": ";aemkfgtnbiouhdcslpryzjxqwv,./"
+  }
+ ],
+ "best_primary": {
+  "start": "t4-winner",
+  "final": 3.520201897371135,
+  "primary": 3.520201897371135,
+  "secondary": null,
+  "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+ },
+ "best_secondary": {
+  "start": "polish:t4-winner",
+  "final": 3.520201897371135,
+  "primary": 3.520201897371135,
+  "secondary": 3.7048525673778663,
+  "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./"
+ },
+ "selected": {
+  "start": "t4-winner",
+  "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./",
+  "primary": 3.520201897371135,
+  "secondary": 3.7048525673778663,
+  "final": 3.7048525673778663,
+  "reference_name": null
+ },
+ "selection_status": "multiple_valid",
+ "valid_layouts": [
+  {
+   "name": null,
+   "start": "t4-winner",
+   "layout": ";ntgfjoehkrpmscuaydilbqvwxz,./",
+   "primary": 3.520201897371135,
+   "secondary": 3.7048525673778663
+  },
+  {
+   "name": "t5-diversity-2",
+   "start": "t4-runner-up",
+   "layout": ";dnpfjoitkrchsmuaygelbqvwxz,./",
+   "primary": 3.521783724807672,
+   "secondary": 3.6454839801840597
+  }
+ ],
+ "valid_layouts_truncated": false,
+ "reference_added": "t5-diversity-2",
+ "references_added": [
+  "t5-diversity-2"
+ ],
+ "append_references": "shirolyzer/config/references.toml",
+ "xkb": null
+}

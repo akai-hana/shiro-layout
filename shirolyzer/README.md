@@ -38,6 +38,26 @@ best result.  Override them per run with `--runs`, `--iters`, and `--ils`.
 `--time-budget` is optional.  It accepts seconds or `30m`-style strings and
 stops between runs/ILS rounds, always saving the best result found so far.
 
+### Diversity-aware results
+
+Near-equal results are clustered by score and by key-position distance before a
+layout is selected.  A candidate is valid when its primary score is no more
+than `--valid-tolerance` worse than the best primary result and, when both have
+a secondary score, its secondary score is no more than
+`--secondary-tolerance` worse.  Only layouts at least
+`--min-layout-distance` key positions apart are kept, up to `--max-valid`
+layouts.
+
+If one valid layout remains it is reported as the clear winner.  Otherwise one
+layout is still selected for `--xkb`, but every valid layout is printed and
+written to the JSON `valid_layouts` list, and each is appended to the reference
+file (or `--append-references`) under a unique name.
+
+`--polish-rounds N` runs additional quench/anneal passes over the top
+`--polish-candidates` distinct layouts until a full pass improves none, or the
+round limit is reached.  Polishing is disabled by default; enable it when the
+near-equal alternatives should be optimized further before selection.
+
 ### Corpora
 
 On layout generation, it is capable of taking corpora under different weightings and weightings of priority:
