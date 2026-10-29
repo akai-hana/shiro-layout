@@ -1,4 +1,5 @@
-"""Load and validate reference layouts from config/references.toml."""
+"""Load, validate, and append reference layouts from config/references.toml."""
+import json
 from pathlib import Path
 import tomllib
 
@@ -33,3 +34,44 @@ def load_references(path=None):
 
 def load_reference_map(path=None):
     return {entry["name"]: entry["layout"] for entry in load_references(path)}
+
+
+def _toml_string(value):
+    return json.dumps(str(value), ensure_ascii=False)
+
+
+def _unique_name(name, existing):
+    if name not in existing:
+        return name
+    i = 2
+    while f"{name}-{i}" in existing:
+        i += 1
+    return f"{name}-{i}"
+
+
+def append_reference(name, layout, primary_score=None, secondary_score=None,
+                     seed=None, path=None):
+    """Append one [[reference]] table without rewriting existing content.
+
+    Returns the written name, or None when the layout already exists.
+    """
+    path = Path(path) if path is not None else paths.REFERENCES_FILE
+    refs = load_references(path)
+    if any(entry["layout"] == layout for entry in refs):
+        return None
+    name = _unique_name(name, {entry["name"] for entry in refs})
+    lines = ["", "[[reference]]", f"name = {_toml_string(name)}",
+             f"layout = {_toml_string(layout)}"]
+    if primary_score is not None:
+        lines.append(f"primary_score = {float(primary_score):.9f}")
+    lines.append("secondary_score = " +
+                 (f"{float(secondary_score):.9f}" if secondary_score is not None else "nan"))
+    if seed is not None:
+        lines.append(f"seed = {int(seed)}")
+    text = path.read_text(encoding="utf-8")
+    if text and not text.endswith("\n"):
+        lines.insert(0, "")
+    with path.open("a", encoding="utf-8") as out:
+        out.write("\n".join(lines) + "\n")
+    load_references(path)
+    return name

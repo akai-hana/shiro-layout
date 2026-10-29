@@ -218,11 +218,19 @@ def main():
         if best_secondary is not None:
             final = best_secondary
 
+    added_name = R.append_reference(
+        args.name or f"shiro-{args.seed}", final["layout"],
+        primary_score=final["primary"], secondary_score=final["secondary"],
+        seed=args.seed, path=args.references)
+    if added_name:
+        print(f"appended reference {added_name!r} to {args.references}")
+
     results.sort(key=lambda r: (r["primary"], r["final"]))
     out_lines = [
         f"seed={args.seed} generated={str(seed_generated).lower()}",
         f"primary={','.join(primary_paths)} secondary={','.join(secondary_paths)}",
         f"references={args.references}",
+        f"reference_added={added_name or ''}",
         f"primary_sacrifice_pct={args.primary_sacrifice:g}",
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
         (f"best_secondary: primary={best_secondary['primary']:.9f} "
@@ -254,6 +262,7 @@ def main():
         "best_primary": best_primary,
         "best_secondary": best_secondary,
         "selected": final,
+        "reference_added": added_name,
     }, indent=1) + "\n")
     print(f"\nbest_primary: {best_primary['layout']} ({best_primary['primary']:.6f})")
     print(f"selected: {final['layout']}")
