@@ -1,15 +1,32 @@
-# Shai's Cleaned iWeb (90m words)
+# Shai's Cleaned iWeb corpus (90m words)
 
----
+Source: [Alt Keyboard Layouts Discord](https://discord.gg/kXyGkVaez)
+Download: <https://colemak.com/pub/corpus/iweb-corpus-samples-cleaned.txt.xz>
 
-Source: https://discord.gg/kXyGkVaez (Alt Keyboard Layouts discord server)
-Download link: https://colemak.com/pub/corpus/iweb-corpus-samples-cleaned.txt.xz
+## Build
 
----
+```sh
+python3 corpora/shai/parse_shai.py            # download, parse, write parsed/
+python3 corpora/shai/parse_shai.py --check    # download, parse, compare only
+python3 corpora/shai/parse_shai.py --source FILE.xz [--keep-source]
+```
 
-Letters: 418,381,828
-Bigrams: 327,253,737
+The parser downloads the `.xz` source to a temporary file, streams the
+decompression, and deletes the downloaded file on success. `--source` uses an
+existing local `.txt` or `.txt.xz` file instead, and `--keep-source` keeps a
+downloaded archive for debugging.
+
+Output: `corpora/shai/parsed/letter_freq.json`,
+`corpora/shai/parsed/bigram_freq.json`, and
+`corpora/shai/parsed/trigram_freq.json`.
+
+## Totals
+
+```text
+Letters:  418,381,828
+Bigrams:  327,253,737
 Trigrams: 240,524,895
-Runs: 91,128,091
+Runs:      91,128,091
+```
 
-Processing: lowercase, maximal [a-z]+ runs; non-letters break runs
+Processing: lowercase, maximal `[a-z]+` runs; non-letters break runs.

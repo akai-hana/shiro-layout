@@ -228,7 +228,7 @@ Any other match must be fixed.
   - Done when downloading/parsing a corpus leaves a clean `git status` apart from intentional JSON
     changes.
 
-- [ ] **C6 — Update corpus documentation and remove solved TODOs**
+- [x] **C6 — Update corpus documentation and remove solved TODOs**
   - Issue: #8
   - Commit: `docs: update corpus readmes`
   - Document the exact commands for both parsers, the source URLs, the output paths, and the fact
