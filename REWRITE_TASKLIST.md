@@ -208,7 +208,7 @@ Any other match must be fixed.
     418,381,828 letters, 327,253,737 bigrams, and 240,524,895 trigrams.
   - Done when a fresh run produces the same JSON content as the tracked parsed files.
 
-- [ ] **C4 — Make `parse_spanish.py` self-contained**
+- [x] **C4 — Make `parse_spanish.py` self-contained**
   - Issue: #6
   - Commit: `corpus: make spanish parser self-contained`
   - Replace the old local-directory assumption with the Zenodo zip source named in
