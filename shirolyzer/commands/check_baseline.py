@@ -14,7 +14,7 @@ from ..utils import references as R
 from ..utils import scorer as SG
 from ..utils.ansi import KEYS, KI
 
-MODEL = "theta_geo_A_all.json"
+MODEL = "pattern_parameters_A_all.json"
 BASELINE_FILE = paths.CONFIG_DIR / "score_baseline.json"
 AUDIT_CONFIG = "A:all"
 

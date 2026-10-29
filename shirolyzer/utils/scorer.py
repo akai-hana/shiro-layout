@@ -27,18 +27,18 @@ SPACE = "@space"
 FID = {"P": 0, "R": 1, "M": 2, "I": 3, "T": 4}
 SPACE_EFFORT, PRESS = 0.6, 1.0
 MODEL_DIR = paths.MODEL_DIR
-CONFIGS = {"A:all": ("A", "all", "theta_geo_A_all.json")}
+CONFIGS = {"A:all": ("A", "all", "pattern_parameters_A_all.json")}
 _ACTIVE = None
 
 
-def load_theta(path):
+def load_parameters(path):
     data = json.load(open(path))
-    return np.array([data.get(name, cg.THETA0[i]) for i, name in enumerate(cg.PNAMES)], float)
+    return np.array([data.get(name, cg.DEFAULT_PARAMETERS[i]) for i, name in enumerate(cg.PNAMES)], float)
 
 
-def set_active_model(variant, theta_path):
+def set_active_model(variant, parameters_path):
     global _ACTIVE
-    _ACTIVE = (str(variant), Path(theta_path))
+    _ACTIVE = (str(variant), Path(parameters_path))
 
 
 def reset_tables():
@@ -50,14 +50,14 @@ def load_model(cfg_name=None):
     if cfg_name is None:
         from . import config as CFG
         cfg = CFG.ensure_applied()
-        var, gates, theta_path = cfg.model_variant, "all", cfg.theta_path
+        var, gates, parameters_path = cfg.model_variant, "all", cfg.parameters_path
     else:
         cfg_name = cfg_name or os.environ.get("SHIRO_GEO_CFG", "A:all")
         var, gates, fn = CONFIGS[cfg_name]
-        theta_path = MODEL_DIR / fn
-    th = load_theta(str(theta_path))
+        parameters_path = MODEL_DIR / fn
+    th = load_parameters(str(parameters_path))
     GT.set_explicit(gates)
-    return cg.Model(theta=th, disallow_full_MR=(var == "A")), gates
+    return cg.Model(parameters=th, disallow_full_MR=(var == "A")), gates
 
 
 def build_tables(cfg_name=None):

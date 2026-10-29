@@ -8,31 +8,31 @@ from ..utils import comfort as cg
 from ..utils import fitlib as FL
 from ..utils import gates as G
 from ..utils.gateset import GateSet
-from .common import input_theta, output_theta, work_dir
+from .common import input_parameters, output_parameters, work_dir
 
 REG = 0.02
 
 
-def load_theta(path):
+def load_parameters(path):
     d = json.load(open(path))
-    th = cg.THETA0.copy()
+    th = cg.DEFAULT_PARAMETERS.copy()
     for i, n in enumerate(cg.PNAMES):
         if n in d:
             th[i] = d[n]
     return th
 
 
-def save_theta(th, path):
+def save_parameters(th, path):
     json.dump({n: float(v) for n, v in zip(cg.PNAMES, th)}, open(path, "w"), indent=1)
 
 
-def run(cfg, gate_set_name, theta0, rounds=12, per_round=150, out="theta", log=print, gs=None, powell_iter=3):
+def run(cfg, gate_set_name, parameters0, rounds=12, per_round=150, out="parameters", log=print, gs=None, powell_iter=3):
     gates = G.gate_subset(gate_set_name)
     gs = gs or GateSet()
-    th = np.array(theta0, float)
+    th = np.array(parameters0, float)
     lo, hi = cg.LO, cg.HI
     for rd in range(rounds):
-        model = cg.Model(theta=th, disallow_full_MR=cfg.disallow)
+        model = cg.Model(parameters=th, disallow_full_MR=cfg.disallow)
         tabs = model.tables()
         viol = G.scan(model, tabs, gates) if gates else []
         viol.sort(key=lambda v: -(v[2] - v[3]))
@@ -53,7 +53,7 @@ def run(cfg, gate_set_name, theta0, rounds=12, per_round=150, out="theta", log=p
             res = minimize(f, th, method="Powell", bounds=list(zip(lo, hi)),
                            options=dict(maxiter=3000, xtol=1e-3, ftol=1e-6))
             th = np.clip(res.x, lo, hi)
-        save_theta(th, f"{out}.json")
+        save_parameters(th, f"{out}.json")
         pickle.dump(gs, open(f"{out}_gs.pkl", "wb"))
     return th, gs
 
@@ -63,13 +63,13 @@ if __name__ == "__main__":
     gate_name = sys.argv[2]            # all | no_WX | none
     tag = sys.argv[3]
     cfg = FL.Cfg(disallow=disallow, gates="all" if gate_name == "geo" else "no_WX")
-    th0 = load_theta(input_theta("theta_A.json" if disallow else "theta_B.json"))
+    th0 = load_parameters(input_parameters("fit_seed_A.json" if disallow else "fit_seed_B.json"))
     gs0 = None
-    resume = output_theta(f"theta_{tag}.json")
+    resume = output_parameters(f"cutting_plane_{tag}.json")
     if resume.exists():
-        th0 = load_theta(resume); gs0 = pickle.load(open(output_theta(f"theta_{tag}_gs.pkl"), "rb"))
+        th0 = load_parameters(resume); gs0 = pickle.load(open(output_parameters(f"cutting_plane_{tag}_gs.pkl"), "rb"))
         print("resumed", len(gs0), flush=True)
     t = time.time()
-    th, gs = run(cfg, gate_name, th0, out=work_dir() / f"theta_{tag}",
+    th, gs = run(cfg, gate_name, th0, out=work_dir() / f"cutting_plane_{tag}",
                  log=lambda s: print(s, flush=True), gs=gs0, rounds=30)
     print("done", time.time() - t)

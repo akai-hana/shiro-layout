@@ -5,10 +5,10 @@ from scipy.optimize import minimize
 
 from ..utils import comfort as cg, fitlib as FL, rulings as RL
 from . import fit2
-from .common import input_theta, output_theta
+from .common import input_parameters, output_parameters
 dis = sys.argv[1] == "A"; gates = sys.argv[2]; tag = sys.argv[3]
 cfg = FL.Cfg(dis, gates); lo, hi = cg.LO, cg.HI
-th_full = fit2.load_theta(input_theta(f"theta3_{tag}.json"))
+th_full = fit2.load_parameters(input_parameters(f"pattern_parameters_{tag}.json"))
 act = [r for r in RL.RULINGS if FL.active(r, cfg)]
 fams = sorted({r.family for r in act})
 SKIP = lambda x: x.startswith("DEFAULT_")
@@ -22,6 +22,6 @@ for fam in todo:
     _, det = FL.total_loss(th, cfg, subset={fam}, return_detail=True)
     res[fam] = [(d[0].id, bool(d[1]), d[3]) for d in det]
     print(fam, [("ok" if d[1] else "MISS") for d in det], flush=True)
-    json.dump(res, open(output_theta(f"loo3_{tag}_{part}.json"), "w"))
+    json.dump(res, open(output_parameters(f"loo3_{tag}_{part}.json"), "w"))
 n = sum(len(v) for v in res.values()); ok = sum(x[1] for v in res.values() for x in v)
 print("LOO held-out pass", ok, "/", n)

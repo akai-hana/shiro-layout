@@ -1,5 +1,5 @@
 {
-  "model": "theta_geo_A_all.json",
+  "model": "pattern_parameters_A_all.json",
   "audit": {
     "config": "A:all",
     "passed": 166,

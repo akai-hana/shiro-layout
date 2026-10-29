@@ -104,7 +104,7 @@ corpora/shai/             English corpus parser and parsed frequencies
 corpora/spanish/          Spanish corpus parser and parsed frequencies
 shirolyzer/               Primary entry points and runtime package
 shirolyzer/commands/      Implementations of the CLI subcommands
-shirolyzer/config/        YAML config, references, theta, score baseline
+shirolyzer/config/        YAML config, references, parameters, score baseline
 shirolyzer/tests/         Unit and regression tests
 shirolyzer/results/       Local outputs and committed result reports
 shirolyzer/fitting/       Model-refitting development tools

@@ -74,8 +74,8 @@ class Config:
         return str(self.model["variant"])
 
     @property
-    def theta_path(self) -> Path:
-        path = Path(self.model["theta_file"])
+    def parameters_path(self) -> Path:
+        path = Path(self.model["parameters_file"])
         return path if path.is_absolute() else paths.CONFIG_DIR / path
 
     @property
@@ -396,17 +396,17 @@ def load(path=None) -> Config:
     variant = str(model.get("variant", "A"))
     if variant not in ("A", "B"):
         _fail(path, "model.variant", "expected A or B")
-    theta_file = str(model.get("theta_file", ""))
-    theta_path = Path(theta_file)
-    if not theta_path.is_absolute():
-        theta_path = paths.CONFIG_DIR / theta_path
-    if not theta_path.is_file():
-        _fail(path, "model.theta_file", f"theta file not found: {theta_path}")
-    theta = json.loads(theta_path.read_text(encoding="utf-8"))
+    parameters_file = str(model.get("parameters_file", ""))
+    parameters_path = Path(parameters_file)
+    if not parameters_path.is_absolute():
+        parameters_path = paths.CONFIG_DIR / parameters_path
+    if not parameters_path.is_file():
+        _fail(path, "model.parameters_file", f"parameter file not found: {parameters_path}")
+    parameters = json.loads(parameters_path.read_text(encoding="utf-8"))
     from . import comfort as cg
-    missing = sorted(set(cg.PNAMES) - set(theta))
+    missing = sorted(set(cg.PNAMES) - set(parameters))
     if missing:
-        _fail(path, "model.theta_file", f"{theta_path} is missing parameters: {missing}")
+        _fail(path, "model.parameters_file", f"{parameters_path} is missing parameters: {missing}")
 
     fingermap, finger_tokens = _parse_fingermap(path, raw["fingermap"])
     alt_fingers = _parse_alt_fingers(path, raw["alt_fingers"])
@@ -417,7 +417,7 @@ def load(path=None) -> Config:
     general = dict(general)
     general["primary_sacrifice"] = sacrifice
     cfg = Config(path=path, raw=raw, general=general,
-                 model={"type": "pattern", "variant": variant, "theta_file": theta_file},
+                 model={"type": "pattern", "variant": variant, "parameters_file": parameters_file},
                  fingermap=fingermap, finger_tokens=finger_tokens,
                  alt_fingers=alt_fingers, conditions=conditions,
                  priority_list=priority, finger_balance=balance, flat_share=flat,
@@ -448,7 +448,7 @@ def apply(cfg: Config | None = None) -> Config:
     cg.W_ALT_SCALE = scales["alternation"]
     SH.W_BALANCE = 0.4 * scales["finger_balance"]
     SH.W_HAND = 0.5 * scales["finger_balance"]
-    SG.set_active_model(cfg.model_variant, cfg.theta_path)
+    SG.set_active_model(cfg.model_variant, cfg.parameters_path)
     SG.reset_tables()
     _STATE.active = cfg
     return cfg

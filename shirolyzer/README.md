@@ -72,7 +72,7 @@ for the way valid layouts are reported.
 | `python -m shirolyzer xkb` | Convert an existing layout to XKB symbols |
 | `python -m shirolyzer render` | Print a layout as a staggered, finger-annotated ASCII grid |
 | `python -m shirolyzer check-baseline` | Regression check for references and audit counts |
-| `shirolyzer/config/` | YAML config, references, model theta, score baseline |
+| `shirolyzer/config/` | YAML config, references, model parameters, score baseline |
 | `shirolyzer/utils/` | Runtime model, corpus, search, and output modules |
 | `shirolyzer/tests/` | Unit and regression tests |
 | `shirolyzer/results/` | Local run outputs plus committed result reports |
@@ -87,7 +87,14 @@ validation/round-8 artifacts.
 `shirolyzer/config/config.yaml` is the user-facing source of truth for the
 physical layout, corpora, fingermap, alt-finger rules, geometric conditions,
 objective priorities, and finger balance.  Fitted model parameters live in the
-theta file referenced by the config.
+parameter file referenced by the config.
+
+The shipped `model/pattern_parameters_A_all.json` is a JSON object mapping the
+named coefficients in `utils/comfort.py` to their calibrated values.  `A` is the
+model variant (full-span middle/ring reverse scissors are disallowed) and `all`
+is the alt-finger gate set.  The fitting tools start from `fit_seed_A.json` and
+write candidate parameter files under `shirolyzer/results/fitting/`; they are
+not read unless you explicitly point a config at them.
 
 An abridged view of the main sections:
 
@@ -104,7 +111,7 @@ general:
 model:
   type: pattern
   variant: A
-  theta_file: model/theta_geo_A_all.json
+  parameters_file: model/pattern_parameters_A_all.json
 ```
 
 `general.current_layout` is the canonical layout for this repository.
@@ -139,11 +146,11 @@ Weights blend corpora by scaling their counts.
 
 Command-line corpus options replace the YAML corpus lists for that run:
 `--primary-corpus` and `--secondary-corpus` are repeatable and merge their
-inputs by count.  `--config PATH` loads a different YAML file; relative theta
+inputs by count.  `--config PATH` loads a different YAML file; relative parameter
 paths are resolved from `shirolyzer/config/`.
 
 Validation rejects unknown sections, malformed tokens, unknown priority names,
-duplicate priorities, bad conditions, and missing theta parameters with an
+duplicate priorities, bad conditions, and missing model parameters with an
 error that names the config location.
 
 ### Reference layouts

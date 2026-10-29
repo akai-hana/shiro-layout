@@ -54,10 +54,10 @@ class ConfigLoaderTests(unittest.TestCase):
         with self.assertRaisesRegex(CFG.ConfigError, "priority_list"):
             CFG.load(self.write(data))
 
-    def test_missing_theta_is_actionable(self):
+    def test_missing_parameters_is_actionable(self):
         data = copy.deepcopy(self.raw)
-        data["model"]["theta_file"] = "model/nope.json"
-        with self.assertRaisesRegex(CFG.ConfigError, "theta file not found"):
+        data["model"]["parameters_file"] = "model/nope.json"
+        with self.assertRaisesRegex(CFG.ConfigError, "parameter file not found"):
             CFG.load(self.write(data))
 
     def test_alt_sequence_accepts_arbitrary_length(self):

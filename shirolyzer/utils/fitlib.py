@@ -181,11 +181,11 @@ def anchor_loss(tabs):
     return ANCHOR_W * float((ex ** 2).sum()), int((ex > 0).sum()), len(c)
 
 
-def total_loss(theta, cfg, subset=None, reg=0.0, return_detail=False, extra=(), gateset=None):
+def total_loss(parameters, cfg, subset=None, reg=0.0, return_detail=False, extra=(), gateset=None):
     if isinstance(cfg, bool): cfg = Cfg(disallow=cfg, gates="none")
     disallow = cfg.disallow
     GT.set_explicit(cfg.gates)
-    model = cg.Model(theta=np.asarray(theta, float), disallow_full_MR=disallow)
+    model = cg.Model(parameters=np.asarray(parameters, float), disallow_full_MR=disallow)
     tabs = model.tables()
     loss, details = 0.0, []
     for r in RL.RULINGS:
@@ -212,7 +212,7 @@ def total_loss(theta, cfg, subset=None, reg=0.0, return_detail=False, extra=(), 
         if return_detail: details.append((type('G',(),{'id':'gate_instances','family':'GATES'})(), nb == 0, gl, f"{nb} of {len(gateset)} gate instances violated"))
     if reg:
         scale = 0.25 * (cg.HI - cg.LO)
-        loss += reg * float(np.sum(((np.asarray(theta) - cg.THETA0) / scale) ** 2))
+        loss += reg * float(np.sum(((np.asarray(parameters) - cg.DEFAULT_PARAMETERS) / scale) ** 2))
     return (loss, details) if return_detail else loss
 
 
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     import time
     for dis in (True, False):
         t = time.time()
-        l, det = total_loss(cg.THETA0, dis, return_detail=True)
+        l, det = total_loss(cg.DEFAULT_PARAMETERS, dis, return_detail=True)
         print(f"\n=== disallow_full_MR={dis}: loss {l:.3f}  ({(time.time()-t)*1000:.0f} ms)  "
               f"pass {sum(d[1] for d in det)}/{len(det)}")
         for r, ok, lo, txt in det:

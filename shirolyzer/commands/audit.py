@@ -154,7 +154,7 @@ for _label, _paths in (("primary", primary_paths), ("secondary", secondary_paths
 out(); out("=== every ruling (legacy + round 8) ===")
 cfg = FL.Cfg(True, gname)
 GT.set_explicit(gname)
-_, det = FL.total_loss(model.theta, cfg, return_detail=True)
+_, det = FL.total_loss(model.parameters, cfg, return_detail=True)
 anch = [d for d in det if d[0].id == "anchor_default_pairs"]
 det = [d for d in det if d[0].id != "anchor_default_pairs"]
 for r, ok, l, txt in det:

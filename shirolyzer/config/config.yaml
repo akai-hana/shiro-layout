@@ -3,7 +3,7 @@
 # This file is the single source of truth for the physical layout, corpus
 # roles, fingermap, permitted alt fingers, geometric conditions, objective
 # priorities, and target finger balance.  Fitted model parameters stay in the
-# theta file referenced by `model`.
+# parameter file referenced by `model`.
 #
 # Fingermap tokens are two characters: a QWERTY key label followed by a finger
 # (P pinky, R ring, M middle, I index).  The three rows are in QWERTY order.
@@ -30,7 +30,7 @@ general:
 model:
   type: pattern
   variant: A                   # disallow full-span M/R reverse scissor
-  theta_file: model/theta_geo_A_all.json
+  parameters_file: model/pattern_parameters_A_all.json
 
 fingermap: |
   QR WR EM RM TM  YM UM IM OR PR

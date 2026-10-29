@@ -71,7 +71,7 @@ PARAMS = {
     "gamma13_alt": (0.80, 0.0, 1.5, "tri"),     # same: keys 1&3 on one hand with the other hand in between
 }
 PNAMES = list(PARAMS)
-THETA0 = np.array([PARAMS[n][0] for n in PNAMES])
+DEFAULT_PARAMETERS = np.array([PARAMS[n][0] for n in PNAMES])
 LO = np.array([PARAMS[n][1] for n in PNAMES])
 HI = np.array([PARAMS[n][2] for n in PNAMES])
 
@@ -144,17 +144,17 @@ def _build_pair_features():
 
 
 PF = _build_pair_features()
-SFB_T = np.vectorize(sfb_cost)(PF["a"], PF["b"])        # theta-independent
+SFB_T = np.vectorize(sfb_cost)(PF["a"], PF["b"])        # parameter-independent
 _PAIR_ID = {(0, 1): "PR", (1, 2): "RM", (2, 3): "MI", (0, 2): "PM", (1, 3): "RI", (0, 3): "PI"}
 
 
 @dataclass
 class Model:
-    theta: np.ndarray = field(default_factory=lambda: THETA0.copy())
+    parameters: np.ndarray = field(default_factory=lambda: DEFAULT_PARAMETERS.copy())
     disallow_full_MR: bool = True    # user's new rule; False = priced, "barely possible"
 
     def p(self, name):
-        return self.theta[PNAMES.index(name)]
+        return self.parameters[PNAMES.index(name)]
 
     # ------------------------------------------------------------- single key
     def key_cost(self):

@@ -13,10 +13,10 @@ def work_dir():
     return WORK_DIR
 
 
-def input_theta(name):
+def input_parameters(name):
     work = WORK_DIR / name
     return work if work.exists() else MODEL_DIR / name
 
 
-def output_theta(name):
+def output_parameters(name):
     return work_dir() / name
