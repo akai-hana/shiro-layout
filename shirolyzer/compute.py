@@ -16,6 +16,7 @@ from utils import config as CFG
 from utils import paths
 from utils import references as R
 from utils import scorer as SG
+from utils import xkb as XKB
 from utils.corpus import load_many
 from utils.search import LETTERS, Evaluator, dead_of, slots_of, quench, perturb
 DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
@@ -84,6 +85,10 @@ def main():
     ap.add_argument("--seed", type=int,
                     help="RNG seed; omitted means generate and record one")
     ap.add_argument("--time-budget", type=parse_budget)
+    ap.add_argument("--xkb", action="store_true",
+                    help="write the selected layout to xkb/<name>")
+    ap.add_argument("--xkb-name", default=None,
+                    help="XKB symbols file name (default: a generated safe name)")
     ap.add_argument("--out", default=None)
     ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
@@ -239,6 +244,13 @@ def main():
     if added_name:
         print(f"appended reference {added_name!r} to {args.references}")
 
+    xkb_path = None
+    if args.xkb:
+        xkb_name = args.xkb_name or XKB.safe_name(final["layout"])
+        xkb_path = paths.XKB_DIR / xkb_name
+        XKB.write(xkb_path, final["layout"], xkb_name)
+        print(f"wrote {xkb_path}")
+
     results.sort(key=lambda r: (r["primary"], r["final"]))
     out_lines = [
         f"seed={args.seed} generated={str(seed_generated).lower()}",
@@ -277,6 +289,7 @@ def main():
         "best_secondary": best_secondary,
         "selected": final,
         "reference_added": added_name,
+        "xkb": str(xkb_path) if xkb_path is not None else None,
     }, indent=1) + "\n")
     print(f"\nbest_primary: {best_primary['layout']} ({best_primary['primary']:.6f})")
     print(f"selected: {final['layout']}")
