@@ -32,12 +32,36 @@ LEGACY_CONFLICT_GATES = set()      # no remaining conflict after the 2026-10-27 
 # residual ones kept as an explicit context table ('explicit') because they depend on
 # keys the finger cannot physically interact with (J middle vs T / I / G)
 EXPLICIT = {("J", "M")}
-EXPLICIT_MODE = "all"     # which gate table is enforced as +XPEN context penalties: all | no_WX | none
+EXPLICIT_MODE = "all"
+SEQUENCE_ALTS = []     # which gate table is enforced as +XPEN context penalties: all | no_WX | none
 
 
 def set_explicit(mode):
     global EXPLICIT_MODE
     EXPLICIT_MODE = mode
+
+
+def configure(entries):
+    """Replace the gate tables and explicit sequence overrides from config."""
+    global GATES_ALL, EXPLICIT, SEQUENCE_ALTS
+    GATES_ALL = {}
+    EXPLICIT = set()
+    SEQUENCE_ALTS = []
+    for entry in entries:
+        if "key" in entry:
+            token = entry["finger"]
+            key, finger = entry["key"], token[1]
+            context = entry.get("context") or None
+            GATES_ALL[(key, finger)] = (entry["mode"], set(context) if context else None)
+            if entry.get("explicit"):
+                EXPLICIT.add((key, finger))
+        else:
+            seq = tuple(entry["sequence"])
+            fingers = tuple(FI[f[1]] for f in entry["fingers"])
+            SEQUENCE_ALTS.append((seq, fingers))
+    _PM.clear()
+
+
 XPEN = 12.0                      # context-gate penalty
 
 
@@ -149,5 +173,11 @@ def penalty_mask(keys, gates_name="explicit"):
         hit = np.zeros((NF,) * n, bool)
         for pos, f in forb:
             hit |= idx[pos] == FI[f]
-        _PM[key] = np.where(hit, XPEN, 0.0)
+        keys_tuple = tuple(keys)
+        for seq, fingers in SEQUENCE_ALTS:
+            if keys_tuple == seq:
+                for pos, finger in enumerate(fingers):
+                    hit |= idx[pos] != finger
+        from . import conditions as CD
+        _PM[key] = np.where(hit, XPEN, 0.0) + CD.penalty_mask(keys)
     return _PM[key]
