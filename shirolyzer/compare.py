@@ -39,7 +39,8 @@ def score(layout, corpus, tables=None):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--primary-corpus", default=str(paths.CORPUS_ROOT / "shai" / "parsed"))
+    ap.add_argument("--primary-corpus", default=str(paths.CORPUS_ROOT / "shai" / "parsed"),
+                    help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip")
     ap.add_argument("--refs", default=None,
                     help="TOML reference file (default: built-in list until K10)")
     args = ap.parse_args()

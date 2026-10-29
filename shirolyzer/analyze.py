@@ -15,6 +15,7 @@ import numpy as np
 from utils import comfort as cg
 from utils import paths
 from utils import scorer as SG
+from utils.corpus import load_many
 from utils.ansi import KEYS, KI, H, CX, FI, ROWI
 from utils.fingers import DEFAULT_FINGER
 
@@ -204,8 +205,10 @@ def main():
     ap.add_argument("--layout", default=DEFAULT_LAYOUT)
     ap.add_argument("--name", default=None,
                     help="layout name used to derive default output paths")
-    ap.add_argument("--primary-corpus", action="append", default=[])
-    ap.add_argument("--secondary-corpus", action="append", default=[])
+    ap.add_argument("--primary-corpus", action="append", default=[],
+                    help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+    ap.add_argument("--secondary-corpus", action="append", default=[],
+                    help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
     ap.add_argument("--out", default=None)
     ap.add_argument("--out-json", default=None)
     args = ap.parse_args()
@@ -214,15 +217,19 @@ def main():
     out_path = Path(args.out) if args.out else paths.result_path("analysis", args.name)
     out_json = (Path(args.out_json) if args.out_json
                 else paths.result_path("analysis", args.name, suffix=".json"))
-    primary = (args.primary_corpus[0] if args.primary_corpus
-               else str(paths.CORPUS_ROOT / "shai" / "parsed"))
-    corpus = SG.Corpus.load(primary)
+    primary_paths = (args.primary_corpus
+                     or [str(paths.CORPUS_ROOT / "shai" / "parsed")])
+    secondary_paths = args.secondary_corpus
+    corpus = load_many(primary_paths)
     tables = SG.get_tables()
     cats, worst, scissors = category_report(args.layout, corpus, tables)
     pats = trigram_patterns(args.layout, corpus, tables)
     use = finger_usage(args.layout, corpus, tables)
     guide = fingering_guide(args.layout, corpus, tables)
     primary_score = score_layout(args.layout, corpus, tables)
+    secondary_score = None
+    if secondary_paths:
+        secondary_score = score_layout(args.layout, load_many(secondary_paths), tables)
 
     lines = []
     def out(s=""):
@@ -233,7 +240,9 @@ def main():
     for r in range(3):
         row = args.layout[r * 10:(r + 1) * 10]
         out(f"  {row[:5]} | {row[5:]}")
-    out(f"primary={primary_score:.9f}  corpus={primary}")
+    out(f"primary={primary_score:.9f}  corpus={','.join(primary_paths)}")
+    if secondary_score is not None:
+        out(f"secondary={secondary_score:.9f}  corpus={','.join(secondary_paths)}")
     out()
     out("== bigram categories (% of letter bigrams, chosen fingering) ==")
     for k in ("sfb", "scissor_IM_hsb", "scissor_IM_fsb", "scissor_MR", "scissor_RP",
@@ -271,7 +280,9 @@ def main():
     out_json.write_text(json.dumps({
         "layout": args.layout,
         "primary_score": primary_score,
-        "primary_corpus": primary,
+        "primary_corpora": primary_paths,
+        "secondary_score": secondary_score,
+        "secondary_corpora": secondary_paths,
         "categories": cats,
         "worst_bigrams": [[c, bg, f1, f2, n] for c, bg, f1, f2, n in worst],
         "scissors": [[w, c, bg, f1, f2, n, p] for w, c, bg, f1, f2, n, p in scissors],

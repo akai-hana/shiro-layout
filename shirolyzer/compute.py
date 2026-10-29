@@ -14,16 +14,15 @@ from pathlib import Path
 from utils import comfort as cg
 from utils import paths
 from utils import scorer as SG
+from utils.corpus import load_many
 from utils.search import LETTERS, Evaluator, dead_of, slots_of, quench, perturb
 DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
-DEFAULT_SEEDS = (
-    ("shai_best", DEFAULT_LAYOUT),
-    ("cfgE", ";aiojvlnrwhfpeygtcmsbxquzkd,./"),
-    ("chat_best", ";thskxpoiyrdgnwfeucalzmbvqj,./"),
+REFERENCE_SEEDS = (
+    ("shiro", DEFAULT_LAYOUT),
     ("qwerty", "qwertyuiopasdfghjkl;zxcvbnm,./"),
     ("colemak", "qwfpgjluy;arstdhneiozxcvbkm,./"),
     ("colemak_dh", "qwfpbjluy;arstgmneiozxcdvkh,./"),
-    ("canary", "wlypkzxou;crstbfneiajvdgqmh/,. "),
+    ("canary", "wlypkzxou;crstbfneiajvdgqmh/,."),
     ("sturdy", "vmlcpxfoujsrtdy.naeizkqgwbh';,"),
     ("gallium", "bldcvjfou,nrtsgyhaeixqmwzkp';."),
     ("semimak", "flhvzqwuoysrntkcdeaix'bmjpg/,/"),
@@ -54,12 +53,15 @@ class BudgetExceeded(Exception):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("--layout", action="append", default=[],
+    ap.add_argument("--seed-layout", "--layout", dest="seed_layout",
+                    action="append", default=[],
                     help="additional starting layout (repeatable)")
     ap.add_argument("--name", default=None,
                     help="layout name used to derive default output paths")
-    ap.add_argument("--primary-corpus", action="append", default=[])
-    ap.add_argument("--secondary-corpus", action="append", default=[])
+    ap.add_argument("--primary-corpus", action="append", default=[],
+                    help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+    ap.add_argument("--secondary-corpus", action="append", default=[],
+                    help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
     ap.add_argument("--primary-sacrifice", type=float, default=0.00023,
                     help="percent of the best primary score allowed for secondary tuning")
     ap.add_argument("--runs", type=int, default=24)
@@ -82,28 +84,21 @@ def main():
     primary_paths = args.primary_corpus or [str(paths.CORPUS_ROOT / "shai" / "parsed")]
     secondary_paths = (args.secondary_corpus
                        or [str(paths.CORPUS_ROOT / "spanish" / "parsed")])
-    primary_corpora = [SG.Corpus.load(p) for p in primary_paths]
-    primary_corpus = primary_corpora[0]
-    if len(primary_corpora) > 1:
-        from collections import Counter
-        L, B, T = Counter(), Counter(), Counter()
-        for c in primary_corpora:
-            L.update(c.L); B.update(c.B); T.update(c.T)
-        primary_corpus = SG.Corpus(L, B, T)
-    secondary_corpus = SG.Corpus.load(secondary_paths[0]) if secondary_paths else None
+    primary_corpus = load_many(primary_paths)
+    secondary_corpus = load_many(secondary_paths) if secondary_paths else None
     tables = SG.get_tables()
-    base_layout = args.layout[0] if args.layout else DEFAULT_LAYOUT
+    base_layout = args.seed_layout[0] if args.seed_layout else DEFAULT_LAYOUT
     dead = dead_of(base_layout)
     primary_ev = Evaluator(primary_corpus, dead, tables)
     secondary_ev = Evaluator(secondary_corpus, dead, tables) if secondary_corpus else None
 
     seeds = []
     seen = set()
-    for name, lay in DEFAULT_SEEDS:
+    for name, lay in REFERENCE_SEEDS:
         if len(lay) == 30 and lay not in seen:
             seen.add(lay)
             seeds.append((name, list(slots_of(primary_ev, lay))))
-    for i, lay in enumerate(args.layout):
+    for i, lay in enumerate(args.seed_layout):
         if len(lay) == 30 and lay not in seen:
             seen.add(lay)
             seeds.append((f"user{i}", list(slots_of(primary_ev, lay))))

@@ -6,6 +6,7 @@ import argparse, json
 from pathlib import Path
 import numpy as np
 from utils import comfort as cg, gates as GT, fitlib as FL, paths, rulings as RL
+from utils.corpus import load_many
 from utils import scorer as SG
 from utils.ansi import KEYS, KI, FINGERS, FI
 from utils.fingers import NF, DEFAULT_FINGER
@@ -13,10 +14,18 @@ from utils.fingers import NF, DEFAULT_FINGER
 ap = argparse.ArgumentParser(description=__doc__)
 ap.add_argument("config", nargs="?", default=None)
 ap.add_argument("--config", dest="cfg", default="A:all")
+ap.add_argument("--primary-corpus", action="append", default=[],
+                help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+ap.add_argument("--secondary-corpus", action="append", default=[],
+                help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+ap.add_argument("--rulings", default=None,
+                help="Python file defining a RULINGS list (default: utils.rulings)")
 ap.add_argument("--out", default=None)
 ap.add_argument("--out-json", default=None)
 args = ap.parse_args()
 cfgname = args.config or args.cfg
+if args.rulings:
+    RL.RULINGS = RL.load_rulings(args.rulings)
 model, gname = SG.load_model(cfgname)
 tabs = model.tables()
 DEFAULT = DEFAULT_FINGER
@@ -124,6 +133,15 @@ for _a in KEYS:
 chk("A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)", not _asym, f"{len(_asym)} asymmetric, e.g. {_asym[:3]}" if _asym else "symmetric")
 out(f"probes+checks: {sum(checks)}/{len(checks)}")
 
+corpus_info = {}
+for _label, _paths in (("primary", args.primary_corpus), ("secondary", args.secondary_corpus)):
+    for _path in _paths:
+        _c = load_many([_path])
+        corpus_info[_path] = {"role": _label, "letters": _c.total_letters,
+                              "bigrams": _c.total_bigrams, "trigrams": _c.total_trigrams}
+        out(f"corpus {_label} {_path}: letters={_c.total_letters:,} "
+            f"bigrams={_c.total_bigrams:,} trigrams={_c.total_trigrams:,}")
+
 out(); out("=== every ruling (legacy + round 8) ===")
 cfg = FL.Cfg(True, gname)
 GT.set_explicit(gname)
@@ -144,5 +162,6 @@ out_json.write_text(json.dumps({
     "config": cfgname,
     "probe_checks": {"passed": sum(checks), "total": len(checks)},
     "rulings": {"passed": sum(d[1] for d in det), "total": len(det)},
+    "corpora": corpus_info,
     "anchors": [d[3] for d in anch],
 }, indent=1) + "\n")
