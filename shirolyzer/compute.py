@@ -84,7 +84,9 @@ def main():
     ap.add_argument("--ils", type=int, default=6)
     ap.add_argument("--seed", type=int,
                     help="RNG seed; omitted means generate and record one")
-    ap.add_argument("--time-budget", type=parse_budget)
+    ap.add_argument("--time-budget", type=parse_budget, metavar="DURATION",
+                    help="wall-clock budget such as 90, 30s, 10m, or 1h "
+                         "(default: no limit; stops between operations)")
     ap.add_argument("--xkb", action="store_true",
                     help="write the selected layout to xkb/<name>")
     ap.add_argument("--xkb-name", default=None,
@@ -100,6 +102,10 @@ def main():
                          else cfg.primary_sacrifice)
 
     started = time.time()
+    completed_runs = 0
+    completed_iterations = 0
+    completed_ils_rounds = 0
+    completed_secondary_rounds = 0
     seed_generated = args.seed is None
     if seed_generated:
         args.seed = random.SystemRandom().randint(0, 2**31 - 1)
@@ -144,7 +150,7 @@ def main():
     best_primary = None
     print(f"{'start':18s} {'final':>9s} {'primary':>9s}  layout", flush=True)
     for name, start in seeds:
-        if args.time_budget and time.time() - started >= args.time_budget:
+        if args.time_budget and results and time.time() - started >= args.time_budget:
             print("time budget reached; saving best so far", flush=True)
             break
         perm = start[:]
@@ -155,6 +161,8 @@ def main():
             perm, cs = quench(primary_ev, perm, cs, rng)
         except Exception:
             raise
+        completed_runs += 1
+        completed_iterations += args.iters
         lay = primary_ev.layout_str(perm)
         pri = primary_ev.score(perm)
         results.append({"start": name, "final": cs, "primary": pri,
@@ -185,6 +193,8 @@ def main():
             cand, cs = quench(primary_ev, cand, primary_ev.score(cand), rng)
             cand, cs = primary_ev.anneal(cand, iters=max(1, args.iters // 2), seed=51 + it)
             cand, cs = quench(primary_ev, cand, cs, rng)
+            completed_ils_rounds += 1
+            completed_iterations += max(1, args.iters // 2)
             if cs < best_s - 1e-12:
                 best, best_s = cand[:], cs
         ilay = primary_ev.layout_str(best)
@@ -231,6 +241,7 @@ def main():
             row = {"start": f"secondary:{r['start']}", "final": sec,
                    "primary": pri, "secondary": sec, "layout": lay}
             results.append(row)
+            completed_secondary_rounds += 1
             if best_secondary is None or sec < best_secondary["secondary"]:
                 best_secondary = row
             print(f"  {r['start']:16s} primary={pri:.6f} secondary={sec:.6f}  {lay}", flush=True)
@@ -258,6 +269,9 @@ def main():
         f"references={args.references}",
         f"reference_added={added_name or ''}",
         f"primary_sacrifice_pct={primary_sacrifice:g}",
+        (f"completed_runs={completed_runs} completed_iterations={completed_iterations} "
+         f"completed_ils_rounds={completed_ils_rounds} "
+         f"completed_secondary_rounds={completed_secondary_rounds}"),
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
         (f"best_secondary: primary={best_secondary['primary']:.9f} "
          f"secondary={best_secondary['secondary']:.9f} {best_secondary['layout']}"
@@ -283,6 +297,11 @@ def main():
         "references": args.references,
         "primary_sacrifice_pct": primary_sacrifice,
         "elapsed_seconds": time.time() - started,
+        "time_budget_seconds": args.time_budget,
+        "completed_runs": completed_runs,
+        "completed_iterations": completed_iterations,
+        "completed_ils_rounds": completed_ils_rounds,
+        "completed_secondary_rounds": completed_secondary_rounds,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
         "results": results,
         "best_primary": best_primary,
