@@ -12,7 +12,7 @@ from pathlib import Path
 
 import numpy as np
 
-import comfort_geo as cg
+from utils import comfort as cg
 import scorer_geo as SG
 
 LETTERS = "abcdefghijklmnopqrstuvwxyz"

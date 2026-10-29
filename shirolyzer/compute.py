@@ -14,7 +14,7 @@ from pathlib import Path
 
 import numpy as np
 
-import comfort_geo as cg
+from utils import comfort as cg
 import scorer_geo as SG
 
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
@@ -31,7 +31,7 @@ DEFAULT_SEEDS = (
     ("qwerty", "qwertyuiopasdfghjkl;zxcvbnm,./"),
     ("colemak", "qwfpgjluy;arstdhneiozxcvbkm,./"),
     ("colemak_dh", "qwfpbjluy;arstgmneiozxcdvkh,./"),
-    ("canary", "wlypkzxou;crstbfneiajvdgqmh/,./"),
+    ("canary", "wlypkzxou;crstbfneiajvdgqmh/,."),
     ("sturdy", "vmlcpxfoujsrtdy.naeizkqgwbh';,"),
     ("gallium", "bldcvjfou,nrtsgyhaeixqmwzkp';."),
     ("semimak", "flhvzqwuoysrntkcdeai x'bmjpg/,/".replace(" ", "")),
@@ -52,8 +52,13 @@ def dead_of(layout):
 
 
 def slots_of(evaluator, layout):
-    pos = {k: i for i, k in enumerate(evaluator.slots)}
-    return tuple(pos[cg.KEYS[layout.index(ch)]] for ch in LETTERS)
+    letters = [ch for ch in layout if ch in LETTERS]
+    if len(letters) != 26 or len(set(letters)) != 26:
+        raise SystemExit(f"layout {layout!r} does not contain 26 distinct letters")
+    perm = [None] * 26
+    for slot_idx, ch in enumerate(letters):
+        perm[ord(ch) - 97] = slot_idx
+    return tuple(perm)
 
 
 class Evaluator:

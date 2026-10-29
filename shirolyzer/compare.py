@@ -2,14 +2,14 @@
 """Score reference layouts against a corpus with the calibrated model."""
 import argparse
 
-import comfort_geo as cg
+from utils import comfort as cg
 import scorer_geo as SG
 
 REFERENCES = {
     "qwerty": "qwertyuiopasdfghjkl;zxcvbnm,./",
     "colemak": "qwfpgjluy;arstdhneiozxcvbkm,./",
     "colemak-dh": "qwfpbjluy;arstgmneiozxcdvkh,./",
-    "canary": "wlypkzxou;crstbfneiajvdgqmh/,./",
+    "canary": "wlypkzxou;crstbfneiajvdgqmh/,.",
     "sturdy": "vmlcpxfoujsrtdy.naeizkqgwbh';,",
     "gallium": "bldcvjfou,nrtsgyhaeixqmwzkp';.",
     "semimak": "flhvzqwuoysrntkcdeai x'bmjpg/,/".replace(" ", ""),

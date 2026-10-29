@@ -1,8 +1,13 @@
 import sys, os, json, time
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 from scipy.optimize import minimize
-import comfort_geo as cg, fitlib as FL, fit2, rulings as RL
+from utils import comfort as cg, fitlib as FL, rulings as RL
+try:
+    from . import fit2
+except ImportError:
+    import fit2
 dis = sys.argv[1] == "A"; gates = sys.argv[2]; tag = sys.argv[3]
 cfg = FL.Cfg(dis, gates); lo, hi = cg.LO, cg.HI
 th_full = fit2.load_theta(f"theta3_{tag}.json")

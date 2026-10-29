@@ -14,26 +14,31 @@ scorer2._alt_context_penalty.  Everything else comes from comfort_geo.
 
 Config: SHIRO_GEO_CFG = "A:all" (only configuration: round-8 gates, W/X contexts as corrected 2026-10-27)
 """
-import os, sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import json
+import os
+import sys
 import numpy as np
-import comfort_geo as cg
-import gates as GT
-import fitlib as FL
-import fit2
+from utils import comfort as cg
+from utils import gates as GT
 
 N, SPACE_ID, NK = 31, 30, 30
 SPACE = "@space"
 FID = {"P": 0, "R": 1, "M": 2, "I": 3, "T": 4}
 SPACE_EFFORT, PRESS = 0.6, 1.0
 HERE = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = os.path.join(HERE, "config", "model")
 CONFIGS = {"A:all": ("A", "all", "theta_geo_A_all.json")}
+
+
+def load_theta(path):
+    data = json.load(open(path))
+    return np.array([data.get(name, cg.THETA0[i]) for i, name in enumerate(cg.PNAMES)], float)
 
 
 def load_model(cfg_name=None):
     cfg_name = cfg_name or os.environ.get("SHIRO_GEO_CFG", "A:all")
     var, gates, fn = CONFIGS[cfg_name]
-    th = fit2.load_theta(os.path.join(HERE, fn))
+    th = load_theta(os.path.join(MODEL_DIR, fn))
     GT.set_explicit(gates)
     return cg.Model(theta=th, disallow_full_MR=(var == "A")), gates
 
@@ -111,12 +116,31 @@ def get_tables():
     return _T
 
 
-try:                                         # corpus bookkeeping is model-free; reuse the project's
-    from scorer import Corpus                # noqa
-except Exception:
-    try:
-        sys.path.insert(0, os.path.join(HERE, "legacy"))
-        sys.path.insert(0, os.path.join(HERE, "legacy", "round8"))
-        from scorer import Corpus            # noqa
-    except Exception:
-        Corpus = None
+class Corpus:
+    """N-gram counts over the keystroke stream (a-z + space)."""
+
+    def __init__(self, letter_freq, bigram_freq, trigram_freq):
+        self.L, self.B, self.T = letter_freq, bigram_freq, trigram_freq
+        self.chars = [chr(c) for c in range(ord("a"), ord("z") + 1)] + [SPACE]
+        self.cid = {c: i for i, c in enumerate(self.chars)}
+        self.total_letters = sum(self.L.values())
+        self.total_bigrams = sum(self.B.values())
+        self.total_trigrams = sum(self.T.values())
+        bi, bc, tri, tc = [], [], [], []
+        for bg, n in self.B.items():
+            if len(bg) == 2 and bg[0] in self.cid and bg[1] in self.cid:
+                bi.append((self.cid[bg[0]], self.cid[bg[1]])); bc.append(n)
+        for tg, n in self.T.items():
+            if len(tg) == 3 and all(c in self.cid for c in tg):
+                tri.append(tuple(self.cid[c] for c in tg)); tc.append(n)
+        self.bi_ids = np.array(bi, dtype=np.int32)
+        self.bi_counts = np.array(bc, dtype=np.float64)
+        self.tri_ids = np.array(tri, dtype=np.int32)
+        self.tri_counts = np.array(tc, dtype=np.float64)
+
+    @classmethod
+    def load(cls, path):
+        prefix = os.path.join(path, "") if os.path.isdir(path) else path
+        return cls(json.load(open(prefix + "letter_freq.json")),
+                   json.load(open(prefix + "bigram_freq.json")),
+                   json.load(open(prefix + "trigram_freq.json")))

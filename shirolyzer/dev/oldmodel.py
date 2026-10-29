@@ -3,7 +3,8 @@ Reads the project read-only; never writes into it."""
 import sys, os
 os.environ["PYTHONDONTWRITEBYTECODE"] = "1"
 HERE = os.path.dirname(os.path.abspath(__file__))
-PROJ = os.environ.get("SHIRO_ANALYSIS_DIR") or os.path.join(HERE, "legacy", "round8")
+ROOT = os.path.dirname(HERE)
+PROJ = os.environ.get("SHIRO_ANALYSIS_DIR") or os.path.join(ROOT, "legacy", "round8")
 sys.path.append(os.path.dirname(PROJ))
 sys.path.append(PROJ)
 import ansi, comfort

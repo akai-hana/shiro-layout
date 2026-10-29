@@ -5,15 +5,16 @@ usage: python3 shirolyzer/audit.py [--config A:all] [--out PATH]"""
 import argparse, sys, os, itertools
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
-import comfort_geo as cg, gates as GT, fitlib as FL, rulings as RL
+from utils import comfort as cg, gates as GT, fitlib as FL, rulings as RL
 import scorer_geo as SG
-from comfort_geo import KI, KEYS, FINGERS, NF
+from utils.fingers import KI, KEYS, FINGERS, NF
 
 ap = argparse.ArgumentParser(description=__doc__)
-ap.add_argument("config", nargs="?", default="A:all")
+ap.add_argument("config", nargs="?", default=None)
+ap.add_argument("--config", dest="cfg", default="A:all")
 ap.add_argument("--out", default=None)
 args = ap.parse_args()
-cfgname = args.config
+cfgname = args.config or args.cfg
 model, gname = SG.load_model(cfgname)
 tabs = model.tables()
 DEFAULT = cg.DEFAULT_FINGER

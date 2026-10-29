@@ -11,8 +11,8 @@ Semantics (scorer2._alt_context_penalty): a non-default finger on a key is
    mode 'only'   : NO other key of the sequence is in the set
 """
 import numpy as np
-import comfort_geo as cg
-from comfort_geo import KI, KEYS, NK, NF, FINGERS, FI
+from . import comfort as cg
+from .fingers import KI, KEYS, NK, NF, FINGERS, FI
 
 GATES_ALL = {
     ("X", "M"): ("only", {"C", "A"}),     # USER 2026-10-27: X->A = middle->ring is wanted

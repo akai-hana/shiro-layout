@@ -1,5 +1,12 @@
-import sys; sys.path.insert(0,'.')
-import numpy as np, fitlib as FL, comfort_geo as cg, fit2, gates as GT
+import sys
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+import numpy as np
+from utils import fitlib as FL, comfort as cg, gates as GT
+try:
+    from . import fit2
+except ImportError:
+    import fit2
 from collections import Counter
 tag, dis, gname = sys.argv[1], sys.argv[2]=="A", sys.argv[3]
 th = fit2.load_theta(f"theta3_{tag}.json"); cfg = FL.Cfg(dis, gname)

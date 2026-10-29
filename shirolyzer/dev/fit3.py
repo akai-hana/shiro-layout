@@ -1,9 +1,14 @@
 """Fit pattern parameters to all active rulings (gates as explicit +12 context table)."""
 import sys, os, json, time
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import numpy as np
 from scipy.optimize import minimize, differential_evolution
-import comfort_geo as cg, fitlib as FL, fit2
+from utils import comfort as cg, fitlib as FL
+try:
+    from . import fit2
+except ImportError:
+    import fit2
 
 REG = 0.02
 disallow = sys.argv[1] == "A"; gates = sys.argv[2]; tag = sys.argv[3]
