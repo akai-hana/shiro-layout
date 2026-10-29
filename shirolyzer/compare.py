@@ -3,19 +3,9 @@
 import argparse
 
 from utils import paths
+from utils import references as R
 from utils import scorer as SG
 from utils.ansi import KEYS, KI
-
-REFERENCES = {
-    "qwerty": "qwertyuiopasdfghjkl;zxcvbnm,./",
-    "colemak": "qwfpgjluy;arstdhneiozxcvbkm,./",
-    "colemak-dh": "qwfpbjluy;arstgmneiozxcdvkh,./",
-    "canary": "wlypkzxou;crstbfneiajvdgqmh/,.",
-    "sturdy": "vmlcpxfoujsrtdy.naeizkqgwbh';,",
-    "gallium": "bldcvjfou,nrtsgyhaeixqmwzkp';.",
-    "semimak": "flhvzqwuoysrntkcdeai x'bmjpg/,/".replace(" ", ""),
-    "shiro": ";tspbxgoiwndhrlyecuafkvmzjq,./",
-}
 
 
 def score(layout, corpus, tables=None):
@@ -41,16 +31,12 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--primary-corpus", default=str(paths.CORPUS_ROOT / "shai" / "parsed"),
                     help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip")
-    ap.add_argument("--refs", default=None,
-                    help="TOML reference file (default: built-in list until K10)")
+    ap.add_argument("--refs", default=str(paths.REFERENCES_FILE),
+                    help="TOML reference file (default: config/references.toml)")
     args = ap.parse_args()
     corpus = SG.Corpus.load(args.primary_corpus)
     tables = SG.get_tables()
-    refs = REFERENCES
-    if args.refs:
-        import tomllib
-        data = tomllib.load(open(args.refs, "rb"))
-        refs = {entry["name"]: entry["layout"] for entry in data.get("reference", [])}
+    refs = R.load_reference_map(args.refs)
     rows = sorted((score(lay, corpus, tables), name, lay) for name, lay in refs.items())
     print(f"{'layout':14s} {'score':>12s}  keys")
     for cost, name, lay in rows:

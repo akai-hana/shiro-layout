@@ -1,0 +1,34 @@
+# Reference layouts used by compare.py and compute.py.
+# Add new layouts as [reference] tables; compute.py appends generated results.
+
+[[reference]]
+name = "qwerty"
+layout = "qwertyuiopasdfghjkl;zxcvbnm,./"
+
+[[reference]]
+name = "colemak"
+layout = "qwfpgjluy;arstdhneiozxcvbkm,./"
+
+[[reference]]
+name = "colemak-dh"
+layout = "qwfpbjluy;arstgmneiozxcdvkh,./"
+
+[[reference]]
+name = "canary"
+layout = "wlypkzxou;crstbfneiajvdgqmh/,."
+
+[[reference]]
+name = "sturdy"
+layout = "vmlcpxfoujsrtdy.naeizkqgwbh';,"
+
+[[reference]]
+name = "gallium"
+layout = "bldcvjfou,nrtsgyhaeixqmwzkp';."
+
+[[reference]]
+name = "semimak"
+layout = "flhvzqwuoysrntkcdeaix'bmjpg/,/"
+
+[[reference]]
+name = "shiro"
+layout = ";tspbxgoiwndhrlyecuafkvmzjq,./"

@@ -13,20 +13,11 @@ from pathlib import Path
 
 from utils import comfort as cg
 from utils import paths
+from utils import references as R
 from utils import scorer as SG
 from utils.corpus import load_many
 from utils.search import LETTERS, Evaluator, dead_of, slots_of, quench, perturb
 DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
-REFERENCE_SEEDS = (
-    ("shiro", DEFAULT_LAYOUT),
-    ("qwerty", "qwertyuiopasdfghjkl;zxcvbnm,./"),
-    ("colemak", "qwfpgjluy;arstdhneiozxcvbkm,./"),
-    ("colemak_dh", "qwfpbjluy;arstgmneiozxcdvkh,./"),
-    ("canary", "wlypkzxou;crstbfneiajvdgqmh/,."),
-    ("sturdy", "vmlcpxfoujsrtdy.naeizkqgwbh';,"),
-    ("gallium", "bldcvjfou,nrtsgyhaeixqmwzkp';."),
-    ("semimak", "flhvzqwuoysrntkcdeaix'bmjpg/,/"),
-)
 
 
 def parse_budget(value):
@@ -79,6 +70,8 @@ def main():
                     help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
     ap.add_argument("--secondary-corpus", action="append", default=[],
                     help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+    ap.add_argument("--references", default=str(paths.REFERENCES_FILE),
+                    help="TOML reference layouts (default: config/references.toml)")
     ap.add_argument("--primary-sacrifice", type=float, default=0.00023,
                     help="percent of the best primary score allowed for secondary tuning")
     ap.add_argument("--runs", type=int, default=24)
@@ -113,10 +106,11 @@ def main():
 
     seeds = []
     seen = set()
-    for name, lay in REFERENCE_SEEDS:
-        if len(lay) == 30 and lay not in seen:
+    for entry in R.load_references(args.references):
+        lay = entry["layout"]
+        if lay not in seen:
             seen.add(lay)
-            seeds.append((name, list(slots_of(primary_ev, lay))))
+            seeds.append((entry["name"], list(slots_of(primary_ev, lay))))
     for i, lay in enumerate(args.seed_layout):
         if len(lay) == 30 and lay not in seen:
             seen.add(lay)
@@ -228,6 +222,7 @@ def main():
     out_lines = [
         f"seed={args.seed} generated={str(seed_generated).lower()}",
         f"primary={','.join(primary_paths)} secondary={','.join(secondary_paths)}",
+        f"references={args.references}",
         f"primary_sacrifice_pct={args.primary_sacrifice:g}",
         f"best_primary: primary={best_primary['primary']:.9f} {best_primary['layout']}",
         (f"best_secondary: primary={best_secondary['primary']:.9f} "
@@ -251,6 +246,7 @@ def main():
         "seed_generated": seed_generated,
         "primary_corpora": primary_paths,
         "secondary_corpora": secondary_paths,
+        "references": args.references,
         "primary_sacrifice_pct": args.primary_sacrifice,
         "elapsed_seconds": time.time() - started,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
