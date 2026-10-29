@@ -93,6 +93,14 @@ W_REDIRECT, W_REDIRECT_WEAK, W_CONTINUE = 0.30, 1.80, -0.10
 W_SFS_1U, W_SFS_FAR = 2.50, 3.50
 ROLL_D0, ROLL_D1 = 1.25, 1.0       # roll reward fades between dist 1.25..2.25
 
+# Objective scales.  They are 1.0 for the shipped priority list; a config that
+# reorders priorities changes them without touching the calibrated model.
+W_SFB_SCALE = 1.0
+W_SCISSOR_SCALE = 1.0
+W_REDIRECT_SCALE = 1.0
+W_ROLL_SCALE = 1.0
+W_ALT_SCALE = 1.0
+
 
 def sfb_cost(a, b):
     """Same finger, different keys: 5 / 6 / 8 by row gap, +0.3 if reaching down."""
@@ -150,6 +158,8 @@ class Model:
 
     # ------------------------------------------------------------- single key
     def key_cost(self):
+        from . import config as CFG
+        CFG.ensure_applied()
         e = np.zeros((NK, NF))
         up_pen = np.array([self.p("e_up_P"), 0.0, 0.0, self.p("e_up_I")])
         for f in range(NF):
@@ -260,6 +270,10 @@ class Model:
         dua, dub = DU[P["a"], P["fa"]], DU[P["b"], P["fb"]]
         shared = np.where(np.sign(dua) * np.sign(dub) > 0, np.minimum(np.abs(dua), np.abs(dub)), 0.0)
         shift = -self.p("shift_disc") * self.p("e_lat") * np.maximum(shared - self.p("shift_thr"), 0.0)
+        vert = vert * W_SCISSOR_SCALE
+        cross = cross * W_SCISSOR_SCALE
+        roll = roll * W_ROLL_SCALE
+        leap = leap * W_ROLL_SCALE
         return {k: np.where(sh, v, z) for k, v in
                 dict(vert=vert, cross=cross, spread=spread, roll=roll, leap=leap, shift=shift + waive).items()}
 
@@ -269,11 +283,11 @@ class Model:
         tot = np.minimum(sum(parts.values()), PAIR_CAP)
         P = PF
         a, b, fa, fb = P["a"], P["b"], P["fa"], P["fb"]
-        out = np.where(P["same_hand"], tot, W_ALT)
+        out = np.where(P["same_hand"], tot, W_ALT * W_ALT_SCALE)
         # same finger / same key special classes
         sfb = SFB_T
         same_f = P["same_hand"] & (fa == fb) & (a != b)
-        out = np.where(same_f, sfb, out)
+        out = np.where(same_f, sfb * W_SFB_SCALE, out)
         rep = (a == b)
         out = np.where(rep, W_REPEAT + np.where(fa != fb, W_REPEAT_SWAP, 0.0), out)
         # unreachable finger/key combos
@@ -348,19 +362,20 @@ def tri_tensor(model, tabs, a=None):
         cont = (d1 * d2 > 0)
         add = np.where(same & turn, np.where(has_p, W_REDIRECT_WEAK, W_REDIRECT), 0.0)
         add = add + np.where(same & cont, W_CONTINUE, 0.0)
+        add = add * W_REDIRECT_SCALE
         # gamma13 strain between key1 and key3
         S13 = np.transpose(strain[ka], (1, 0, 2))           # (c, f1, f3)
         S13 = np.transpose(S13, (0, 1, 2))
         s13 = S13[None, :, :, None, :]                      # (1, c, f1, 1, f3)
         diff13 = (fs[None, None, :, None, None] != fs[None, None, None, None, :]) \
                  & (ka != np.arange(NK))[None, :, None, None, None]
-        add = add + np.where(same & diff13, g13 * np.where(np.isfinite(s13), s13, 0.0), 0.0)
+        add = add + np.where(same & diff13, g13 * W_SCISSOR_SCALE * np.where(np.isfinite(s13), s13, 0.0), 0.0)
         # same-finger-skip
         f1e = fs[None, None, :, None, None]; f3e = fs[None, None, None, None, :]; f2e = fs[None, None, None, :, None]
         sh13 = _SAMEH[ka][None, :, None, None, None]
         sfs_mask = (sh13 & (f1e == f3e) & (np.arange(NK) != ka)[None, :, None, None, None]
                     & ~(sh12[:, :, None, None, None] & (f2e == f1e)))
-        sfs_cost = np.where(_DXY[ka] <= 1.3, W_SFS_1U, W_SFS_FAR)[None, :, None, None, None]
+        sfs_cost = np.where(_DXY[ka] <= 1.3, W_SFS_1U, W_SFS_FAR)[None, :, None, None, None] * W_SFB_SCALE
         add = add + np.where(sfs_mask, sfs_cost, 0.0)
         cost = cost + add
         # repeat constraints
@@ -391,17 +406,17 @@ def tri_many(model, tabs, A, B, C):
     cost = (E[A][:, :, None, None] + E[B][:, None, :, None] + E[C][:, None, None, :]
             + P12[:, :, :, None] + P23[:, None, :, :])
     same = (_SAMEH[A, B] & _SAMEH[B, C])[:, None, None, None]
-    add = np.where(_TURN, np.where(_HASP, W_REDIRECT_WEAK, W_REDIRECT), 0.0) \
-        + np.where(_CONT, W_CONTINUE, 0.0)
+    add = (np.where(_TURN, np.where(_HASP, W_REDIRECT_WEAK, W_REDIRECT), 0.0) \
+        + np.where(_CONT, W_CONTINUE, 0.0)) * W_REDIRECT_SCALE
     s13 = strain[A[:, None, None], F[None, :, None], C[:, None, None], F[None, None, :]]  # N,f1,f3
     s13 = np.where(np.isfinite(s13), s13, 0.0)
-    g = model.p("gamma13") * s13[:, :, None, :] * _NE13[None] * (A != C)[:, None, None, None]
+    g = model.p("gamma13") * W_SCISSOR_SCALE * s13[:, :, None, :] * _NE13[None] * (A != C)[:, None, None, None]
     cost = cost + np.where(same, add[None] + g, 0.0)
     alt13 = (_SAMEH[A, C] & ~_SAMEH[A, B] & (A != C))[:, None, None, None]
-    g_alt = model.p("gamma13_alt") * s13[:, :, None, :] * _NE13[None]
+    g_alt = model.p("gamma13_alt") * W_SCISSOR_SCALE * s13[:, :, None, :] * _NE13[None]
     cost = cost + np.where(alt13, g_alt, 0.0)
     d = _DXY[A, C]
-    sfs = np.where(d <= 1.3, W_SFS_1U, W_SFS_FAR)[:, None, None, None]
+    sfs = np.where(d <= 1.3, W_SFS_1U, W_SFS_FAR)[:, None, None, None] * W_SFB_SCALE
     m13 = _SAME13F[None] & ~((_SAMEH[A, B])[:, None, None, None] & _F1EQF2[None])
     cost = cost + np.where(m13 & (_SAMEH[A, C] & (A != C))[:, None, None, None], sfs, 0.0)
     ne12 = (_FS[:, None, None] != _FS[None, :, None])[None]

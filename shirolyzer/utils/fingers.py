@@ -17,7 +17,7 @@ FI = {f: i for i, f in enumerate(FINGERS)}
 LENGTH_RANK = np.array([0.0, 1.0, 3.0, 2.0])
 NK, NF = len(KEYS), 4
 
-DEFAULT_FINGER = {"Q":"R","W":"R","E":"M","R":"M","T":"M","Y":"M","U":"M","I":"M","O":"R","P":"R",
-                  "A":"P","S":"R","D":"M","F":"I","G":"I","H":"I","J":"I","K":"M","L":"R",";":"P",
-                  "Z":"P","X":"R","C":"I","V":"I","B":"I","N":"I","M":"I",",":"R",".":"R","/":"P"}
+# Populated from the loaded YAML config by utils.config.apply().  Keeping the
+# same mapping object lets modules that imported it observe the configured map.
+DEFAULT_FINGER: dict[str, str] = {}
 NODEF_EXEMPT = set()
