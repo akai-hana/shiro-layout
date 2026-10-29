@@ -16,3 +16,4 @@ corpora/*/resources/*/
 # Temporary corpus working directories
 corpora/*/tmp/
 corpora/*/.tmp/
+shirolyzer/results/

@@ -1,18 +1,34 @@
 #!/usr/bin/env python3
-"""audit_geo.py -- the round-8 questionnaire audit (analysis/audit_shai.py hard probes and
-hard checks) run on the PATTERN model, plus the full ruling table.
-usage: python3 audit_geo.py [A:all|A:no_WX]"""
-import sys, os, itertools
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import numpy as np
-import comfort_geo as cg, gates as GT, fitlib as FL, rulings as RL
-import scorer_geo as SG
-from comfort_geo import KI, KEYS, FINGERS, NF
+"""Questionnaire and ruling audit for the pattern model.
 
-cfgname = sys.argv[1] if len(sys.argv) > 1 else "A:all"
+usage: python3 shirolyzer/audit.py [--config A:all] [--out PATH]"""
+import argparse, json
+from pathlib import Path
+import numpy as np
+from utils import comfort as cg, gates as GT, fitlib as FL, paths, rulings as RL
+from utils.corpus import load_many
+from utils import scorer as SG
+from utils.ansi import KEYS, KI, FINGERS, FI
+from utils.fingers import NF, DEFAULT_FINGER
+
+ap = argparse.ArgumentParser(description=__doc__)
+ap.add_argument("config", nargs="?", default=None)
+ap.add_argument("--config", dest="cfg", default="A:all")
+ap.add_argument("--primary-corpus", action="append", default=[],
+                help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+ap.add_argument("--secondary-corpus", action="append", default=[],
+                help="parsed corpus dir, corpus dir containing parsed/, or raw .txt/.xz/.zip (repeatable)")
+ap.add_argument("--rulings", default=None,
+                help="Python file defining a RULINGS list (default: utils.rulings)")
+ap.add_argument("--out", default=None)
+ap.add_argument("--out-json", default=None)
+args = ap.parse_args()
+cfgname = args.config or args.cfg
+if args.rulings:
+    RL.RULINGS = RL.load_rulings(args.rulings)
 model, gname = SG.load_model(cfgname)
 tabs = model.tables()
-DEFAULT = {"Q":"R","W":"R","E":"M","R":"M","T":"M","Y":"M","U":"M","I":"M","O":"R","P":"R","A":"P","S":"R","D":"M","F":"I","G":"I","H":"I","J":"I","K":"M","L":"R",";":"P","Z":"P","X":"R","C":"I","V":"I","B":"I","N":"I","M":"I",",":"R",".":"R","/":"P"}
+DEFAULT = DEFAULT_FINGER
 
 
 def probe_rows(seq):
@@ -64,7 +80,7 @@ chk("I-U-J blocks J middle", top["IUJ"][2] != "M", top["IUJ"])
 chk("V-G-J forces V/G index", top["VGJ"][:2] == "II", top["VGJ"])
 chk("C-O-R endpoints index", top["COR"][0] == "I" and top["COR"][2] == "I", top["COR"])
 chk("R-O-C endpoints index", top["ROC"][0] == "I" and top["ROC"][2] == "I", top["ROC"])
-lg = [n for n in cg.KEYS if n not in ("L", "O") and probe_rows(("L", n))[0][1][0] == "I"]
+lg = [n for n in KEYS if n not in ("L", "O") and probe_rows(("L", n))[0][1][0] == "I"]
 chk("L index only with O key (bigram)", not lg, f"bad: {lg}" if lg else "all non-O neighbours")
 out(); out("=== 2026-10-27 answers ===")
 chk("W->D ring/middle (th)", top["WD"] == "RM", top["WD"])
@@ -91,8 +107,8 @@ chk("D->A middle/pinky, A->D pinky/middle", top["DA"] == "MP" and top["AD"] == "
 chk("F->S index/ring, S->F ring/index; O->J ring/index, J->O index/ring", top["FS"] == "IR" and top["SF"] == "RI" and top["OJ"] == "RI" and top["JO"] == "IR", " ".join(top[k] for k in ("FS", "SF", "OJ", "JO")))
 _c = {f: c for c, f in probe_rows(("X", "A"))}
 chk("X->A order: index/ring < middle/ring < index/middle < any pinky fingering; index/pinky never", _c.get("IP", 99) >= 8 and _c["IR"] < _c["MR"] < _c["IM"] < _c["MP"], f"IR {_c['IR']:.2f} MR {_c['MR']:.2f} IM {_c['IM']:.2f} MP {_c['MP']:.2f} IP {_c.get('IP', 99):.2f}")
-_ipbad = [(a + b) for a in cg.KEYS for b in cg.KEYS if a != b and (a in "QWERTASDFGZXCVB") == (b in "QWERTASDFGZXCVB")
-          and cg.PF_S(a, "P", b, "I") < 1.9 and model.tables()["PT"][cg.KI[a], cg.FI["P"], cg.KI[b], cg.FI["I"]] < 8.0]
+_ipbad = [(a + b) for a in KEYS for b in KEYS if a != b and (a in "QWERTASDFGZXCVB") == (b in "QWERTASDFGZXCVB")
+          and cg.PF_S(a, "P", b, "I") < 1.9 and model.tables()["PT"][KI[a], FI["P"], KI[b], FI["I"]] < 8.0]
 chk("index + pinky needs >= 1.9 key widths between the keys (pattern)", not _ipbad, f"bad: {_ipbad[:5]}" if _ipbad else "all such pairs impossible")
 def _best(a, b): return probe_rows((a, b))[0][1]
 chk("2026-10-29: ;->U PM, U->; MP; T->F IM, F->T MI; ;->L PR, L->; RP", _best(";", "U") == "PM" and _best("U", ";") == "MP" and _best("T", "F") == "IM" and _best("F", "T") == "MI" and _best(";", "L") == "PR" and _best("L", ";") == "RP", " ".join(_best(a, b) for a, b in ((";", "U"), ("U", ";"), ("T", "F"), ("F", "T"), (";", "L"), ("L", ";"))))
@@ -101,21 +117,30 @@ chk(";-U with ring + middle is borderline impossible (>= 5)", _c2["RM"] >= 5.0 a
 chk("A->S PR and the ring/pinky pair is not scissor-penalised away (S->A RP)", _best("A", "S") == "PR" and _best("S", "A") == "RP", _best("A", "S") + " " + _best("S", "A"))
 import numpy as _np
 _E = model.tables()["E"]
-_bad = [k for k in cg.KEYS if cg.FINGERS[int(_np.argmin(_E[cg.KI[k]]))] != cg.DEFAULT_FINGER[k]]
+_bad = [k for k in KEYS if FINGERS[int(_np.argmin(_E[KI[k]]))] != DEFAULT_FINGER[k]]
 chk("isolated key -> your default fingermap (all 30 keys + ;)", not _bad, f"bad: {_bad}" if _bad else "all keys")
 _T = model.tables()["T2"]
 _asym = []
-for _a in cg.KEYS:
-    for _b in cg.KEYS:
+for _a in KEYS:
+    for _b in KEYS:
         if _a == _b: continue
         for _fa in range(4):
             for _fb in range(4):
                 if _fa == _fb: continue
-                _x, _y = _T[cg.KI[_a], _fa, cg.KI[_b], _fb], _T[cg.KI[_b], _fb, cg.KI[_a], _fa]
-                if _np.isfinite(_x) and _np.isfinite(_y) and abs(_x - _y) > 0.02 and "".join(sorted(cg.FINGERS[_fa] + cg.FINGERS[_fb])) not in ("MR", "PR"):
-                    _asym.append((_a + _b, cg.FINGERS[_fa] + cg.FINGERS[_fb]))
+                _x, _y = _T[KI[_a], _fa, KI[_b], _fb], _T[KI[_b], _fb, KI[_a], _fa]
+                if _np.isfinite(_x) and _np.isfinite(_y) and abs(_x - _y) > 0.02 and "".join(sorted(FINGERS[_fa] + FINGERS[_fb])) not in ("MR", "PR"):
+                    _asym.append((_a + _b, FINGERS[_fa] + FINGERS[_fb]))
 chk("A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)", not _asym, f"{len(_asym)} asymmetric, e.g. {_asym[:3]}" if _asym else "symmetric")
 out(f"probes+checks: {sum(checks)}/{len(checks)}")
+
+corpus_info = {}
+for _label, _paths in (("primary", args.primary_corpus), ("secondary", args.secondary_corpus)):
+    for _path in _paths:
+        _c = load_many([_path])
+        corpus_info[_path] = {"role": _label, "letters": _c.total_letters,
+                              "bigrams": _c.total_bigrams, "trigrams": _c.total_trigrams}
+        out(f"corpus {_label} {_path}: letters={_c.total_letters:,} "
+            f"bigrams={_c.total_bigrams:,} trigrams={_c.total_trigrams:,}")
 
 out(); out("=== every ruling (legacy + round 8) ===")
 cfg = FL.Cfg(True, gname)
@@ -127,4 +152,16 @@ for r, ok, l, txt in det:
     out(f"  [{'PASS' if ok else 'FAIL'}] {r.id:16s} {txt}")
 out(f"rulings: {sum(d[1] for d in det)}/{len(det)}")
 for d in anch: out(f"anchor (not a ruling): {d[3]}")
-open(os.path.join(os.path.dirname(os.path.abspath(__file__)), f"audit_geo_{cfgname.replace(':','_')}.txt"), "w").write("\n".join(lines))
+out_path = Path(args.out) if args.out else paths.result_path("audit", cfgname)
+out_json = (Path(args.out_json) if args.out_json
+            else paths.result_path("audit", cfgname, suffix=".json"))
+out_path.parent.mkdir(parents=True, exist_ok=True)
+out_json.parent.mkdir(parents=True, exist_ok=True)
+out_path.write_text("\n".join(lines) + "\n")
+out_json.write_text(json.dumps({
+    "config": cfgname,
+    "probe_checks": {"passed": sum(checks), "total": len(checks)},
+    "rulings": {"passed": sum(d[1] for d in det), "total": len(det)},
+    "corpora": corpus_info,
+    "anchors": [d[3] for d in anch],
+}, indent=1) + "\n")

@@ -1,12 +1,13 @@
 """Cutting-plane fit: model must satisfy every ruling + every round-8 gate instance."""
 import sys, os, json, time, pickle
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import numpy as np
 from scipy.optimize import minimize, differential_evolution
-import comfort_geo as cg
-import fitlib as FL
-import gates as G
-from gateset import GateSet
+
+from ..utils import comfort as cg
+from ..utils import fitlib as FL
+from ..utils import gates as G
+from ..utils.gateset import GateSet
 
 REG = 0.02
 

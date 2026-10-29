@@ -1,39 +1,43 @@
 """
-scorer_geo.py -- drop-in replacement for analysis/scorer2.py built on the pattern model.
+Scorer tables built on the pattern model.
 
-    from scorer_geo import get_tables, Corpus, SPACE, N
+    from utils.scorer import get_tables, Corpus, SPACE, N
     BIG, TRI, BIG_F, TRI_F = get_tables()
 
-Same shapes / encodings as scorer2.get_tables():
+Table shapes / encodings:
   N = 31 (30 keys in fingers.KEY_ORDER = QWERTY row-major, + space as index 30)
   BIG[i,j] / TRI[i,j,k]  = cheapest total cost (per-press effort INCLUDED)
   BIG_F[i,j] = f1*5+f2 ;  TRI_F[i,j,k] = (f1,f2,f3)   with FID P0 R1 M2 I3 T4
-Per-press baseline = 1.0 (scorer2: travel_cost = 1 + ...), space = 0.6.
-The round-8 alt-licence table (gates.py) is applied as +12 per forbidden use, exactly like
-scorer2._alt_context_penalty.  Everything else comes from comfort_geo.
-
-Config: SHIRO_GEO_CFG = "A:all" (only configuration: round-8 gates, W/X contexts as corrected 2026-10-27)
+Per-press baseline = 1.0, space = 0.6.  The alt-licence table (gates.py)
+is applied as +12 per forbidden use.  Everything else comes from utils.comfort.
 """
-import os, sys
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import json
+import os
+
 import numpy as np
-import comfort_geo as cg
-import gates as GT
-import fitlib as FL
-import fit2
+
+from . import comfort as cg
+from . import gates as GT
+from . import paths
+from .ansi import KEYS
 
 N, SPACE_ID, NK = 31, 30, 30
 SPACE = "@space"
 FID = {"P": 0, "R": 1, "M": 2, "I": 3, "T": 4}
 SPACE_EFFORT, PRESS = 0.6, 1.0
-HERE = os.path.dirname(os.path.abspath(__file__))
+MODEL_DIR = paths.MODEL_DIR
 CONFIGS = {"A:all": ("A", "all", "theta_geo_A_all.json")}
+
+
+def load_theta(path):
+    data = json.load(open(path))
+    return np.array([data.get(name, cg.THETA0[i]) for i, name in enumerate(cg.PNAMES)], float)
 
 
 def load_model(cfg_name=None):
     cfg_name = cfg_name or os.environ.get("SHIRO_GEO_CFG", "A:all")
     var, gates, fn = CONFIGS[cfg_name]
-    th = fit2.load_theta(os.path.join(HERE, fn))
+    th = load_theta(str(MODEL_DIR / fn))
     GT.set_explicit(gates)
     return cg.Model(theta=th, disallow_full_MR=(var == "A")), gates
 
@@ -50,7 +54,7 @@ def build_tables(cfg_name=None):
     A, B = A.ravel(), B.ravel()
     blk = cg.bi_many(tabs, A, B) + PRESS * 2 - 0.0         # T2 already holds E_a+E_b ; add baseline
     for n in range(len(A)):
-        keys = (cg.KEYS[A[n]], cg.KEYS[B[n]])
+        keys = (KEYS[A[n]], KEYS[B[n]])
         pm = GT.penalty_mask(keys)
         c = blk[n] + pm
         # per-key neighbours gate for alternation handled via penalty_mask (neighbour = other key)
@@ -64,10 +68,10 @@ def build_tables(cfg_name=None):
         blk3 = cg.tri_many(model, tabs, A3[sl], B3[sl], C3[sl]) + 3 * PRESS
         for n in range(blk3.shape[0]):
             a, b, c_ = A3[sl][n], B3[sl][n], C3[sl][n]
-            cc = blk3[n] + GT.penalty_mask((cg.KEYS[a], cg.KEYS[b], cg.KEYS[c_]))
+            cc = blk3[n] + GT.penalty_mask((KEYS[a], KEYS[b], KEYS[c_]))
             m = np.unravel_index(np.argmin(cc), cc.shape)
             tri[a, b, c_] = cc[m]; trif[a, b, c_] = m
-    # ---- space (thumb) : scorer2 semantics -- effort + W_ALT, no geometry
+    # ---- space (thumb): effort + W_ALT, no geometry
     Emin = None
     for a in range(NK):
         ea = tabs["E"][a] + PRESS
@@ -110,13 +114,4 @@ def get_tables():
         _T = build_tables()
     return _T
 
-
-try:                                         # corpus bookkeeping is model-free; reuse the project's
-    from scorer import Corpus                # noqa
-except Exception:
-    try:
-        sys.path.insert(0, os.path.join(HERE, "legacy"))
-        sys.path.insert(0, os.path.join(HERE, "legacy", "round8"))
-        from scorer import Corpus            # noqa
-    except Exception:
-        Corpus = None
+from .corpus import Corpus

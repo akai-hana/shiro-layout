@@ -1,0 +1,46 @@
+{
+  "model": "theta_geo_A_all.json",
+  "audit": {
+    "config": "A:all",
+    "passed": 166,
+    "total": 166
+  },
+  "oldbase": {
+    "passed": 123,
+    "total": 168
+  },
+  "references": {
+    "qwerty": {
+      "bigram": 2.4783997677093774,
+      "trigram": 4.2669630602387265
+    },
+    "colemak": {
+      "bigram": 2.3147981691732897,
+      "trigram": 3.820607408434575
+    },
+    "colemak-dh": {
+      "bigram": 2.3054889724256804,
+      "trigram": 3.812332615778344
+    },
+    "canary": {
+      "bigram": 2.2491412114462634,
+      "trigram": 3.66859916313943
+    },
+    "sturdy": {
+      "bigram": 2.2678691913446505,
+      "trigram": 3.63996349703581
+    },
+    "gallium": {
+      "bigram": 2.2274494815027075,
+      "trigram": 3.5885065846421957
+    },
+    "semimak": {
+      "bigram": 2.218891043859751,
+      "trigram": 3.622449779272503
+    },
+    "shiro": {
+      "bigram": 2.19044685559417,
+      "trigram": 3.5430929122702204
+    }
+  }
+}

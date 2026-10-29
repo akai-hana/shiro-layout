@@ -1,8 +1,8 @@
 """Vectorised loss for large sets of gate instances (cutting-plane rulings)."""
 import numpy as np
-import comfort_geo as cg
-from comfort_geo import KI, FI, NF
-import gates as G
+from . import comfort as cg
+from .fingers import KI, FI, NF
+from . import gates as G
 
 
 class GateSet:

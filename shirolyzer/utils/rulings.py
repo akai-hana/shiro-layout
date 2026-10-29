@@ -164,7 +164,7 @@ for _k, _f in _DEF.items():
 
 
 # =============================================================== ROUND 8 (2026-10-26)
-# Source: analysis/audit_shai.py hard probes + scorer2 _ALT_CONTEXTS/_ALT_BLOCKS
+# Source: hard probes and the configured alt-context gates.
 # (REPORT_round8.md section 3).  Keys are physical QWERTY positions.
 #   cons : the fingerings satisfying (req / forbid) must beat all others by a margin
 #          data = dict(keys, req=((pos,"fingers"),..), forbid=((pos,finger),..), margin)
@@ -293,3 +293,16 @@ add("r13_TF_IM", "top1", bi("T", "F", "IM"), "user 2026-10-29: T-F index on T, m
 add("r13_FT_MI", "top1", bi("F", "T", "MI"), "user 2026-10-29: F-T middle on F, index on T", family="R13_TF")
 add("r13_;L_PR", "top1", bi(";", "L", "PR"), "user 2026-10-29: ;-L pinky->ring", family="R13_SL")
 add("r13_L;_RP", "top1", bi("L", ";", "RP"), "user 2026-10-29: L-; mirror (ring->pinky)", family="R13_SL", soft=True)
+
+
+def load_rulings(path):
+    """Load a RULINGS list from a Python file, for calibration overrides."""
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("shirolyzer_rulings_override", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load rulings from {path!r}")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    if not hasattr(module, "RULINGS"):
+        raise ImportError(f"{path!r} does not define RULINGS")
+    return module.RULINGS

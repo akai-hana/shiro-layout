@@ -1,12 +1,13 @@
 """Frequency-weighted fingering review: geometric model vs the project's current model.
 usage: python3 -I review.py THETA.json VARIANT(A|B) LAYOUT30 NAME OUT.md"""
 import os, sys, json, re
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 import numpy as np
-import comfort_geo as cg
-import oldmodel as om
-import gates as GT
+
+from ..utils import comfort as cg
+from ..utils import gates as GT
 import itertools
+from . import oldmodel as om
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.environ.get("SHIRO_FLOW_AUDIT") or os.path.join(HERE, "results", "archive", "flow_audit.txt")

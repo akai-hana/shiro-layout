@@ -1,18 +1,18 @@
 """
-gates.py -- round-8 alt-finger context gates (from analysis/scorer2.py) as data,
-plus a vectorised scanner that finds every key bigram / trigram whose cheapest
-fingering in the pattern model breaks a gate.  Gates are *not* part of the model;
-they are the specification the model has to reproduce.
+gates.py -- alt-finger context gates as data, plus a vectorised scanner
+that finds every key bigram / trigram whose cheapest fingering in the pattern
+model breaks a gate.  Gates are *not* part of the model; they are the
+specification the model has to reproduce.
 
-Semantics (scorer2._alt_context_penalty): a non-default finger on a key is
+Semantics: a non-default finger on a key is
 'blocked' in a sequence when
    mode 'never'  : always
    mode 'block'  : any OTHER key of the sequence is in the set
    mode 'only'   : NO other key of the sequence is in the set
 """
 import numpy as np
-import comfort_geo as cg
-from comfort_geo import KI, KEYS, NK, NF, FINGERS, FI
+from . import comfort as cg
+from .fingers import KI, KEYS, NK, NF, FINGERS, FI
 
 GATES_ALL = {
     ("X", "M"): ("only", {"C", "A"}),     # USER 2026-10-27: X->A = middle->ring is wanted
@@ -38,7 +38,7 @@ EXPLICIT_MODE = "all"     # which gate table is enforced as +XPEN context penalt
 def set_explicit(mode):
     global EXPLICIT_MODE
     EXPLICIT_MODE = mode
-XPEN = 12.0                      # same size as scorer2.W_ALT_CONTEXT
+XPEN = 12.0                      # context-gate penalty
 
 
 def gate_subset(which="all"):

@@ -1,12 +1,18 @@
 """Score the user's SHIPPED round-8 model (analysis/scorer2.py, with its alt-context gates)
 against the same ruling list.  Read-only on the project."""
 import os, sys, itertools
+from pathlib import Path
 if len(sys.argv) > 1:
     os.environ["SHIRO_ANALYSIS_DIR"] = sys.argv[1]
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import oldmodel as OM
-from oldmodel import eff, opts, _bigram_cost, _trigram_cost, _alt_context_penalty
-import rulings as RL
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+try:
+    import oldmodel as OM
+    from oldmodel import eff, opts, _bigram_cost, _trigram_cost, _alt_context_penalty
+except ImportError:
+    from . import oldmodel as OM
+    from .oldmodel import eff, opts, _bigram_cost, _trigram_cost, _alt_context_penalty
+from utils import rulings as RL
 
 def pair(it):
     a, fa, b, fb = it
