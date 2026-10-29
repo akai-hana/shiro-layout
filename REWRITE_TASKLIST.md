@@ -195,7 +195,7 @@ Any other match must be fixed.
   - Keep JSON key ordering and formatting consistent between both corpora.
   - Done when both parsers write to `parsed/` and the old Spanish root-level JSON files are gone.
 
-- [ ] **C3 — Make `parse_shai.py` self-contained**
+- [x] **C3 — Make `parse_shai.py` self-contained**
   - Issue: #5
   - Commit: `corpus: make shai parser self-contained`
   - Add download and streaming decompression for the `.xz` source named in
