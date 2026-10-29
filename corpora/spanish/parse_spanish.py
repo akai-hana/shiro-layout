@@ -69,7 +69,8 @@ def main() -> None:
         ("trigram_freq.json", trigrams),
     ):
         with open(out_dir / name, "w") as f:
-            json.dump(data, f)
+            json.dump(dict(sorted(data.items())), f, indent=0)
+            f.write("\n")
     space_frac = n_spaces / (n_letters + n_spaces)
     top = sorted(letters.items(), key=lambda kv: -kv[1])[:12]
     print(f"letters={n_letters:,} spaces={n_spaces:,} space_frac={space_frac:.4f}")

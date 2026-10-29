@@ -185,7 +185,7 @@ Any other match must be fixed.
   - Done when both scripts run from their new directories and no active file references the old
     names.
 
-- [ ] **C2 — Standardise the `parsed/` output directories**
+- [x] **C2 — Standardise the `parsed/` output directories**
   - Issue: #4
   - Commit: `corpus: standardize parsed corpus directories`
   - Ensure `corpora/shai/parsed/` and `corpora/spanish/parsed/` both exist and contain only
