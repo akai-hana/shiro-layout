@@ -58,13 +58,13 @@ for the way valid layouts are reported.
 | `shirolyzer/config/` | YAML config, references, model theta, score baseline |
 | `shirolyzer/utils/` | Runtime model, corpus, search, and output modules |
 | `shirolyzer/tests/` | Unit and regression tests |
-| `shirolyzer/results/` | Local run outputs plus committed calibration/validation reports |
+| `shirolyzer/results/` | Local run outputs plus committed result reports |
 | `shirolyzer/dev/` | Fitting and shipped-model baseline development tools |
 | `shirolyzer/legacy/` | Archived pre-rewrite code; not imported at runtime |
 | `xkb/` | Generated symbols and the installer |
 
 `shirolyzer/results/` is gitignored except for explicitly added reports and
-validation artifacts.
+validation/round-8 artifacts.
 
 ## Configuration
 
@@ -417,6 +417,8 @@ baselines, diversity selection/rendering, and XKB generation.
   audit, and reference comparison.
 - `shirolyzer/results/validation/T5-REPORT.md` — diversity-aware validation
   with two materially different valid layouts.
+- `shirolyzer/results/round8/REPORT_geo.md` — historical round-8 pattern-model
+  report, with its audit output, leave-one-out log, and fingering review.
 
 Committed reports and artifacts remain in the repository for traceability;
 other `shirolyzer/results/` files are local outputs.

@@ -1,3 +1,0 @@
-Resolved: use `python3 shirolyzer/xkb.py --layout "<30 chars>" --name <name>`
-to generate symbols for an existing layout, `compute.py --xkb` to write the
-selected layout automatically, and `xkb/install.sh <name>` to install it.

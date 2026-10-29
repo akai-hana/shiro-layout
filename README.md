@@ -88,7 +88,7 @@ corpora/spanish/          Spanish corpus parser and parsed frequencies
 shirolyzer/               Analyzer/generator entry points and runtime package
 shirolyzer/config/        YAML config, references, theta, score baseline
 shirolyzer/tests/         Unit and regression tests
-shirolyzer/results/       Local outputs and committed calibration reports
+shirolyzer/results/       Local outputs and committed result reports
 shirolyzer/dev/           Fitting and baseline development tools
 shirolyzer/legacy/        Archived pre-rewrite code
 xkb/                      Generated symbols and installer
@@ -105,6 +105,8 @@ research/                 Historical investigation reports
   — post-rewrite validation and reference comparison.
 - [`shirolyzer/results/validation/T5-REPORT.md`](shirolyzer/results/validation/T5-REPORT.md)
   — diversity-aware validation example.
+- [`shirolyzer/results/round8/REPORT_geo.md`](shirolyzer/results/round8/REPORT_geo.md)
+  — historical round-8 pattern-model report, with its audit and fingering review.
 
 ## Tests
 

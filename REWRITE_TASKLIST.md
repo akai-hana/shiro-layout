@@ -695,7 +695,10 @@ Branch exit: `docs` merges to `main`; the rewrite is complete.
   and active runtime code does not import `shirolyzer/legacy/`.
 - **Issues:** #1-#36 and #39 are closed; #37 (D1) and #38 (D2) close with the `docs` branch.
 - **Results:** `shirolyzer/results/` remains local-only except for explicitly committed
-  calibration and validation artifacts.
+  calibration, validation, and round-8 artifacts.
+- **Cleanup:** round-8 reports/logs were moved out of the code root into
+  `shirolyzer/results/round8/`; obsolete swap files, the resolved XKB TODO, and the old
+  `README.md.bak` were removed.
 
 ---
 
@@ -739,7 +742,7 @@ Branch exit: `docs` merges to `main`; the rewrite is complete.
 The major planning questions were resolved in section 1. The remaining minor questions are now
 settled:
 
-1. **`README.md.bak`:** retained as a historical backup; active docs are `README.md` and
+1. **`README.md.bak`:** removed during final cleanup; active docs are `README.md` and
    `shirolyzer/README.md`.
 2. **`shirolyzer/legacy/`:** frozen.  Active runtime code does not import it; stale references
    inside legacy code and historical reports are intentional.
