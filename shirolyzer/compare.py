@@ -3,7 +3,7 @@
 import argparse
 
 from utils import comfort as cg
-import scorer_geo as SG
+from utils import scorer as SG
 
 REFERENCES = {
     "qwerty": "qwertyuiopasdfghjkl;zxcvbnm,./",

@@ -13,7 +13,7 @@ from pathlib import Path
 import numpy as np
 
 from utils import comfort as cg
-import scorer_geo as SG
+from utils import scorer as SG
 
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 FID2 = {0: "P", 1: "R", 2: "M", 3: "I", 4: "T"}

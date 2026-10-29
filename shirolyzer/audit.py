@@ -6,7 +6,7 @@ import argparse, sys, os, itertools
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import numpy as np
 from utils import comfort as cg, gates as GT, fitlib as FL, rulings as RL
-import scorer_geo as SG
+from utils import scorer as SG
 from utils.fingers import KI, KEYS, FINGERS, NF
 
 ap = argparse.ArgumentParser(description=__doc__)
