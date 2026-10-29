@@ -12,8 +12,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
-from .fingers import *
-from .fingers import INNER_SEP
+from .ansi import *
+from .fingers import LENGTH_RANK, DEFAULT_FINGER, NODEF_EXEMPT
 
 # ---------------------------------------------------------------- parameters
 # name: (default, lo, hi, group)

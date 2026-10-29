@@ -11,6 +11,8 @@ import numpy as np
 
 from . import comfort as cg
 from . import scorer as SG
+from .ansi import KEYS, KI, H
+from .fingers import DEFAULT_FINGER
 
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 FID2 = {0: "P", 1: "R", 2: "M", 3: "I", 4: "T"}
@@ -29,7 +31,7 @@ def dead_of(layout):
             if ch in dead:
                 extra += 1
                 key = f"\x01{extra}"
-            dead[key] = cg.KEYS[i]
+            dead[key] = KEYS[i]
     return dead
 
 
@@ -47,7 +49,7 @@ class Evaluator:
     def __init__(self, corpus, dead_keys, tables=None):
         self.corpus = corpus
         self.dead = dict(dead_keys)
-        self.slots = [k for k in cg.KEYS if k not in self.dead.values()]
+        self.slots = [k for k in KEYS if k not in self.dead.values()]
         if len(self.slots) != 26:
             raise SystemExit(f"need 26 letter slots, got {len(self.slots)}")
         big, tri, _, _ = tables or SG.get_tables()
@@ -62,10 +64,10 @@ class Evaluator:
         self.n_tri = self.tri_counts.sum() or 1.0
         self.lfreq = np.array([corpus.L.get(ch, 0.0) for ch in LETTERS], dtype=np.float64)
         self.lfreq /= self.lfreq.sum() or 1.0
-        self._slot_key = np.array([cg.KI[k] for k in self.slots], dtype=np.int32)
+        self._slot_key = np.array([KI[k] for k in self.slots], dtype=np.int32)
         self._default_finger = np.array(
-            [FORDER[cg.DEFAULT_FINGER[k]] for k in self.slots], dtype=np.int32)
-        self._hand = np.array([int(cg.H[cg.KI[k]]) for k in self.slots], dtype=np.int32)
+            [FORDER[DEFAULT_FINGER[k]] for k in self.slots], dtype=np.int32)
+        self._hand = np.array([int(H[KI[k]]) for k in self.slots], dtype=np.int32)
         tri = self.TRI.ravel()
         a = self.tri_ids[:, 0]
         b = self.tri_ids[:, 1]
@@ -123,9 +125,9 @@ class Evaluator:
     def layout_str(self, perm):
         arr = [None] * 30
         for ch, kname in self.dead.items():
-            arr[cg.KI[kname]] = ch
+            arr[KI[kname]] = ch
         for li, slot_idx in enumerate(perm):
-            arr[cg.KI[self.slots[slot_idx]]] = LETTERS[li]
+            arr[KI[self.slots[slot_idx]]] = LETTERS[li]
         return "".join(arr)
 
 

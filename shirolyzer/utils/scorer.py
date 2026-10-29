@@ -22,6 +22,7 @@ import numpy as np
 
 from . import comfort as cg
 from . import gates as GT
+from .ansi import KEYS
 
 N, SPACE_ID, NK = 31, 30, 30
 SPACE = "@space"
@@ -56,7 +57,7 @@ def build_tables(cfg_name=None):
     A, B = A.ravel(), B.ravel()
     blk = cg.bi_many(tabs, A, B) + PRESS * 2 - 0.0         # T2 already holds E_a+E_b ; add baseline
     for n in range(len(A)):
-        keys = (cg.KEYS[A[n]], cg.KEYS[B[n]])
+        keys = (KEYS[A[n]], KEYS[B[n]])
         pm = GT.penalty_mask(keys)
         c = blk[n] + pm
         # per-key neighbours gate for alternation handled via penalty_mask (neighbour = other key)
@@ -70,7 +71,7 @@ def build_tables(cfg_name=None):
         blk3 = cg.tri_many(model, tabs, A3[sl], B3[sl], C3[sl]) + 3 * PRESS
         for n in range(blk3.shape[0]):
             a, b, c_ = A3[sl][n], B3[sl][n], C3[sl][n]
-            cc = blk3[n] + GT.penalty_mask((cg.KEYS[a], cg.KEYS[b], cg.KEYS[c_]))
+            cc = blk3[n] + GT.penalty_mask((KEYS[a], KEYS[b], KEYS[c_]))
             m = np.unravel_index(np.argmin(cc), cc.shape)
             tri[a, b, c_] = cc[m]; trif[a, b, c_] = m
     # ---- space (thumb) : scorer2 semantics -- effort + W_ALT, no geometry

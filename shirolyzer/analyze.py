@@ -14,6 +14,8 @@ import numpy as np
 
 from utils import comfort as cg
 from utils import scorer as SG
+from utils.ansi import KEYS, KI, H, CX, FI, ROWI
+from utils.fingers import DEFAULT_FINGER
 
 LETTERS = "abcdefghijklmnopqrstuvwxyz"
 FID2 = {0: "P", 1: "R", 2: "M", 3: "I", 4: "T"}
@@ -22,12 +24,12 @@ DEFAULT_LAYOUT = ";tspbxgoiwndhrlyecuafkvmzjq,./"
 
 
 def keymap(layout):
-    return {ch: cg.KEYS[i] for i, ch in enumerate(layout) if ch.isalpha()}
+    return {ch: KEYS[i] for i, ch in enumerate(layout) if ch.isalpha()}
 
 
 def slots_of(layout):
-    dead = {ch: cg.KEYS[i] for i, ch in enumerate(layout) if ch not in LETTERS}
-    slots = [k for k in cg.KEYS if k not in dead.values()]
+    dead = {ch: KEYS[i] for i, ch in enumerate(layout) if ch not in LETTERS}
+    slots = [k for k in KEYS if k not in dead.values()]
     if len(slots) != 26:
         raise SystemExit(f"layout must leave 26 letter slots, got {len(slots)}")
     pos = {k: i for i, k in enumerate(slots)}
@@ -42,7 +44,7 @@ def score_layout(layout, corpus, tables=None):
         if ch == SG.SPACE:
             remap[ci] = SG.SPACE_ID
         elif ch in m:
-            remap[ci] = cg.KI[m[ch]]
+            remap[ci] = KI[m[ch]]
     tri_ids = remap[corpus.tri_ids]
     ok = np.all(tri_ids >= 0, axis=1)
     flat = tri_ids[ok, 0] * 31 * 31 + tri_ids[ok, 1] * 31 + tri_ids[ok, 2]
@@ -61,32 +63,32 @@ def category_report(layout, corpus, tables):
             continue
         total += cnt
         a, b = bg[0], bg[1]
-        i, j = cg.KI[m[a]], cg.KI[m[b]]
+        i, j = KI[m[a]], KI[m[b]]
         cost = float(big[i, j])
         enc = int(bigf[i, j])
         f1, f2 = FID2[enc // 5], FID2[enc % 5]
         worst.append((cost, bg, f1, f2, cnt))
         if m[a] == m[b]:
             stats["repeat"] += cnt
-        elif cg.H[i] != cg.H[j]:
+        elif H[i] != H[j]:
             stats["alt"] += cnt
         elif f1 == f2:
             stats["sfb"] += cnt
         else:
             d1, d2 = FORDER[f1], FORDER[f2]
-            dcol = abs(cg.CX[i] - cg.CX[j])
+            dcol = abs(CX[i] - CX[j])
             if abs(d2 - d1) >= 2 or dcol >= 3:
                 stats["leap"] += cnt
             elif d2 > d1:
                 stats["roll_in"] += cnt
             else:
                 stats["roll_out"] += cnt
-            g = float(cg.PF["g"][i, cg.FI[f1], j, cg.FI[f2]])
+            g = float(cg.PF["g"][i, FI[f1], j, FI[f2]])
             if g > 0.25:
                 outer, inner = (f1, f2) if FORDER[f1] < FORDER[f2] else (f2, f1)
                 kind = {"M": "scissor_IM", "R": "scissor_MR", "P": "scissor_RP"}.get(inner)
                 if kind:
-                    stats[kind + ("_fsb" if abs(cg.ROWI[i] - cg.ROWI[j]) >= 2 else "_hsb")] += cnt
+                    stats[kind + ("_fsb" if abs(ROWI[i] - ROWI[j]) >= 2 else "_hsb")] += cnt
                     scissors.append((cost * cnt, cost, bg, f1, f2, cnt, outer + inner))
     total = total or 1.0
     cats = {k: stats[k] / total * 100 for k in (
@@ -106,9 +108,9 @@ def trigram_patterns(layout, corpus, tables):
     for tg, cnt in corpus.T.items():
         if len(tg) != 3 or any(c not in m for c in tg):
             continue
-        ids = [cg.KI[m[c]] for c in tg]
+        ids = [KI[m[c]] for c in tg]
         fs = tuple(FID2[int(x)] for x in trif[ids[0], ids[1], ids[2]])
-        hs = tuple(int(cg.H[k]) for k in ids)
+        hs = tuple(int(H[k]) for k in ids)
         os_ = tuple(FORDER[f] for f in fs)
         total += cnt
         if hs in ((0, 1, 0), (1, 0, 1)):
@@ -150,10 +152,10 @@ def finger_usage(layout, corpus, tables):
     for tg, cnt in corpus.T.items():
         if len(tg) != 3 or any(c not in m for c in tg):
             continue
-        ids = [cg.KI[m[c]] for c in tg]
+        ids = [KI[m[c]] for c in tg]
         fs = trif[ids[0], ids[1], ids[2]]
         for k, fid in zip(ids, fs):
-            usage[int(cg.H[k])][FID2[int(fid)]] += cnt
+            usage[int(H[k])][FID2[int(fid)]] += cnt
     total = sum(sum(h.values()) for h in usage.values()) or 1.0
     out = {}
     for h, label in ((0, "L"), (1, "R")):
@@ -172,7 +174,7 @@ def fingering_guide(layout, corpus, tables):
     for tg, cnt in corpus.T.items():
         if len(tg) != 3 or any(c not in m for c in tg):
             continue
-        ids = [cg.KI[m[c]] for c in tg]
+        ids = [KI[m[c]] for c in tg]
         fs = [FID2[int(x)] for x in trif[ids[0], ids[1], ids[2]]]
         for pos, ch in enumerate(tg):
             agg[ch][fs[pos]] += cnt
@@ -182,7 +184,7 @@ def fingering_guide(layout, corpus, tables):
         if ch not in m:
             continue
         key = m[ch]
-        default = cg.DEFAULT_FINGER[key]
+        default = DEFAULT_FINGER[key]
         total = sum(agg[ch].values()) or 1.0
         entry = {"key": key, "default": default,
                  "share": {f: c / total * 100 for f, c in sorted(agg[ch].items(), key=lambda x: -x[1])},

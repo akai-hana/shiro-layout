@@ -2,8 +2,8 @@
 """Score reference layouts against a corpus with the calibrated model."""
 import argparse
 
-from utils import comfort as cg
 from utils import scorer as SG
+from utils.ansi import KEYS, KI
 
 REFERENCES = {
     "qwerty": "qwertyuiopasdfghjkl;zxcvbnm,./",
@@ -21,14 +21,14 @@ def score(layout, corpus, tables=None):
     big, tri, _, _ = tables or SG.get_tables()
     if len(layout) != 30:
         raise SystemExit(f"{layout!r} is not a 30-character layout")
-    m = {ch: cg.KEYS[i] for i, ch in enumerate(layout) if ch.isalpha()}
+    m = {ch: KEYS[i] for i, ch in enumerate(layout) if ch.isalpha()}
     import numpy as np
     remap = np.full(31, -1, dtype=np.int32)
     for ci, ch in enumerate(corpus.chars):
         if ch == SG.SPACE:
             remap[ci] = SG.SPACE_ID
         elif ch in m:
-            remap[ci] = cg.KI[m[ch]]
+            remap[ci] = KI[m[ch]]
     tri_ids = remap[corpus.tri_ids]
     ok = np.all(tri_ids >= 0, axis=1)
     flat = tri_ids[ok, 0] * 961 + tri_ids[ok, 1] * 31 + tri_ids[ok, 2]
