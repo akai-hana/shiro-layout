@@ -178,7 +178,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
 
 ### Branch `opt-generator`
 
-- [ ] **OPT.T1.1 — Replace constrained secondary full rescoring with dual-delta scoring**
+- [x] **OPT.T1.1 — Replace constrained secondary full rescoring with dual-delta scoring**
   - Add a constrained quench that tracks primary and secondary weighted sums
     with two `Local` states, using the same move lists and shuffle order as
     `quench_generic`.
@@ -286,3 +286,5 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   compute run, and perf profiles in `OPT_BASELINE.md`.
 - 2026-10-30: Wrote this plan, created milestone `Rust optimization`, labels, and
   issues #76-#89, and published the roadmap.
+- 2026-10-30: Replaced constrained secondary full rescoring with a dual-delta
+  quench; the randomized parity test matches `quench_generic` exactly.

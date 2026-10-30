@@ -578,6 +578,108 @@ pub fn quench_generic(
     (perm, cur_s)
 }
 
+/// Incrementally scored constrained quench.
+///
+/// This mirrors [`quench_generic`] move for move, but keeps two [`Local`]
+/// states: the primary objective supplies the sacrifice constraint and the
+/// secondary objective supplies the score being minimized.  The move order and
+/// RNG consumption are identical to the generic path, so the constrained
+/// optimum matches full rescoring without touching the full-score fallback.
+pub fn quench_constrained(
+    primary: &Evaluator,
+    secondary: &Evaluator,
+    perm: &[usize],
+    primary_limit: f64,
+    cur_s: f64,
+    rng: &mut impl Rng,
+) -> (Vec<usize>, f64) {
+    let m = moves();
+    let mut p = Local::new(primary, perm);
+    let mut s = Local::new(secondary, perm);
+    let mut cur = cur_s;
+
+    let mut order: Vec<u32> = (0..m.pairs.len() as u32).collect();
+    let mut changed = true;
+    while changed {
+        changed = false;
+        order.shuffle(rng);
+        for &mi in &order {
+            let [i, j] = m.pairs[mi as usize];
+            let pw0 = p.weighted;
+            let pk0 = p.kid;
+            let sw0 = s.weighted;
+            let sk0 = s.kid;
+            let ps = p.swap(i, j);
+            let ss = s.swap(i, j);
+            if ps > primary_limit || ss >= cur - 1e-12 {
+                p.undo_swap(i, j, pw0, pk0);
+                s.undo_swap(i, j, sw0, sk0);
+            } else {
+                cur = ss;
+                changed = true;
+            }
+        }
+    }
+
+    let mut order: Vec<u32> = (0..m.two.len() as u32).collect();
+    let mut changed = true;
+    while changed {
+        changed = false;
+        order.shuffle(rng);
+        for &mi in &order {
+            let mi = mi as usize;
+            let [p1, p2] = m.two_pairs[mi];
+            let [i1, j1] = m.pairs[p1];
+            let [i2, j2] = m.pairs[p2];
+            let pw0 = p.weighted;
+            let pk0 = p.kid;
+            let sw0 = s.weighted;
+            let sk0 = s.kid;
+            p.swap(i1, j1);
+            p.swap(i2, j2);
+            s.swap(i1, j1);
+            s.swap(i2, j2);
+            let ps = p.score();
+            let ss = s.score();
+            if ps > primary_limit || ss >= cur - 1e-12 {
+                p.undo_swap(i1, j1, pw0, pk0);
+                p.undo_swap(i2, j2, pw0, pk0);
+                s.undo_swap(i1, j1, sw0, sk0);
+                s.undo_swap(i2, j2, sw0, sk0);
+            } else {
+                cur = ss;
+                changed = true;
+            }
+        }
+    }
+
+    let mut order: Vec<u32> = (0..m.three.len() as u32).collect();
+    let mut changed = true;
+    while changed {
+        changed = false;
+        order.shuffle(rng);
+        for &mi in &order {
+            let [i, j, k] = m.three[mi as usize];
+            let pw0 = p.weighted;
+            let pk0 = p.kid;
+            let pp0 = [p.perm[i], p.perm[j], p.perm[k]];
+            let sw0 = s.weighted;
+            let sk0 = s.kid;
+            let sp0 = [s.perm[i], s.perm[j], s.perm[k]];
+            let ps = p.cycle3(i, j, k);
+            let ss = s.cycle3(i, j, k);
+            if ps > primary_limit || ss >= cur - 1e-12 {
+                p.undo_cycle3(i, j, k, pw0, pk0, pp0);
+                s.undo_cycle3(i, j, k, sw0, sk0, sp0);
+            } else {
+                cur = ss;
+                changed = true;
+            }
+        }
+    }
+    (s.perm, cur)
+}
+
 pub fn perturb(perm: &[usize], rng: &mut impl Rng, k: usize) -> Vec<usize> {
     let mut cand = perm.to_vec();
     let mut idx: Vec<usize> = (0..26).collect();
@@ -625,6 +727,53 @@ mod tests {
         )
         .expect("evaluator");
         (cfg, ev)
+    }
+
+    #[test]
+    fn constrained_delta_matches_full_score() {
+        let (cfg, primary) = setup();
+        let paths: Vec<std::path::PathBuf> = cfg
+            .secondary_corpus
+            .iter()
+            .map(|e| cfg.corpus_path(e))
+            .collect();
+        let corpus = crate::corpus::load_many(&paths).expect("secondary corpus");
+        let dead = crate::evaluate::dead_of(&cfg.current_layout);
+        let flat = flat_share_from_config(&cfg);
+        let (w_balance, w_hand) = cfg.balance_weights();
+        let secondary = crate::evaluate::Evaluator::new(
+            Box::leak(Box::new(corpus)),
+            primary.tables,
+            primary.model,
+            &dead,
+            flat,
+            w_balance,
+            w_hand,
+        )
+        .expect("secondary evaluator");
+        let perm = crate::evaluate::perm_of(&cfg.current_layout, &dead).expect("perm");
+        let limit = primary.score(&perm) + 0.001;
+        let constrained = |p: &[usize]| -> f64 {
+            if primary.score(p) > limit {
+                f64::INFINITY
+            } else {
+                secondary.score(p)
+            }
+        };
+        let mut generic_rng = rand::rngs::StdRng::seed_from_u64(11);
+        let (generic_perm, generic_score) =
+            quench_generic(&constrained, &perm, constrained(&perm), &mut generic_rng);
+        let mut delta_rng = rand::rngs::StdRng::seed_from_u64(11);
+        let (delta_perm, delta_score) = quench_constrained(
+            &primary,
+            &secondary,
+            &perm,
+            limit,
+            constrained(&perm),
+            &mut delta_rng,
+        );
+        assert_eq!(delta_perm, generic_perm);
+        assert!((delta_score - generic_score).abs() < 1e-12);
     }
 
     #[test]
