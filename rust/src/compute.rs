@@ -39,6 +39,12 @@ pub fn parse_budget(value: &str) -> Result<f64> {
     }
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
+pub enum Device {
+    Cpu,
+    Gpu,
+}
+
 pub struct ComputeArgs<'a> {
     pub config: Option<&'a Path>,
     pub seed_layout: Vec<String>,
@@ -59,6 +65,7 @@ pub struct ComputeArgs<'a> {
     pub append_references: Option<PathBuf>,
     pub seed: Option<u64>,
     pub time_budget: Option<f64>,
+    pub device: Device,
     pub xkb: bool,
     pub xkb_name: Option<String>,
     pub out: Option<PathBuf>,
@@ -121,6 +128,15 @@ fn optimize_seed(
 }
 
 pub fn run(args: ComputeArgs) -> Result<()> {
+    let device = match args.device {
+        Device::Cpu => "cpu",
+        Device::Gpu => {
+            eprintln!(
+                "warning: GPU mode is not enabled in this build; falling back to CPU"
+            );
+            "cpu"
+        }
+    };
     let ctx = Context::load(args.config)?;
     let out_path = args.out.clone().unwrap_or_else(|| {
         paths::result_path("compute", args.name.as_deref(), "")
@@ -748,6 +764,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         std::fs::create_dir_all(parent)?;
     }
     let payload = json!({
+        "device": device,
         "seed": seed,
         "seed_generated": seed_generated,
         "primary_corpora": primary_paths,
