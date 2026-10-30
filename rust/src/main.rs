@@ -91,6 +91,8 @@ struct ComputeArgs {
     seed: Option<u64>,
     #[arg(long = "time-budget")]
     time_budget: Option<String>,
+    #[arg(long, value_enum, default_value = "cpu")]
+    device: compute::Device,
     #[arg(long)]
     xkb: bool,
     #[arg(long = "xkb-name")]
@@ -206,6 +208,7 @@ fn main() -> Result<()> {
                 append_references: args.append_references,
                 seed: args.seed,
                 time_budget,
+                device: args.device,
                 xkb: args.xkb,
                 xkb_name: args.xkb_name,
                 out: args.out,
