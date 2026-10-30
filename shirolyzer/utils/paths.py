@@ -1,7 +1,8 @@
-"""Repository-relative path helpers.
+"""Repository-relative path helpers for the retained development tools.
 
-All runtime paths are resolved from this module so commands behave the same
-regardless of the current working directory.
+Paths are resolved from this module so the corpus parsers and model-refitting
+tools behave the same regardless of the current working directory. The shipped
+runtime is the Rust binary and does not use this module.
 """
 from pathlib import Path
 

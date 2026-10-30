@@ -1,3 +1,5 @@
+# Development-only dependencies for the corpus parsers and model-refitting
+# tools. The shirolyzer runtime is the Rust binary and does not use these.
 numpy
 scipy
 PyYAML

@@ -1,7 +1,17 @@
 # Model refitting
 
 These are development tools for refitting the calibrated pattern model. They
-are not used by the runtime commands or the test suite.
+are not used by the runtime commands or the test suite. The `shirolyzer` runtime
+is the Rust binary built from this directory; the Python package and its
+`utils` modules exist only for these development tools and the corpus parsers.
+
+Verify that the retained tools still import and compile after a code or layout
+change:
+
+```bash
+python3 -m compileall -q shirolyzer corpora
+python3 -c "import shirolyzer.fitting, shirolyzer.utils.fitlib, shirolyzer.utils.gateset"
+```
 
 Inputs are read from `shirolyzer/config/model/`. The shipped coefficients are
 in `pattern_parameters_A_all.json`; `fit_seed_A.json` is the starting point for
