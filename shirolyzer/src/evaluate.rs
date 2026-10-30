@@ -3,7 +3,7 @@
 use crate::corpus::{Corpus, SPACE_INDEX};
 use crate::geometry::{finger_index, key_index, KEYS, NK};
 use crate::model::Model;
-use crate::scorer::{tri_idx, Tables, SPACE_ID};
+use crate::scorer::{tri_idx, tri_idx_u8, Tables, SPACE_ID};
 
 pub const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
 pub const FORDER: [char; 4] = ['P', 'R', 'M', 'I'];
@@ -119,11 +119,11 @@ pub struct Evaluator<'a> {
     pub dead: Vec<(char, usize)>,
     pub dead_count: usize,
     pub slots: Vec<usize>,
-    pub slot_key: Vec<usize>,
+    pub slot_key: Vec<u8>,
     pub default_finger: Vec<usize>,
     pub hand: Vec<usize>,
     pub lfreq: Vec<f64>,
-    pub tri_idx_slot: Vec<[usize; 3]>,
+    pub tri_idx_slot: Vec<[u8; 3]>,
     pub tri_counts: Vec<f64>,
     pub inc: Vec<Vec<u32>>,
     pub n_tri: f64,
@@ -151,7 +151,7 @@ impl<'a> Evaluator<'a> {
         if slots.len() != 26 {
             return Err(format!("need 26 letter slots, got {}", slots.len()));
         }
-        let slot_key: Vec<usize> = slots.to_vec();
+        let slot_key: Vec<u8> = slots.iter().map(|&slot| slot as u8).collect();
         let default_finger: Vec<usize> = slots
             .iter()
             .map(|&i| finger_index(model.default_finger[i]).unwrap())
@@ -176,7 +176,7 @@ impl<'a> Evaluator<'a> {
         for (ids, &count) in corpus.tri_ids.iter().zip(corpus.tri_counts.iter()) {
             if ids.iter().all(|&c| c < 26) {
                 let k = tri_idx_slot.len() as u32;
-                tri_idx_slot.push([ids[0], ids[1], ids[2]]);
+                tri_idx_slot.push([ids[0] as u8, ids[1] as u8, ids[2] as u8]);
                 tri_counts.push(count);
                 for &id in ids {
                     inc[id].push(k);
@@ -205,15 +205,23 @@ impl<'a> Evaluator<'a> {
         })
     }
 
-    pub fn key_ids(&self, perm: &[usize]) -> Vec<usize> {
-        perm.iter().map(|&slot| self.slot_key[slot]).collect()
+    pub fn key_ids(&self, perm: &[usize]) -> [u8; 26] {
+        let mut kid = [0u8; 26];
+        for (li, &slot) in perm.iter().enumerate() {
+            kid[li] = self.slot_key[slot];
+        }
+        kid
     }
 
     pub fn weighted(&self, perm: &[usize]) -> f64 {
         let kid = self.key_ids(perm);
         let mut weighted = 0.0;
         for (ids, &count) in self.tri_idx_slot.iter().zip(self.tri_counts.iter()) {
-            let idx = tri_idx(kid[ids[0]], kid[ids[1]], kid[ids[2]]);
+            let idx = tri_idx_u8(
+                kid[ids[0] as usize],
+                kid[ids[1] as usize],
+                kid[ids[2] as usize],
+            );
             weighted += self.tables.tri[idx] * count;
         }
         weighted

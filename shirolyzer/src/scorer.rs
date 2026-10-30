@@ -33,6 +33,11 @@ pub fn tri_idx(a: usize, b: usize, c: usize) -> usize {
     (a * N + b) * N + c
 }
 
+#[inline]
+pub fn tri_idx_u8(a: u8, b: u8, c: u8) -> usize {
+    ((a as usize * N + b as usize) * N) + c as usize
+}
+
 fn key_char(k: usize) -> char {
     KEYS[k].chars().next().unwrap()
 }
