@@ -38,7 +38,7 @@ fn key_char(k: usize) -> char {
 }
 
 impl Tables {
-    pub fn build(model: &Model, geom: &Geometry, cfg: &Config, gates: &Gates, conditions: &Conditions) -> Self {
+    pub fn build(model: &Model, geom: &Geometry, _cfg: &Config, gates: &Gates, conditions: &Conditions) -> Self {
         let mt = model.tables(geom);
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
 
