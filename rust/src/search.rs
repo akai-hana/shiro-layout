@@ -10,6 +10,7 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use rand::seq::SliceRandom;
+use rayon::prelude::*;
 use rand::{Rng, SeedableRng};
 
 use crate::evaluate::Evaluator;
@@ -127,29 +128,25 @@ fn intersection(
 
 impl DeltaTables {
     pub fn build(ev: &Evaluator) -> Self {
-        let mut cross = HashMap::new();
-        let mut seen = vec![0u32; ev.tri_idx_slot.len()];
-        let mut stamp = 0u32;
+        let mut jobs: Vec<([u8; 4], (usize, usize, usize, usize))> = Vec::with_capacity(44_850);
         for a in 0..26 {
             for b in a + 1..26 {
                 for c in b + 1..26 {
                     for d in c + 1..26 {
-                        for (w, x, y, z) in
-                            [(a, b, c, d), (a, c, b, d), (a, d, b, c)]
-                        {
-                            let key = pair_key(w, x, y, z);
-                            if cross.contains_key(&key) {
-                                continue;
-                            }
-                            let list = intersection(
-                                &ev.inc, w, x, y, z, &mut seen, &mut stamp,
-                            );
-                            cross.insert(key, list);
+                        for (w, x, y, z) in [(a, b, c, d), (a, c, b, d), (a, d, b, c)] {
+                            jobs.push((pair_key(w, x, y, z), (w, x, y, z)));
                         }
                     }
                 }
             }
         }
+        let n = ev.tri_idx_slot.len();
+        let cross: HashMap<[u8; 4], Vec<u16>> = jobs
+            .into_par_iter()
+            .map_with((vec![0u32; n], 0u32), |(seen, stamp), (key, (w, x, y, z))| {
+                (key, intersection(&ev.inc, w, x, y, z, seen, stamp))
+            })
+            .collect();
         Self { cross }
     }
 
