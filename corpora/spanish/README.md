@@ -1,11 +1,20 @@
 # Ian Douglas' Spanish keyboard development corpus
 
 Source: <https://zenodo.org/records/5501931>
-Download: <https://zenodo.org/records/5501931/files/Spanish-Keyboard-Corpus-1.0.0.zip?download=1>
+Direct Download Link: <https://zenodo.org/records/5501931/files/Spanish-Keyboard-Corpus-1.0.0.zip?download=1>
 
-The parser extracts `clean-spanish-book-extracts.txt` from the archive. This is
-the cleaned book corpus that matches the scale of the previous local Gutenberg
-sample.
+---
+
+## About
+
+Corpus somewhat equivalent to Shai, but for Spanish.
+
+## Parser
+
+The parser extracts `clean-spanish-book-extracts.txt` from the archive.
+This is the cleaned book corpus that matches the scale of the previous local Gutenberg sample.
+
+<!-- TODO: make the parser auto-pull the direct download link, parse it, then erase the main source to save on space, leaving the lightweight .json data behind, and getting rid of the now useless source file. -->
 
 ## Build
 
