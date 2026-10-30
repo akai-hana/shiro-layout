@@ -60,7 +60,7 @@ impl Geometry {
         let mut row = [0usize; NK];
         let mut idx = 0;
         for (r, row_name) in ROWS.iter().enumerate() {
-            for (c, ch) in row_name.chars().enumerate() {
+            for (c, _ch) in row_name.chars().enumerate() {
                 cx[idx] = c as f64 + ROW_OFFSET[r] + 0.5;
                 cy[idx] = r as f64 + 0.5;
                 hand[idx] = if c < 5 { 0 } else { 1 };
@@ -76,8 +76,8 @@ impl Geometry {
         }
 
         const REST: [[(usize, char); NF]; 2] = [
-            [(10, 'P'), (1, 'R'), (2, 'M'), (3, 'I')],
-            [(18, 'P'), (8, 'R'), (7, 'M'), (16, 'I')],
+            [(10, 'P'), (1, 'R'), (2, 'M'), (13, 'I')],
+            [(19, 'P'), (8, 'R'), (7, 'M'), (16, 'I')],
         ];
         let mut rest_u = [[0.0; NF]; 2];
         let mut rest_v = [[0.0; NF]; 2];

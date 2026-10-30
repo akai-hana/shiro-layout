@@ -2,7 +2,7 @@
 //!
 //! Port of `shirolyzer/utils/conditions.py`.
 
-use crate::config::{Condition, Config, FingerSet};
+use crate::config::{Condition, Config};
 use crate::geometry::{finger_index, Geometry, NF, NK};
 use crate::model::{pair_feature, pt_idx};
 
@@ -13,7 +13,7 @@ pub struct Conditions {
     pub enabled: bool,
     pub rules: Vec<Condition>,
     pub pair_denied: Option<Vec<bool>>,
-    pub explicit_fingers: Vec<Vec<FingerSet>>,
+    pub explicit_fingers: Vec<Vec<std::collections::HashSet<char>>>,
 }
 
 impl Conditions {
@@ -35,7 +35,7 @@ impl Conditions {
             }
             pair_denied = Some(denied);
         }
-        let mut explicit_fingers = vec![vec![FingerSet::new(); NF]; NK];
+        let mut explicit_fingers = vec![vec![std::collections::HashSet::new(); NF]; NK];
         for gate in cfg.gate_entries() {
             if !gate.explicit {
                 continue;
