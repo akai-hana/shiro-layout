@@ -253,7 +253,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
 
 ### Branch `opt-verify`
 
-- [ ] **OPT.T4.1 — Run final gates and benchmark verification**
+- [x] **OPT.T4.1 — Run final gates and benchmark verification**
   - Run the full quality, parity, determinism, and performance gates from the
     final layout.
   - Compare with `OPT_BASELINE.md` and record the final numbers.
@@ -325,3 +325,9 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   `delta_quench_matches_full_quench`, which requires the delta quench and the
   full-score quench to return the same permutation and score for a fixed seed,
   as the regression gate for the decision.
+- 2026-10-30: Ran the final gates on `opt-verify`: fmt, clippy, release tests,
+  check-baseline, analyze, compare, audit, thread-count determinism, and the
+  full benchmark suite all pass. Small compute is 2.01x faster than baseline
+  and analyze is 1.60x faster; the default run selects the same shiro layout in
+  30.6 s. Recorded the numbers in
+  `shirolyzer/results/rust/OPT_VERIFICATION.md`.
