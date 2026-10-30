@@ -67,25 +67,21 @@ impl Gates {
     ) -> HashSet<(usize, usize)> {
         let mut out = HashSet::new();
         for (pos, key) in keys.iter().enumerate() {
-            let neighbours: Vec<char> = keys
-                .iter()
-                .enumerate()
-                .filter(|(i, _)| *i != pos)
-                .map(|(_, c)| *c)
-                .collect();
+            let contains_neighbour = |context: &HashSet<char>| {
+                keys.iter()
+                    .enumerate()
+                    .any(|(i, c)| i != pos && context.contains(c))
+            };
             for ((gk, gf), (mode, context)) in gates {
                 if gk != key {
                     continue;
                 }
                 let matched = match mode {
                     GateMode::Never => true,
-                    GateMode::Block => context
-                        .as_ref()
-                        .map(|s| neighbours.iter().any(|n| s.contains(n)))
-                        .unwrap_or(false),
+                    GateMode::Block => context.as_ref().map(contains_neighbour).unwrap_or(false),
                     GateMode::Only => context
                         .as_ref()
-                        .map(|s| !neighbours.iter().any(|n| s.contains(n)))
+                        .map(|s| !contains_neighbour(s))
                         .unwrap_or(true),
                 };
                 if matched {
@@ -110,36 +106,74 @@ impl Gates {
             size *= NF;
         }
         let mut out = vec![0.0; size];
-        if n == 0 {
-            return out;
+        self.penalty_mask_into(keys, conditions, &mut out);
+        out
+    }
+
+    pub fn penalty_mask_into(
+        &self,
+        keys: &[char],
+        conditions: &crate::conditions::Conditions,
+        out: &mut [f64],
+    ) {
+        let n = keys.len();
+        let mut size = 1usize;
+        for _ in 0..n {
+            size *= NF;
         }
-        let forb = self.forbidden_pairs(keys, &self.all);
-        let mut hit = vec![false; size];
-        for (pos, fi) in forb {
-            for idx in 0..size {
-                let f = (idx / NF.pow((n - 1 - pos) as u32)) % NF;
-                if f == fi {
-                    hit[idx] = true;
+        let out = &mut out[..size];
+        conditions.penalty_mask_into(keys, out);
+        if n == 0 {
+            return;
+        }
+        let mut forb = vec![false; n * NF];
+        for (pos, key) in keys.iter().enumerate() {
+            let contains_neighbour = |context: &HashSet<char>| {
+                keys.iter()
+                    .enumerate()
+                    .any(|(i, c)| i != pos && context.contains(c))
+            };
+            for ((gk, gf), (mode, context)) in &self.all {
+                if gk != key {
+                    continue;
+                }
+                let matched = match mode {
+                    GateMode::Never => true,
+                    GateMode::Block => context.as_ref().map(contains_neighbour).unwrap_or(false),
+                    GateMode::Only => context
+                        .as_ref()
+                        .map(|s| !contains_neighbour(s))
+                        .unwrap_or(true),
+                };
+                if matched {
+                    if let Some(fi) = finger_index(*gf) {
+                        forb[pos * NF + fi] = true;
+                    }
                 }
             }
         }
         for (seq, fingers) in &self.sequences {
             if seq.as_slice() == keys {
                 for (pos, finger) in fingers.iter().enumerate() {
-                    for idx in 0..size {
-                        let f = (idx / NF.pow((n - 1 - pos) as u32)) % NF;
+                    for f in 0..NF {
                         if f != *finger {
-                            hit[idx] = true;
+                            forb[pos * NF + f] = true;
                         }
                     }
                 }
             }
         }
-        let cond = conditions.penalty_mask(keys);
-        for i in 0..size {
-            out[i] = if hit[i] { XPEN } else { 0.0 } + cond[i];
+        for (idx, value) in out.iter_mut().enumerate() {
+            let mut div = 1usize;
+            for pos in (0..n).rev() {
+                let f = (idx / div) % NF;
+                if forb[pos * NF + f] {
+                    *value += XPEN;
+                    break;
+                }
+                div *= NF;
+            }
         }
-        out
     }
 }
 

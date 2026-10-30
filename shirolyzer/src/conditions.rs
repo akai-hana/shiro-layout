@@ -110,34 +110,41 @@ impl Conditions {
             size *= NF;
         }
         let mut out = vec![0.0; size];
+        self.penalty_mask_into(keys, &mut out);
+        out
+    }
+
+    pub fn penalty_mask_into(&self, keys: &[char], out: &mut [f64]) {
+        let n = keys.len();
+        let mut size = 1usize;
+        for _ in 0..n {
+            size *= NF;
+        }
+        let out = &mut out[..size];
+        out.fill(0.0);
         if !self.enabled || n < 2 {
-            return out;
+            return;
         }
         let Some(denied) = &self.pair_denied else {
-            return out;
+            return;
         };
-        let ids: Vec<usize> = keys
-            .iter()
-            .map(|c| crate::geometry::key_index(&c.to_string()).unwrap())
-            .collect();
-        for idx in 0..size {
-            let mut fingers = [0usize; 3];
-            for pos in 0..n {
-                fingers[pos] = (idx / NF.pow((n - 1 - pos) as u32)) % NF;
-            }
+        for (idx, value) in out.iter_mut().enumerate() {
             let mut penalty = 0.0;
+            let mut div = 1usize;
+            let mut fingers = [0usize; 3];
+            for pos in (0..n).rev() {
+                fingers[pos] = (idx / div) % NF;
+                div *= NF;
+            }
             for pos in 0..n - 1 {
-                let a = ids[pos];
-                let fa = fingers[pos];
-                let b = ids[pos + 1];
-                let fb = fingers[pos + 1];
-                if denied[pt_idx(a, fa, b, fb)] {
+                let a = crate::geometry::key_index_char(keys[pos]).unwrap();
+                let b = crate::geometry::key_index_char(keys[pos + 1]).unwrap();
+                if denied[pt_idx(a, fingers[pos], b, fingers[pos + 1])] {
                     penalty += PENALTY;
                 }
             }
-            out[idx] = penalty;
+            *value = penalty;
         }
-        out
     }
 }
 

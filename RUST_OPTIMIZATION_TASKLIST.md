@@ -210,7 +210,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
 
 ### Branch `opt-analyzer`
 
-- [ ] **OPT.T2.1 — Parallelize table build and trim penalty-mask allocation**
+- [x] **OPT.T2.1 — Parallelize table build and trim penalty-mask allocation**
   - Build independent bigram/trigram table rows in parallel and reduce
     temporary allocations in `Gates::penalty_mask`, `forbidden_pairs`, and
     `Model::tri_many` without changing table values.
@@ -298,3 +298,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   ~1.73 s; selected layout and scores are unchanged.
 - 2026-10-30: Recorded the generator before/after numbers, determinism check,
   and parity evidence in `shirolyzer/results/rust/OPT_GENERATOR.md`.
+- 2026-10-30: Parallelized bigram/trigram table rows and added reusable
+  `penalty_mask_into`/`tri_many_into` paths. `Tables::build` dropped from
+  ~17.7 ms to ~9.6 ms with four Rayon threads; table fixtures and audit still
+  pass within tolerance.

@@ -7,6 +7,7 @@ use crate::config::Config;
 use crate::gates::Gates;
 use crate::geometry::{Geometry, KEYS, NF, NK};
 use crate::model::{Model, ModelTables, W_ALT};
+use rayon::prelude::*;
 
 pub const N: usize = 31;
 pub const SPACE_ID: usize = 30;
@@ -52,60 +53,74 @@ impl Tables {
     ) -> Self {
         let mt = model.tables(geom);
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
+        let chars: Vec<char> = (0..NK).map(key_char).collect();
 
         let mut big = vec![f64::INFINITY; N * N];
         let mut big_f = vec![0u8; N * N];
-        for a in 0..NK {
-            for b in 0..NK {
-                let pm = gates.penalty_mask(&[key_char(a), key_char(b)], conditions);
-                let mut best = f64::INFINITY;
-                let mut best_f = 0usize;
-                for fa in 0..NF {
-                    for fb in 0..NF {
-                        let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)]
-                            + 2.0 * PRESS
-                            + pm[fa * NF + fb];
-                        if a == b && fa != fb {
-                            c = f64::INFINITY;
-                        }
-                        if c < best {
-                            best = c;
-                            best_f = fa * 5 + fb;
-                        }
-                    }
-                }
-                big[big_idx(a, b)] = best;
-                big_f[big_idx(a, b)] = best_f as u8;
-            }
-        }
-
-        let mut tri = vec![f64::INFINITY; N * N * N];
-        let mut tri_f = vec![[0u8; 3]; N * N * N];
-        for a in 0..NK {
-            for b in 0..NK {
-                for c in 0..NK {
-                    let pm =
-                        gates.penalty_mask(&[key_char(a), key_char(b), key_char(c)], conditions);
-                    let costs = model.tri_many(geom, &mt, &[a], &[b], &[c]);
+        big.par_chunks_mut(N)
+            .zip(big_f.par_chunks_mut(N))
+            .enumerate()
+            .take(NK)
+            .for_each(|(a, (big_row, big_f_row))| {
+                let mut pm = vec![0.0; NF * NF];
+                let ca = chars[a];
+                for b in 0..NK {
+                    gates.penalty_mask_into(&[ca, chars[b]], conditions, &mut pm);
                     let mut best = f64::INFINITY;
-                    let mut best_f = [0u8; 3];
-                    for f1 in 0..NF {
-                        for f2 in 0..NF {
-                            for f3 in 0..NF {
-                                let idx = (f1 * NF + f2) * NF + f3;
-                                let value = costs[idx] + 3.0 * PRESS + pm[idx];
-                                if value < best {
-                                    best = value;
-                                    best_f = [f1 as u8, f2 as u8, f3 as u8];
-                                }
+                    let mut best_f = 0usize;
+                    for fa in 0..NF {
+                        for fb in 0..NF {
+                            let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)]
+                                + 2.0 * PRESS
+                                + pm[fa * NF + fb];
+                            if a == b && fa != fb {
+                                c = f64::INFINITY;
+                            }
+                            if c < best {
+                                best = c;
+                                best_f = fa * 5 + fb;
                             }
                         }
                     }
-                    tri[tri_idx(a, b, c)] = best;
-                    tri_f[tri_idx(a, b, c)] = best_f;
+                    big_row[b] = best;
+                    big_f_row[b] = best_f as u8;
                 }
-            }
-        }
+            });
+
+        let mut tri = vec![f64::INFINITY; N * N * N];
+        let mut tri_f = vec![[0u8; 3]; N * N * N];
+        tri.par_chunks_mut(N * N)
+            .zip(tri_f.par_chunks_mut(N * N))
+            .enumerate()
+            .take(NK)
+            .for_each(|(a, (tri_row, tri_f_row))| {
+                let mut pm = vec![0.0; NF * NF * NF];
+                let mut costs = vec![0.0; NF * NF * NF];
+                let ca = chars[a];
+                for b in 0..NK {
+                    let cb = chars[b];
+                    for c in 0..NK {
+                        gates.penalty_mask_into(&[ca, cb, chars[c]], conditions, &mut pm);
+                        model.tri_many_into(geom, &mt, &[a], &[b], &[c], &mut costs);
+                        let mut best = f64::INFINITY;
+                        let mut best_f = [0u8; 3];
+                        for f1 in 0..NF {
+                            for f2 in 0..NF {
+                                for f3 in 0..NF {
+                                    let idx = (f1 * NF + f2) * NF + f3;
+                                    let value = costs[idx] + 3.0 * PRESS + pm[idx];
+                                    if value < best {
+                                        best = value;
+                                        best_f = [f1 as u8, f2 as u8, f3 as u8];
+                                    }
+                                }
+                            }
+                        }
+                        tri_row[b * N + c] = best;
+                        tri_f_row[b * N + c] = best_f;
+                    }
+                }
+            });
 
         for a in 0..NK {
             let (f, _) = argmin_finger(&e_with_press[a * NF..(a + 1) * NF]);

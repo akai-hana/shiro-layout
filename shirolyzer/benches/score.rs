@@ -13,7 +13,12 @@ fn main() {
     let model = config::build_model(&cfg).expect("model");
     let gates = gates::Gates::from_config(&cfg);
     let conds = conditions::Conditions::from_config(&cfg, &geom);
+    let start = Instant::now();
     let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds);
+    println!(
+        "tables build: {:.3} ms",
+        start.elapsed().as_secs_f64() * 1e3
+    );
     let paths: Vec<PathBuf> = cfg
         .primary_corpus
         .iter()

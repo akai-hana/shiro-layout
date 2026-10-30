@@ -577,8 +577,22 @@ impl Model {
         b: &[usize],
         c: &[usize],
     ) -> Vec<f64> {
+        let mut out = vec![0.0; a.len() * NF * NF * NF];
+        self.tri_many_into(geom, tabs, a, b, c, &mut out);
+        out
+    }
+
+    pub fn tri_many_into(
+        &self,
+        geom: &Geometry,
+        tabs: &ModelTables,
+        a: &[usize],
+        b: &[usize],
+        c: &[usize],
+        out: &mut [f64],
+    ) {
         let n = a.len();
-        let mut out = vec![0.0; n * NF * NF * NF];
+        debug_assert_eq!(out.len(), n * NF * NF * NF);
         let gamma13 = self.p("gamma13");
         let gamma13_alt = self.p("gamma13_alt");
         for i in 0..n {
@@ -644,7 +658,6 @@ impl Model {
                 }
             }
         }
-        out
     }
 
     pub fn tri_block(
