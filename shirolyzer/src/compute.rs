@@ -564,7 +564,14 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 if !cand_s.is_finite() {
                     continue;
                 }
-                let (cand, cand_s) = search::quench_generic(&constrained, &cand, cand_s, &mut rng);
+                let (cand, cand_s) = search::quench_constrained(
+                    &primary_ev,
+                    secondary_ev,
+                    &cand,
+                    limit,
+                    cand_s,
+                    &mut rng,
+                );
                 if cand_s < best_sec - 1e-12 {
                     best_perm = cand;
                     best_sec = cand_s;
