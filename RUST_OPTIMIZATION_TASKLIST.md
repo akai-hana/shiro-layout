@@ -1,6 +1,6 @@
 # Shirolyzer Rust Optimization — Tasklist and Implementation Plan
 
-Status: in progress. This is the follow-up optimization epic to
+Status: complete and published. This is the follow-up optimization epic to
 `RUST_TAKEOVER_TASKLIST.md`. The Rust binary is already the only runtime; this
 plan makes the generator and analyzer faster without changing the objective,
 the calibrated defaults, the corpora, or the audit rulings.
@@ -259,7 +259,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   - Compare with `OPT_BASELINE.md` and record the final numbers.
   - Done when all gates pass and the verification report is committed.
 
-- [ ] **OPT.T4.2 — Record completion, tag, and publish optimization branches**
+- [x] **OPT.T4.2 — Record completion, tag, and publish optimization branches**
   - Write `shirolyzer/results/rust/OPT_SUMMARY.md`, mark this tasklist complete,
     and create annotated tag `rust-optimization`.
   - Push all six branches, close issues #76-#89, and fast-forward `main` to the
@@ -331,3 +331,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   and analyze is 1.60x faster; the default run selects the same shiro layout in
   30.6 s. Recorded the numbers in
   `shirolyzer/results/rust/OPT_VERIFICATION.md`.
+- 2026-10-30: Wrote `shirolyzer/results/rust/OPT_SUMMARY.md`, marked this
+  tasklist complete, tagged `rust-optimization`, pushed the six optimization
+  branches, closed issues #76-#89, and fast-forwarded `main` to the optimized
+  runtime.
