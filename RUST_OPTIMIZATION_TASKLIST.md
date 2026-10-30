@@ -202,7 +202,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   - Keep the full-score fallback and randomized delta-vs-full tests.
   - Done when `delta_cross`/`delta` benchmarks improve and scores are unchanged.
 
-- [ ] **OPT.T1.4 — Record generator benchmarks and parity**
+- [x] **OPT.T1.4 — Record generator benchmarks and parity**
   - Add generator-focused bench output if needed and write
     `shirolyzer/results/rust/OPT_GENERATOR.md`.
   - Done when before/after numbers, determinism checks, and score/selection
@@ -296,3 +296,5 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   ~15.8 us to ~12.0 us per delta swap, ~221 ms to ~172 ms per quench, and
   ~61k to ~88k anneal iterations/s. Small compute dropped from ~2.27 s to
   ~1.73 s; selected layout and scores are unchanged.
+- 2026-10-30: Recorded the generator before/after numbers, determinism check,
+  and parity evidence in `shirolyzer/results/rust/OPT_GENERATOR.md`.
