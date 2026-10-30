@@ -183,7 +183,7 @@ impl Default for Scales {
     }
 }
 
-#[derive(Default)]
+#[derive(Clone, Debug, Default)]
 pub struct Parts {
     pub vert: Vec<f64>,
     pub cross: Vec<f64>,
@@ -193,6 +193,7 @@ pub struct Parts {
     pub shift: Vec<f64>,
 }
 
+#[derive(Clone, Debug)]
 pub struct ModelTables {
     pub e: Vec<f64>,
     pub pt: Vec<f64>,
@@ -262,7 +263,7 @@ impl Model {
         let mut nd = vec![0.0; NK * NF];
         let mut ndr = vec![0.0; NK * NF];
         let dflt = self.default_finger_index();
-        let rest_keys: [usize; 8] = [10, 1, 2, 3, 18, 8, 7, 16];
+        let rest_keys: [usize; 8] = [10, 1, 2, 13, 19, 8, 7, 16];
         let mut is_rest = [false; NK];
         for k in rest_keys {
             is_rest[k] = true;

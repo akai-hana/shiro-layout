@@ -6,7 +6,7 @@
 
 use std::collections::{HashMap, HashSet};
 
-use crate::config::{AltGate, AltSequence, Config, GateMode};
+use crate::config::{Config, GateMode};
 use crate::geometry::{finger_index, FINGERS, NF};
 
 pub const XPEN: f64 = 12.0;
@@ -109,8 +109,7 @@ impl Gates {
         if n == 0 {
             return out;
         }
-        let gates = self.explicit_subset();
-        let forb = self.forbidden_pairs(keys, &gates);
+        let forb = self.forbidden_pairs(keys, &self.all);
         let mut hit = vec![false; size];
         for (pos, fi) in forb {
             for idx in 0..size {
@@ -137,18 +136,6 @@ impl Gates {
             out[i] = if hit[i] { XPEN } else { 0.0 } + cond[i];
         }
         out
-    }
-}
-
-impl AltGate {
-    pub fn finger_letter(&self) -> char {
-        self.finger
-    }
-}
-
-impl AltSequence {
-    pub fn fingerprint(&self) -> (&[char], &[usize]) {
-        (&self.sequence, &self.fingers)
     }
 }
 
