@@ -224,7 +224,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
     format the surviving top entries.
   - Done when analyze text output is identical and JSON values/counts match.
 
-- [ ] **OPT.T2.3 — Parallelize corpus loading and use numeric iteration**
+- [x] **OPT.T2.3 — Parallelize corpus loading and use numeric iteration**
   - Read the three parsed JSON files concurrently, and use `bi_ids`/`tri_ids`
     with letter-index lookups instead of `HashMap<char, _>` lookups in the hot
     report loops.
@@ -306,4 +306,8 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   fingering-guide passes concurrently with `rayon::join`, and stored guide
   contexts as `[char; 3]` instead of formatting a `String` per corpus entry.
   Analyze text and JSON are unchanged; pinned four-thread median dropped from
-  0.0347 s to 0.0312 s (1.11x).
+  0.0346 s to 0.0305 s (1.13x).
+- 2026-10-30: Read the three parsed corpus files concurrently and switched the
+  report loops to the numeric `bi_ids`/`tri_ids` vectors with a fixed
+  letter-index keymap. Corpus totals, scores, categories, and guide output are
+  unchanged; the pinned median stayed flat at 0.0314 s (within run noise).

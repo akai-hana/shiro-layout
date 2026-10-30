@@ -144,9 +144,18 @@ impl Corpus {
     }
 
     fn load_parsed(dir: &Path) -> Result<Self> {
-        let letters_raw: HashMap<String, f64> = read_json(&dir.join(PARSED_FILES[0]))?;
-        let bigrams_raw: HashMap<String, f64> = read_json(&dir.join(PARSED_FILES[1]))?;
-        let trigrams_raw: HashMap<String, f64> = read_json(&dir.join(PARSED_FILES[2]))?;
+        let (letters_raw, (bigrams_raw, trigrams_raw)) = rayon::join(
+            || read_json::<HashMap<String, f64>>(&dir.join(PARSED_FILES[0])),
+            || {
+                rayon::join(
+                    || read_json::<HashMap<String, f64>>(&dir.join(PARSED_FILES[1])),
+                    || read_json::<HashMap<String, f64>>(&dir.join(PARSED_FILES[2])),
+                )
+            },
+        );
+        let letters_raw = letters_raw?;
+        let bigrams_raw = bigrams_raw?;
+        let trigrams_raw = trigrams_raw?;
         let mut letters = HashMap::new();
         for (k, v) in letters_raw {
             if let Some(ch) = single_char(&k) {
