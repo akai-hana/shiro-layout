@@ -63,3 +63,24 @@ Fixed `--iters 200000 --runs 8 --ils 8`.
 Polishing consumes time without changing the winner. Keeping it off is
 correct.
 
+## Chosen defaults
+
+- `--iters 200000` (eight times above the measured knee; cheap insurance for
+  different corpora and reference sets)
+- `--runs 28`
+- `--ils 8`
+- `--polish-rounds 0`
+
+The previous Python-calibrated defaults were `100k/28/8/0`. The Rust sweeps
+show that the quality plateau is reached well before those values, and that
+doubling the work from 200k to 400k changes nothing. The selected defaults are
+therefore past the plateau but still finish in about one to two minutes for a
+full run.
+
+## Comparison with the Python calibration
+
+`shirolyzer/results/calibration/REPORT.md` also converged to
+`;ntgfjoehkrpmscuaydilbqvwxz,./` at primary `3.520202`, with the same secondary
+`3.704853`. The Rust binary reaches that point in seconds instead of minutes
+and can afford 200k iterations and 28 restarts by default. No new optimum
+beyond shiro was found in any sweep.
