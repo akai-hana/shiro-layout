@@ -245,7 +245,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
     or separate function, and measure quality against the benchmark seeds.
   - Done when each option has a measured speed/quality result.
 
-- [ ] **OPT.T3.2 — Decide, gate, and document pruning**
+- [x] **OPT.T3.2 — Decide, gate, and document pruning**
   - Ship only pruning that preserves the selected layout and scores; otherwise
     leave it disabled or remove it.
   - Write `shirolyzer/results/rust/OPT_PRUNING.md`.
@@ -320,3 +320,8 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   195 entries); bounded subsets, phase skips, and rare-trigram thresholds all
   changed the search path or hard-set quality. Recorded the measurements in
   `shirolyzer/results/rust/OPT_PRUNING.md`.
+- 2026-10-30: Decided to ship no pruning: the full move set and defaults stay
+  unchanged, and no flag or environment hook remains. Added
+  `delta_quench_matches_full_quench`, which requires the delta quench and the
+  full-score quench to return the same permutation and score for a fixed seed,
+  as the regression gate for the decision.
