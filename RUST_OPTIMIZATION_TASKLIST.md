@@ -230,7 +230,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
     report loops.
   - Done when corpus totals, scores, categories, and guide output match.
 
-- [ ] **OPT.T2.4 — Record analyzer benchmarks and parity**
+- [x] **OPT.T2.4 — Record analyzer benchmarks and parity**
   - Write `shirolyzer/results/rust/OPT_ANALYZER.md` with before/after medians,
     output-diff evidence, and the remaining profile.
   - Done when all analyzer gates pass.
@@ -311,3 +311,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   report loops to the numeric `bi_ids`/`tri_ids` vectors with a fixed
   letter-index keymap. Corpus totals, scores, categories, and guide output are
   unchanged; the pinned median stayed flat at 0.0314 s (within run noise).
+- 2026-10-30: Recorded analyzer before/after timings, output diffs, and the
+  remaining profile in `shirolyzer/results/rust/OPT_ANALYZER.md`. Interleaved
+  unpinned analyze medians improved from 0.0433 s to 0.0262 s (1.65x); text and
+  JSON output are identical, and the remaining cost is now `Tables::build`.
