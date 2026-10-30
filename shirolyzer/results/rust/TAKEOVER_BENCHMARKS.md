@@ -115,4 +115,5 @@ metadata field ordering.
 - The Python tree is therefore safe to remove from the default path from a
   behavioural standpoint: the Rust binary is both the faster implementation and
   the parity reference for the shipped model. This report is the baseline that
-  the post-takeover verification reruns.
+  the post-takeover verification reruns; the results are in
+  [`TAKEOVER_VERIFICATION.md`](TAKEOVER_VERIFICATION.md).
