@@ -695,3 +695,26 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod delta_tables_tests {
+    #[test]
+    fn build_is_thread_invariant() {
+        let (cfg, ev) = super::tests::setup();
+        let _ = cfg;
+        let one = rayon::ThreadPoolBuilder::new()
+            .num_threads(1)
+            .build()
+            .unwrap()
+            .install(|| super::DeltaTables::build(&ev));
+        let many = rayon::ThreadPoolBuilder::new()
+            .num_threads(8)
+            .build()
+            .unwrap()
+            .install(|| super::DeltaTables::build(&ev));
+        assert_eq!(one.cross.len(), many.cross.len());
+        for (key, list) in &one.cross {
+            assert_eq!(list, many.cross.get(key).unwrap(), "{key:?}");
+        }
+    }
+}
