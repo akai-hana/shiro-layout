@@ -211,7 +211,7 @@ with the pre-takeover baseline.
 
 ### Branch `takeover-verify`
 
-- [ ] **RTO.T4.1 — Run post-takeover gates and benchmark verification**
+- [x] **RTO.T4.1 — Run post-takeover gates and benchmark verification**
   - Run the full quality gates and the takeover benchmark from the new layout.
   - Compare selected layout/scores and short-command timings with the
     pre-takeover report; record both.
@@ -254,3 +254,7 @@ Python tree is never deleted from history, only from the current `main` tree.
   the new layout, removed the Python-runtime instructions, mapped the retained
   development tools separately, and added a takeover note to the rewrite
   completion record.
+- 2026-10-30: Reran all quality gates and the takeover benchmark from the new
+  layout. All gates pass, the selected layout and scores are unchanged, and
+  the small compute run is slightly faster. Recorded both in
+  `shirolyzer/results/rust/TAKEOVER_VERIFICATION.md`.
