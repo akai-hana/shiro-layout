@@ -6,7 +6,6 @@
 //! letters, so the weighted trigram sum is updated from a per-letter incidence
 //! list instead of rescanning the whole corpus.
 
-use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use rand::seq::SliceRandom;
@@ -14,7 +13,7 @@ use rand::{Rng, SeedableRng};
 use rayon::prelude::*;
 
 use crate::evaluate::Evaluator;
-use crate::scorer::tri_idx;
+use crate::scorer::tri_idx_u8;
 
 pub trait ScoreFn {
     fn score(&self, perm: &[usize]) -> f64;
@@ -82,18 +81,10 @@ fn moves() -> &'static Moves {
 /// For a move that swaps `(i,j)` and `(k,l)`, a trigram changes because of
 /// both swaps only when it contains a letter from each pair.  Keeping that
 /// intersection lets a two-pair candidate be scored from the cached
-/// single-swap deltas plus a few hundred cross terms.
+/// single-swap deltas plus a few hundred cross terms.  The table is indexed by
+/// the same move index as [`Moves::two_pairs`], so the hot path has no hashing.
 pub struct DeltaTables {
-    cross: HashMap<[u8; 4], Vec<u16>>,
-}
-
-fn pair_key(a: usize, b: usize, c: usize, d: usize) -> [u8; 4] {
-    let (p, q) = if (a, b) <= (c, d) {
-        ((a, b), (c, d))
-    } else {
-        ((c, d), (a, b))
-    };
-    [p.0 as u8, p.1 as u8, q.0 as u8, q.1 as u8]
+    cross: Vec<Vec<u16>>,
 }
 
 fn intersection(
@@ -132,36 +123,43 @@ fn intersection(
 
 impl DeltaTables {
     pub fn build(ev: &Evaluator) -> Self {
-        let mut jobs: Vec<([u8; 4], (usize, usize, usize, usize))> = Vec::with_capacity(44_850);
-        for a in 0..26 {
-            for b in a + 1..26 {
-                for c in b + 1..26 {
-                    for d in c + 1..26 {
-                        for (w, x, y, z) in [(a, b, c, d), (a, c, b, d), (a, d, b, c)] {
-                            jobs.push((pair_key(w, x, y, z), (w, x, y, z)));
-                        }
-                    }
-                }
-            }
-        }
+        let m = moves();
         let n = ev.tri_idx_slot.len();
-        let cross: HashMap<[u8; 4], Vec<u16>> = jobs
-            .into_par_iter()
-            .map_with(
-                (vec![0u32; n], 0u32),
-                |(seen, stamp), (key, (w, x, y, z))| {
-                    (key, intersection(&ev.inc, w, x, y, z, seen, stamp))
-                },
-            )
+        let cross: Vec<Vec<u16>> = m
+            .two_pairs
+            .par_iter()
+            .map_with((vec![0u32; n], 0u32), |(seen, stamp), &[p1, p2]| {
+                let [a, b] = m.pairs[p1];
+                let [c, d] = m.pairs[p2];
+                intersection(&ev.inc, a, b, c, d, seen, stamp)
+            })
             .collect();
         Self { cross }
     }
 
-    fn get(&self, i1: usize, j1: usize, i2: usize, j2: usize) -> &[u16] {
-        self.cross
-            .get(&pair_key(i1, j1, i2, j2))
-            .map(|v| v.as_slice())
-            .unwrap_or(&[])
+    #[inline]
+    fn get(&self, move_index: usize) -> &[u16] {
+        &self.cross[move_index]
+    }
+
+    #[cfg(test)]
+    fn get_pairs(&self, i1: usize, j1: usize, i2: usize, j2: usize) -> &[u16] {
+        let m = moves();
+        let pair_index = |i: usize, j: usize| {
+            m.pairs
+                .iter()
+                .position(|p| *p == [i, j])
+                .expect("pair exists")
+        };
+        let p1 = pair_index(i1, j1);
+        let p2 = pair_index(i2, j2);
+        let key = if p1 < p2 { [p1, p2] } else { [p2, p1] };
+        let mi = m
+            .two_pairs
+            .iter()
+            .position(|p| *p == key)
+            .expect("pair of pairs exists");
+        self.get(mi)
     }
 }
 
@@ -169,7 +167,7 @@ impl DeltaTables {
 struct Local<'a> {
     ev: &'a Evaluator<'a>,
     perm: Vec<usize>,
-    kid: [usize; 26],
+    kid: [u8; 26],
     weighted: f64,
     pen: f64,
     seen: Vec<u32>,
@@ -178,13 +176,17 @@ struct Local<'a> {
 
 impl<'a> Local<'a> {
     fn new(ev: &'a Evaluator<'a>, perm: &[usize]) -> Self {
-        let mut kid = [0usize; 26];
+        let mut kid = [0u8; 26];
         for (li, &slot) in perm.iter().enumerate() {
             kid[li] = ev.slot_key[slot];
         }
         let mut weighted = 0.0;
         for (ids, &count) in ev.tri_idx_slot.iter().zip(ev.tri_counts.iter()) {
-            let idx = tri_idx(kid[ids[0]], kid[ids[1]], kid[ids[2]]);
+            let idx = tri_idx_u8(
+                kid[ids[0] as usize],
+                kid[ids[1] as usize],
+                kid[ids[2] as usize],
+            );
             weighted += ev.tables.tri[idx] * count;
         }
         Self {
@@ -203,7 +205,7 @@ impl<'a> Local<'a> {
         self.weighted / self.ev.n_tri + self.pen
     }
 
-    fn delta(&mut self, kid2: &[usize; 26], changed: &[usize]) -> f64 {
+    fn delta(&mut self, kid2: &[u8; 26], changed: &[usize]) -> f64 {
         self.stamp = self.stamp.wrapping_add(1);
         if self.stamp == 0 {
             self.seen.fill(0);
@@ -213,16 +215,18 @@ impl<'a> Local<'a> {
         let mut dw = 0.0;
         for &letter in changed {
             let list = &self.ev.inc[letter];
-            for x in 0..list.len() {
-                let t = list[x] as usize;
+            for &t in list {
+                let t = t as usize;
                 if self.seen[t] == stamp {
                     continue;
                 }
                 self.seen[t] = stamp;
                 let ids = self.ev.tri_idx_slot[t];
-                let old = self.ev.tables.tri
-                    [tri_idx(self.kid[ids[0]], self.kid[ids[1]], self.kid[ids[2]])];
-                let new = self.ev.tables.tri[tri_idx(kid2[ids[0]], kid2[ids[1]], kid2[ids[2]])];
+                let a = ids[0] as usize;
+                let b = ids[1] as usize;
+                let c = ids[2] as usize;
+                let old = self.ev.tables.tri[tri_idx_u8(self.kid[a], self.kid[b], self.kid[c])];
+                let new = self.ev.tables.tri[tri_idx_u8(kid2[a], kid2[b], kid2[c])];
                 dw += (new - old) * self.ev.tri_counts[t];
             }
         }
@@ -237,6 +241,9 @@ impl<'a> Local<'a> {
     }
 
     fn delta_cross(&mut self, i1: usize, j1: usize, i2: usize, j2: usize, list: &[u16]) -> f64 {
+        if list.is_empty() {
+            return 0.0;
+        }
         let mut kid1 = self.kid;
         kid1[i1] = self.kid[j1];
         kid1[j1] = self.kid[i1];
@@ -250,11 +257,13 @@ impl<'a> Local<'a> {
         for &t in list {
             let t = t as usize;
             let ids = self.ev.tri_idx_slot[t];
-            let old =
-                self.ev.tables.tri[tri_idx(self.kid[ids[0]], self.kid[ids[1]], self.kid[ids[2]])];
-            let only1 = self.ev.tables.tri[tri_idx(kid1[ids[0]], kid1[ids[1]], kid1[ids[2]])];
-            let only2 = self.ev.tables.tri[tri_idx(kid2[ids[0]], kid2[ids[1]], kid2[ids[2]])];
-            let both = self.ev.tables.tri[tri_idx(kid12[ids[0]], kid12[ids[1]], kid12[ids[2]])];
+            let a = ids[0] as usize;
+            let b = ids[1] as usize;
+            let c = ids[2] as usize;
+            let old = self.ev.tables.tri[tri_idx_u8(self.kid[a], self.kid[b], self.kid[c])];
+            let only1 = self.ev.tables.tri[tri_idx_u8(kid1[a], kid1[b], kid1[c])];
+            let only2 = self.ev.tables.tri[tri_idx_u8(kid2[a], kid2[b], kid2[c])];
+            let both = self.ev.tables.tri[tri_idx_u8(kid12[a], kid12[b], kid12[c])];
             dw += (both - only1 - only2 + old) * self.ev.tri_counts[t];
         }
         dw
@@ -271,7 +280,7 @@ impl<'a> Local<'a> {
         self.score()
     }
 
-    fn undo_swap(&mut self, i: usize, j: usize, w: f64, kid: [usize; 26]) {
+    fn undo_swap(&mut self, i: usize, j: usize, w: f64, kid: [u8; 26]) {
         self.perm.swap(i, j);
         self.weighted = w;
         self.kid = kid;
@@ -292,15 +301,7 @@ impl<'a> Local<'a> {
         self.score()
     }
 
-    fn undo_cycle3(
-        &mut self,
-        i: usize,
-        j: usize,
-        k: usize,
-        w: f64,
-        kid: [usize; 26],
-        p: [usize; 3],
-    ) {
+    fn undo_cycle3(&mut self, i: usize, j: usize, k: usize, w: f64, kid: [u8; 26], p: [usize; 3]) {
         self.perm[i] = p[0];
         self.perm[j] = p[1];
         self.perm[k] = p[2];
@@ -412,7 +413,7 @@ pub fn quench(
                         v
                     }
                 };
-                let dc = st.delta_cross(i1, j1, i2, j2, tables.get(i1, j1, i2, j2));
+                let dc = st.delta_cross(i1, j1, i2, j2, tables.get(mi));
                 let s = cur + (d1 + d2 + dc) / ev.n_tri;
                 if s < cur - 1e-12 {
                     st.swap(i1, j1);
@@ -817,7 +818,7 @@ mod tests {
             let [i1, j1, i2, j2] = idx;
             let d1 = st.delta_swap(i1, j1);
             let d2 = st.delta_swap(i2, j2);
-            let dc = st.delta_cross(i1, j1, i2, j2, tables.get(i1, j1, i2, j2));
+            let dc = st.delta_cross(i1, j1, i2, j2, tables.get_pairs(i1, j1, i2, j2));
             let predicted = st.score() + (d1 + d2 + dc) / ev.n_tri;
             let mut full = st.perm.clone();
             full.swap(i1, j1);
@@ -874,8 +875,8 @@ mod delta_tables_tests {
             .unwrap()
             .install(|| super::DeltaTables::build(&ev));
         assert_eq!(one.cross.len(), many.cross.len());
-        for (key, list) in &one.cross {
-            assert_eq!(list, many.cross.get(key).unwrap(), "{key:?}");
+        for (list, other) in one.cross.iter().zip(many.cross.iter()) {
+            assert_eq!(list, other);
         }
     }
 }

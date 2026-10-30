@@ -195,7 +195,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   - Done when a fixed seed produces identical JSON for 1 and 16 threads and
     quality is at least as good as the serial path on the benchmark set.
 
-- [ ] **OPT.T1.3 — Micro-optimize delta scoring**
+- [x] **OPT.T1.3 — Micro-optimize delta scoring**
   - Store key ids as `u8`, copy smaller arrays, replace the cross-table
     `HashMap<[u8; 4], Vec<u16>>` with a dense move-indexed table, and reuse
     scratch buffers where safe.
@@ -291,3 +291,8 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
 - 2026-10-30: Parallelized ILS rows and polish candidates with per-candidate RNG
   streams. Fixed seeds produce identical result JSON for 1 and 16 threads
   (apart from elapsed time and the output path).
+- 2026-10-30: Stored key/trigram ids as `u8` and replaced the cross-table
+  `HashMap` with a dense move-indexed `Vec`. Benchmarks improved from
+  ~15.8 us to ~12.0 us per delta swap, ~221 ms to ~172 ms per quench, and
+  ~61k to ~88k anneal iterations/s. Small compute dropped from ~2.27 s to
+  ~1.73 s; selected layout and scores are unchanged.
