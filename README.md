@@ -142,7 +142,11 @@ research/                 Historical investigation reports
 - [`shirolyzer/results/rust/DIVERSITY_REPORT.md`](shirolyzer/results/rust/DIVERSITY_REPORT.md)
   — near-equal distributions found during tuning.
 - [`shirolyzer/results/rust/SUMMARY.md`](shirolyzer/results/rust/SUMMARY.md)
-  — final completion record and gate results.
+  — rewrite completion record and gate results.
+- [`shirolyzer/results/rust/TAKEOVER_SUMMARY.md`](shirolyzer/results/rust/TAKEOVER_SUMMARY.md)
+  — takeover completion record, publication status, and Python-removal decision.
+- [`shirolyzer/results/rust/TAKEOVER_VERIFICATION.md`](shirolyzer/results/rust/TAKEOVER_VERIFICATION.md)
+  — post-takeover gates and benchmark comparison.
 - [`shirolyzer/results/calibration/REPORT.md`](shirolyzer/results/calibration/REPORT.md)
   — runtime calibration and default rationale.
 - [`shirolyzer/results/validation/REPORT.md`](shirolyzer/results/validation/REPORT.md)
