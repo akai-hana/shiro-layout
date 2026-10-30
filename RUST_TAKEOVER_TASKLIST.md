@@ -1,8 +1,9 @@
 # Shirolyzer Rust Takeover — Tasklist and Implementation Plan
 
-Status: in progress. This is the follow-up epic to `RUST_REWRITE_TASKLIST.md`.
-The rewrite is complete; this plan makes the Rust implementation the only
-runtime implementation and moves it into `shirolyzer/`.
+Status: complete and published. This is the follow-up epic to
+`RUST_REWRITE_TASKLIST.md`. The rewrite is complete; this plan made the Rust
+implementation the only runtime implementation and moved it into
+`shirolyzer/`.
 
 Source history: `RUST_REWRITE_SPEC_LIST.txt` remains unchanged. The
 pre-takeover benchmark is
@@ -218,7 +219,7 @@ with the pre-takeover baseline.
   - Done when all gates pass and the post-move numbers are committed.
   - Issue: #74.
 
-- [ ] **RTO.T4.2 — Record completion, tag, and publish takeover branches**
+- [x] **RTO.T4.2 — Record completion, tag, and publish takeover branches**
   - Write `shirolyzer/results/rust/TAKEOVER_SUMMARY.md`, mark this tasklist
     complete, and create annotated tag `rust-takeover`.
   - Push all six branches, close issues #66–#75, and fast-forward `main` to the
@@ -258,3 +259,7 @@ Python tree is never deleted from history, only from the current `main` tree.
   layout. All gates pass, the selected layout and scores are unchanged, and
   the small compute run is slightly faster. Recorded both in
   `shirolyzer/results/rust/TAKEOVER_VERIFICATION.md`.
+- 2026-10-30: Wrote `shirolyzer/results/rust/TAKEOVER_SUMMARY.md`, marked this
+  plan complete, tagged the final commit `rust-takeover`, pushed all six
+  branches, closed issues #66–#75, and fast-forwarded `main` to the takeover
+  head.

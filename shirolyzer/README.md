@@ -473,6 +473,10 @@ fitting commands.
   with two materially different valid layouts.
 - `shirolyzer/results/round8/REPORT_geo.md` — historical round-8 pattern-model
   report, with its audit output, leave-one-out log, and fingering review.
+- `shirolyzer/results/rust/TAKEOVER_SUMMARY.md` — takeover completion record,
+  publication status, and Python-removal decision.
+- `shirolyzer/results/rust/TAKEOVER_VERIFICATION.md` — post-takeover gates and
+  benchmark comparison.
 
 Committed reports and artifacts remain in the repository for traceability;
 other `shirolyzer/results/` files are local outputs.
