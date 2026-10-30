@@ -17,23 +17,29 @@ XKB symbols and installer needed to try a generated arrangement on X11.
 - **Reference comparison** — ranks the layouts listed in a TOML reference file.
 - **XKB workflow** — converts a layout string into symbols and installs it.
 
-The primary implementation is the Rust binary in `rust/` (crate
+The primary implementation is the Rust binary built from `shirolyzer/` (crate
 `shirolyzer`).  It provides `compute`, `analyze`, `render`, `xkb`, `compare`,
-`audit`, and `check-baseline`.  The frozen Python package under `shirolyzer/`
-remains the parity oracle and still contains the corpus parsers and
-model-refitting tools.  The rewrite plan and results are in
-`RUST_REWRITE_TASKLIST.md` and `shirolyzer/results/rust/`.
+`audit`, and `check-baseline`.  The `shirolyzer` directory also contains the
+configuration and data; its Python modules are development tooling only: the
+corpus parsers and the model-refitting tools.  The rewrite plan and results are
+in `RUST_REWRITE_TASKLIST.md` and `shirolyzer/results/rust/`.
 
 ## Quick start
 
-Requires Rust 1.99+ for the analyzer and Python 3.11+ with the dependencies in
-`requirements.txt` for the corpus parsers and the parity oracle.
+Requires Rust 1.99+ for the analyzer.  Python 3.11+ with the dependencies in
+`requirements.txt` is needed only for the development tools that build the
+parsed corpora or refit the model.
+
+```bash
+cargo build --manifest-path shirolyzer/Cargo.toml --release
+```
+
+Optional development-tool environment:
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
-cargo build --manifest-path rust/Cargo.toml --release
 ```
 
 Build the parsed corpora (network access is required):
@@ -46,19 +52,19 @@ python3 corpora/spanish/parse_spanish.py
 Analyze a layout:
 
 ```bash
-rust/target/release/shirolyzer analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
+shirolyzer/target/release/shirolyzer analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 Render it as a staggered ASCII grid with its configured fingers:
 
 ```bash
-rust/target/release/shirolyzer render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+shirolyzer/target/release/shirolyzer render ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 Generate a layout and write it to XKB:
 
 ```bash
-rust/target/release/shirolyzer compute --name shiro --xkb --xkb-name shiro
+shirolyzer/target/release/shirolyzer compute --name shiro --xkb --xkb-name shiro
 ```
 
 `compute --device cpu` is the default and the only shipped backend;
@@ -76,7 +82,7 @@ just compute
 just analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
 just render ";ntgfjoehkrpmscuaydilbqvwxz,./"
 just test
-just parity
+just check
 ```
 
 Install the generated symbols on the current X display:
@@ -96,12 +102,12 @@ The user-facing configuration is
 the physical layout, current layout, corpora and weights, primary-sacrifice
 budget, fingermap, alt-finger rules, geometric conditions, objective priority
 tiers, and finger balance.  `general.current_layout` is the canonical layout
-used by `analyze.py` when `--layout` is omitted and by `compute.py` as its
+used by `analyze` when no layout argument is given and by `compute` as its
 punctuation/dead-key template; search seeds come from the reference file.
 
 Reference layouts live in
 [`shirolyzer/config/references.toml`](shirolyzer/config/references.toml).
-`compute.py` appends newly validated layouts to that file (or to
+`compute` appends newly validated layouts to that file (or to
 `--append-references`) so future runs can seed from them.
 
 ## Repository map
@@ -109,12 +115,14 @@ Reference layouts live in
 ```text
 corpora/shai/             English corpus parser and parsed frequencies
 corpora/spanish/          Spanish corpus parser and parsed frequencies
-shirolyzer/               Primary entry points and runtime package
-shirolyzer/commands/      Implementations of the CLI subcommands
+shirolyzer/               Rust crate, configuration, data, and dev tools
+shirolyzer/src/           Rust CLI, model, scorer, search, and outputs
+shirolyzer/tests/         Rust unit, parity, and command tests
+shirolyzer/benches/       Criterion benchmarks
 shirolyzer/config/        YAML config, references, parameters, score baseline
-shirolyzer/tests/         Unit and regression tests
 shirolyzer/results/       Local outputs and committed result reports
 shirolyzer/fitting/       Model-refitting development tools
+shirolyzer/utils/         Python modules used by the development tools
 xkb/                      Generated symbols and installer
 research/                 Historical investigation reports
 ```
@@ -147,16 +155,19 @@ research/                 Historical investigation reports
 ## Tests
 
 ```bash
-cd rust
-cargo fmt --check
-cargo clippy --all-targets -- -D warnings
-cargo test --release
-cargo run --release -- check-baseline
+cargo fmt --manifest-path shirolyzer/Cargo.toml --check
+cargo clippy --manifest-path shirolyzer/Cargo.toml --all-targets -- -D warnings
+cargo test --manifest-path shirolyzer/Cargo.toml --release
+shirolyzer/target/release/shirolyzer check-baseline
 ```
 
-The frozen Python oracle is still runnable with
-`python3 -m unittest discover -s shirolyzer/tests -v` and
-`python3 -m shirolyzer check-baseline`.
+The retained Python development tools can be checked without running the
+analyzer:
+
+```bash
+python3 -m compileall -q shirolyzer corpora
+python3 -c "import shirolyzer.fitting, shirolyzer.utils.fitlib, shirolyzer.utils.gateset"
+```
 
 ---
 

@@ -6,6 +6,12 @@ backend is CPU-only and the defaults are tuned. The user authorized publication,
 so the branches, per-task commits, and GitHub issues are live (section 3).
 Last updated: 2026-10-30.
 
+Post-rewrite note: the follow-up takeover in `RUST_TAKEOVER_TASKLIST.md` moved
+the crate from `rust/` to `shirolyzer/` and removed the Python runtime from the
+shipped tree.  Paths written as `rust/...` below are historical; the current
+runtime layout and commands are documented in `README.md` and
+`shirolyzer/README.md`.  The Rust implementation remains the primary one.
+
 This document is the implementation plan and progress tracker for the Rust rewrite
 of `shirolyzer`. It records the decisions, the git roadmap, the quality gates, and
 the tasks for each phase of the specification: simple port, CPU optimization,
@@ -398,3 +404,7 @@ Record wall-clock, iterations/second, and score equivalence in
   commit history on the six documented branches from the session snapshot
   trees, pushed every branch, fast-forwarded `main`, and opened issues
   #40-#65 (labels `rewrite`, `rust`, and the phase; one milestone per branch).
+- 2026-10-30: Started and completed the follow-up takeover epic
+  (`RUST_TAKEOVER_TASKLIST.md`): benchmarked the Python oracle, moved the crate
+  into `shirolyzer/`, removed the Python runtime, retained the corpus parsers
+  and refitting tools, and updated the docs and `justfile` for the new layout.
