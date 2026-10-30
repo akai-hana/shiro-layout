@@ -23,20 +23,6 @@ same layout and move set. Delta scoring is most valuable for the two-pair
 cross terms used by quench; single swaps still touch many trigrams, so the
 raw single-swap delta is only modestly cheaper than a full score.
 
-## End-to-end comparison with the Python oracle
-
-A small run (`--runs 0 --iters 10 --ils 1 --seed 1234`, two reference layouts)
-takes about **90 s** in Python and **2.3 s** in Rust (whole process, including
-table construction and secondary phase), roughly **39x**.
-
-The Python calibration report (`shirolyzer/results/calibration/REPORT.md`)
-records `--iters 20000 --runs 1 --ils 1` at 160 s. The Rust iteration sweep at
-`--iters 25000 --runs 8 --ils 4` completes in 18 s while doing substantially
-more search work. The CPU phase therefore clears the material-speedup goal in
-practice; the measured Rust-only delta gain over a full-score quench is 4.6x,
-and the remaining gain comes from parallel seeds and the compiled
-implementation.
-
 ## Parallel seeds
 
 `compute --runs 8 --iters 50000 --ils 2 --seed 1234` on the qwerty-only
@@ -51,3 +37,23 @@ Parallel seed evaluation gives a **2.0x** wall-clock speedup and is
 deterministic: results, best layout, best secondary, valid layouts, and
 selection are identical for both thread counts.
 
+## End-to-end comparison with the Python oracle
+
+A small run (`--runs 0 --iters 10 --ils 1 --seed 1234`, two reference layouts)
+takes about **90 s** in Python and **2.3 s** in Rust (whole process, including
+table construction and secondary phase), roughly **39x**.
+
+The Python calibration report (`shirolyzer/results/calibration/REPORT.md`)
+records `--iters 20000 --runs 1 --ils 1` at 160 s. The Rust iteration sweep at
+`--iters 25000 --runs 8 --ils 4` completes in 18 s while doing substantially
+more search work. The CPU phase therefore clears the material-speedup goal in
+practice; the measured Rust-only delta gain over a full-score quench is 4.6x,
+and the remaining gain comes from parallel seeds and the compiled
+implementation.
+
+## Score stability
+
+`cargo test --release` includes a randomized parity test asserting that
+incremental swap and 3-cycle deltas equal full rescoring within `1e-12`.
+`check-baseline` still reports 166/166 rulings and all nine reference scores
+within tolerance after optimization.
