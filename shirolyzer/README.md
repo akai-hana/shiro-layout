@@ -31,7 +31,7 @@ provided `justfile`.
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-pip install -r requirements.txt
+pip install numpy scipy PyYAML
 ```
 
 ## Quick start

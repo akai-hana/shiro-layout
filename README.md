@@ -21,14 +21,14 @@ The primary implementation is the Rust binary built from `shirolyzer/` (crate
 `shirolyzer`).  It provides `compute`, `analyze`, `render`, `xkb`, `compare`,
 `audit`, and `check-baseline`.  The `shirolyzer` directory also contains the
 configuration and data; its Python modules are development tooling only: the
-corpus parsers and the model-refitting tools.  The rewrite plan and results are
-in `RUST_REWRITE_TASKLIST.md` and `shirolyzer/results/rust/`.
+corpus parsers and the model-refitting tools.  Technical reports are in
+`shirolyzer/results/rust/`.
 
 ## Quick start
 
-Requires Rust 1.99+ for the analyzer.  Python 3.11+ with the dependencies in
-`requirements.txt` is needed only for the development tools that build the
-parsed corpora or refit the model.
+Requires Rust 1.99+ for the analyzer.  Python 3.11+ with `numpy`, `scipy`, and
+`PyYAML` is needed only for the development tools that build the parsed corpora
+or refit the model.
 
 ```bash
 cargo build --manifest-path shirolyzer/Cargo.toml --release
@@ -39,7 +39,7 @@ Optional development-tool environment:
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
-pip install -r requirements.txt
+pip install numpy scipy PyYAML
 ```
 
 Build the parsed corpora (network access is required):

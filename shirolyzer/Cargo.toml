@@ -2,7 +2,7 @@
 name = "shirolyzer"
 version = "0.1.0"
 edition = "2021"
-description = "Rust rewrite of the shirolyzer layout analyzer and generator"
+description = "Layout analyzer and generator for the Shiro layout"
 license = "MIT"
 
 [[bin]]
