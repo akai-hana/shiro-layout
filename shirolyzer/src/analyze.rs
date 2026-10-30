@@ -292,14 +292,14 @@ pub fn fingering_guide(
 ) -> HashMap<char, GuideEntry> {
     let m = keymap(layout);
     let mut agg: HashMap<char, HashMap<char, f64>> = HashMap::new();
-    let mut ctx: HashMap<char, HashMap<char, HashMap<String, f64>>> = HashMap::new();
+    let mut ctx: HashMap<char, HashMap<char, HashMap<[char; 3], f64>>> = HashMap::new();
     for (&(a, b, c), &cnt) in &corpus.trigrams {
         if !m.contains_key(&a) || !m.contains_key(&b) || !m.contains_key(&c) {
             continue;
         }
         let ids = [m[&a], m[&b], m[&c]];
         let enc = tables.tri_f[crate::scorer::tri_idx(ids[0], ids[1], ids[2])];
-        let tg = format!("{}{}{}", a, b, c);
+        let tg = [a, b, c];
         for (pos, &ch) in [a, b, c].iter().enumerate() {
             let f = decode_finger_at(enc, pos);
             *agg.entry(ch).or_default().entry(f).or_insert(0.0) += cnt;
@@ -307,7 +307,7 @@ pub fn fingering_guide(
                 .or_default()
                 .entry(f)
                 .or_default()
-                .entry(tg.clone())
+                .entry(tg)
                 .or_insert(0.0) += cnt;
         }
     }
@@ -329,10 +329,10 @@ pub fn fingering_guide(
             if f == default {
                 continue;
             }
-            let mut items: Vec<(String, f64)> = ctx
+            let mut items: Vec<([char; 3], f64)> = ctx
                 .get(&ch)
                 .and_then(|m| m.get(&f))
-                .map(|m| m.iter().map(|(k, v)| (k.clone(), *v)).collect())
+                .map(|m| m.iter().map(|(k, v)| (*k, *v)).collect())
                 .unwrap_or_default();
             items.sort_by(|a, b| {
                 b.1.partial_cmp(&a.1)
@@ -340,7 +340,13 @@ pub fn fingering_guide(
                     .then_with(|| a.0.cmp(&b.0))
             });
             items.truncate(8);
-            alt_contexts.push((f, items));
+            alt_contexts.push((
+                f,
+                items
+                    .into_iter()
+                    .map(|(tg, n)| (tg.iter().collect(), n))
+                    .collect(),
+            ));
         }
         guide.insert(
             ch,
@@ -400,10 +406,20 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         }
     };
 
-    let report = category_report(layout, &corpus, &ctx.tables, &ctx.geom);
-    let pats = trigram_patterns(layout, &corpus, &ctx.tables, &ctx.geom);
-    let use_ = finger_usage(layout, &corpus, &ctx.tables, &ctx.geom);
-    let guide = fingering_guide(layout, &corpus, &ctx.tables, &ctx.model);
+    let (report, (pats, (use_, guide))) = rayon::join(
+        || category_report(layout, &corpus, &ctx.tables, &ctx.geom),
+        || {
+            rayon::join(
+                || trigram_patterns(layout, &corpus, &ctx.tables, &ctx.geom),
+                || {
+                    rayon::join(
+                        || finger_usage(layout, &corpus, &ctx.tables, &ctx.geom),
+                        || fingering_guide(layout, &corpus, &ctx.tables, &ctx.model),
+                    )
+                },
+            )
+        },
+    );
     let primary_score = score_layout(layout, &corpus, &ctx.tables);
     let secondary_score = secondary_corpus
         .as_ref()

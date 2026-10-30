@@ -217,7 +217,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   - Done when table values still match the fixtures within `1e-12` and
     `Tables::build` is faster.
 
-- [ ] **OPT.T2.2 — Run report passes concurrently and trim fingering-guide churn**
+- [x] **OPT.T2.2 — Run report passes concurrently and trim fingering-guide churn**
   - Run category, trigram-pattern, finger-usage, and fingering-guide passes
     concurrently.
   - Encode trigram contexts without building a `String` per corpus entry; only
@@ -302,3 +302,8 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   `penalty_mask_into`/`tri_many_into` paths. `Tables::build` dropped from
   ~17.7 ms to ~9.6 ms with four Rayon threads; table fixtures and audit still
   pass within tolerance.
+- 2026-10-30: Ran the category, trigram-pattern, finger-usage, and
+  fingering-guide passes concurrently with `rayon::join`, and stored guide
+  contexts as `[char; 3]` instead of formatting a `String` per corpus entry.
+  Analyze text and JSON are unchanged; pinned four-thread median dropped from
+  0.0347 s to 0.0312 s (1.11x).
