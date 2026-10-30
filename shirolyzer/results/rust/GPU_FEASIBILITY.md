@@ -46,12 +46,9 @@ arithmetic. A Vulkan adapter is therefore available for a `wgpu` backend.
   `warning: GPU mode is not enabled in this build; falling back to CPU` and
   runs the CPU path. The JSON output records the device actually used.
 
-## Decision parity
+## Revisit criteria
 
-The shipped `--device gpu` path is a deliberate fallback, so parity is
-guaranteed by construction: the CPU evaluator is the only evaluator that runs.
-The integration tests exercise `compute` with a fixed seed and small budget and
-compare the resulting primary scores across the CPU and fallback paths; both
-must be identical. RNG streams and move ordering are never touched by the device
-selection flag.
-
+A GPU path becomes worth revisiting if (a) `wgpu`/WGSL gains usable f64, or
+(b) the inner search is redesigned to evaluate independent batches whose
+results can be merged without changing move order. Even then, it must beat the
+optimized CPU by a material factor on equal work before becoming the default.
