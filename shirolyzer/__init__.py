@@ -1,6 +1,6 @@
-"""Shirolyzer package root.
+"""Shirolyzer development-tool package root.
 
-The two primary entry points, ``shirolyzer/compute.py`` and
-``shirolyzer/analyze.py``, are thin facades over ``shirolyzer.commands``.
-Other commands are available through ``python -m shirolyzer <command>``.
+The ``shirolyzer`` runtime is the Rust binary built from this directory.
+This Python package only contains development tooling: model refitting under
+``shirolyzer/fitting`` and the utilities those tools import.
 """
