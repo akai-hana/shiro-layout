@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_yaml::{Mapping, Value};
 
-use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NF, NK};
+use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NK};
 use crate::model::{missing_parameters, Scales};
 use crate::paths;
 
@@ -63,7 +63,7 @@ pub struct AltGate {
 #[derive(Clone, Debug)]
 pub struct AltSequence {
     pub sequence: Vec<char>,
-    pub fingers: Vec<usize>,
+    pub fingers: Vec<char>,
 }
 
 #[derive(Clone, Debug)]
@@ -899,7 +899,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
             &format!("parameter file not found: {}", parameters_path.display()),
         ));
     }
-    let params_json: Value =
+    let params_json =
         serde_json::from_str(&paths::read_to_string(&parameters_path)?)?;
     let missing = missing_parameters(&params_json);
     if !missing.is_empty() {
