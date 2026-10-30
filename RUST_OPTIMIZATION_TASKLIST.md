@@ -187,7 +187,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   - Done when the constrained optimum matches `quench_generic` within `1e-12`
     on benchmark seeds and the secondary phase is materially faster.
 
-- [ ] **OPT.T1.2 — Parallelize ILS/polish with deterministic per-candidate RNG**
+- [x] **OPT.T1.2 — Parallelize ILS/polish with deterministic per-candidate RNG**
   - Run independent ILS and polish candidates through rayon with RNG streams
     derived from the master seed, phase, row, and candidate index.
   - Preserve result ordering and printing; keep the time-budget path serial or
@@ -288,3 +288,6 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   issues #76-#89, and published the roadmap.
 - 2026-10-30: Replaced constrained secondary full rescoring with a dual-delta
   quench; the randomized parity test matches `quench_generic` exactly.
+- 2026-10-30: Parallelized ILS rows and polish candidates with per-candidate RNG
+  streams. Fixed seeds produce identical result JSON for 1 and 16 threads
+  (apart from elapsed time and the output path).
