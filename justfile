@@ -1,6 +1,7 @@
-# Common shirolyzer tasks. The Rust binary is the primary implementation.
-# Build it once with `just build`; the Python tree remains as a parity oracle.
-shirolyzer := "rust/target/release/shirolyzer"
+# Common shirolyzer tasks. The Rust binary is the only runtime implementation.
+# Build it once with `just build`; the Python tree is development tooling only.
+shirolyzer := "shirolyzer/target/release/shirolyzer"
+manifest := "shirolyzer/Cargo.toml"
 python := env_var_or_default("PYTHON", ".venv/bin/python")
 
 # List available recipes
@@ -9,7 +10,7 @@ default:
 
 # Build the Rust binary in release mode
 build:
-    cargo build --manifest-path rust/Cargo.toml --release
+    cargo build --manifest-path {{manifest}} --release
 
 # Search for a layout using the current configuration
 compute *ARGS: build
@@ -37,22 +38,18 @@ audit *ARGS: build
 
 # Run the Rust unit, parity, and command tests
 test:
-    cargo test --manifest-path rust/Cargo.toml --release
+    cargo test --manifest-path {{manifest}} --release
 
 # Verify references and the shipped-model baseline with the Rust binary
 baseline: build
     {{shirolyzer}} check-baseline
 
-# Compare the Rust binary against the frozen Python oracle
-parity: build
-    {{python}} -m shirolyzer check-baseline
-    {{shirolyzer}} check-baseline
+# Verify the retained Python development tools still import
+dev-tools:
+    {{python}} -m compileall -q shirolyzer corpora
+    {{python}} -c "import shirolyzer.fitting, shirolyzer.utils.fitlib, shirolyzer.utils.gateset"
 
 # Run the full local verification suite
-check: test parity
-    cargo fmt --manifest-path rust/Cargo.toml --check
-    cargo clippy --manifest-path rust/Cargo.toml --all-targets -- -D warnings
-
-# Run the Python test suite as the frozen reference implementation
-py-test:
-    {{python}} -m unittest discover -s shirolyzer/tests -q
+check: test baseline
+    cargo fmt --manifest-path {{manifest}} --check
+    cargo clippy --manifest-path {{manifest}} --all-targets -- -D warnings

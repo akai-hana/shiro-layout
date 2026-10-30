@@ -191,7 +191,7 @@ with the pre-takeover baseline.
 
 ### Branch `takeover-tooling`
 
-- [ ] **RTO.T3.1 — Update justfile, build paths, and install instructions**
+- [x] **RTO.T3.1 — Update justfile, build paths, and install instructions**
   - Point `justfile` at `shirolyzer/Cargo.toml` and
     `shirolyzer/target/release/shirolyzer`.
   - Replace the Python-oracle `parity` recipe with the Rust baseline/check
@@ -248,3 +248,6 @@ Python tree is never deleted from history, only from the current `main` tree.
   support after trimming `config.apply` so the retained refitting tables do not
   import deleted search/scorer modules. Verified the corpus parsers, fitting
   imports, and table construction still work.
+- 2026-10-30: Pointed `justfile` at the moved manifest and binary, replaced the
+  Python parity recipe with the Rust baseline, and added a `dev-tools` recipe
+  for the retained Python tooling.
