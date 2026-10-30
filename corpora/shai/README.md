@@ -1,7 +1,7 @@
 # Shai's Cleaned iWeb corpus (90m words)
 
-Source: [Alt Keyboard Layouts Discord](https://discord.gg/kXyGkVaez)
-Download: <https://colemak.com/pub/corpus/iweb-corpus-samples-cleaned.txt.xz>
+Source: [AKL (Alt Keyboard Layouts) Discord server](https://discord.gg/kXyGkVaez)
+Direct Download Link: <https://colemak.com/pub/corpus/iweb-corpus-samples-cleaned.txt.xz>
 
 ## Build
 
