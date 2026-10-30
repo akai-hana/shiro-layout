@@ -1,0 +1,2804 @@
+[
+ {
+  "id": "bi_OL",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    "L"
+   ],
+   "MI"
+  ],
+  "src": "v2.6 #5-6: O->L: MI is the PREFERRED default; MR only as SFB-avoiding fallback; reversals use the opposite fingers",
+  "family": "OL",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_LO",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "L",
+    "O"
+   ],
+   "IM"
+  ],
+  "src": "v2.6 #5-6: O->L: MI is the PREFERRED default; MR only as SFB-avoiding fallback; reversals use the opposite fingers",
+  "family": "OL",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_XQ",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "X",
+    "Q"
+   ],
+   "IM"
+  ],
+  "src": "v2.5 #2: X->Q = index-middle",
+  "family": "XQ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_QX",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "Q",
+    "X"
+   ],
+   "MI"
+  ],
+  "src": "v2.5 #2: X->Q = index-middle",
+  "family": "XQ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_SW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "S",
+    "W"
+   ],
+   "IM"
+  ],
+  "src": "v2.2 #1: S->W = I->M",
+  "family": "SW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_WS",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "S"
+   ],
+   "MI"
+  ],
+  "src": "v2.2 #1: S->W = I->M",
+  "family": "SW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_XS",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "X",
+    "S"
+   ],
+   "IM"
+  ],
+  "src": "v2.2 #1: X->S = I->M",
+  "family": "XS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_SX",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "S",
+    "X"
+   ],
+   "MI"
+  ],
+  "src": "v2.2 #1: X->S = I->M",
+  "family": "XS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_XW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "X",
+    "W"
+   ],
+   "IM"
+  ],
+  "src": "v2.3 #1 / v2.7 #1: X->W = index on X, middle on W",
+  "family": "XW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_WX",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "X"
+   ],
+   "MI"
+  ],
+  "src": "v2.3 #1 / v2.7 #1: X->W = index on X, middle on W",
+  "family": "XW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_O,",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    ","
+   ],
+   "MI"
+  ],
+  "src": "v2.2 #1 / v2.3 #3: O->, = M->I (ring-on-O + middle-on-comma is 'ridiculous')",
+  "family": "O,",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_,O",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ",",
+    "O"
+   ],
+   "IM"
+  ],
+  "src": "v2.2 #1 / v2.3 #3: O->, = M->I (ring-on-O + middle-on-comma is 'ridiculous')",
+  "family": "O,",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_L,",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "L",
+    ","
+   ],
+   "MI"
+  ],
+  "src": "v2.2 #1: L->, = M->I",
+  "family": "L,",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_,L",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ",",
+    "L"
+   ],
+   "IM"
+  ],
+  "src": "v2.2 #1: L->, = M->I",
+  "family": "L,",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_SQ",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "S",
+    "Q"
+   ],
+   "IM"
+  ],
+  "src": "v2.2 #2: Q<->S isolated prefers index+middle",
+  "family": "SQ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_QS",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "Q",
+    "S"
+   ],
+   "MI"
+  ],
+  "src": "v2.2 #2: Q<->S isolated prefers index+middle",
+  "family": "SQ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_WQ",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "Q"
+   ],
+   "MR"
+  ],
+  "src": "v2.3 #4: W->Q middle->ring; pinky 'really bad'",
+  "family": "WQ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_QW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "Q",
+    "W"
+   ],
+   "RM"
+  ],
+  "src": "v2.3 #4: W->Q middle->ring; pinky 'really bad'",
+  "family": "WQ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_O.",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    "."
+   ],
+   "RP"
+  ],
+  "src": "v2.3 #2: O<->. ring-pinky 'somewhat works'; middle-index is wrong there",
+  "family": "O.",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_.O",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ".",
+    "O"
+   ],
+   "PR"
+  ],
+  "src": "v2.3 #2: O<->. ring-pinky 'somewhat works'; middle-index is wrong there",
+  "family": "O.",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_FX",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "F",
+    "X"
+   ],
+   "IR"
+  ],
+  "src": "v2.6 hard check: F->X ring-index (wide X-F gap is no smooth M roll)",
+  "family": "FX",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_XF",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "X",
+    "F"
+   ],
+   "RI"
+  ],
+  "src": "v2.6 hard check: F->X ring-index (wide X-F gap is no smooth M roll)",
+  "family": "FX",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_UM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "U",
+    "M"
+   ],
+   "MI"
+  ],
+  "src": "v2.6 #1: U->M = MI ('middle extends for the U, index presses the M')",
+  "family": "UM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_MU",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "M",
+    "U"
+   ],
+   "IM"
+  ],
+  "src": "v2.6 #1: U->M = MI ('middle extends for the U, index presses the M')",
+  "family": "UM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_RV",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "R",
+    "V"
+   ],
+   "MI"
+  ],
+  "src": "v2.6 #1: R->V = MI",
+  "family": "RV",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_VR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "V",
+    "R"
+   ],
+   "IM"
+  ],
+  "src": "v2.6 #1: R->V = MI",
+  "family": "RV",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_IM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "I",
+    "M"
+   ],
+   "MI"
+  ],
+  "src": "v2.6 #1: I->M = MI (comfortable); v2.7 #1 easiest",
+  "family": "IM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_MI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "M",
+    "I"
+   ],
+   "IM"
+  ],
+  "src": "v2.6 #1: I->M = MI (comfortable); v2.7 #1 easiest",
+  "family": "IM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_WA",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "A"
+   ],
+   "RP"
+  ],
+  "src": "v2.6 #4: ring<->pinky",
+  "family": "WA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "bi_AW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "W"
+   ],
+   "PR"
+  ],
+  "src": "v2.6 #4: ring<->pinky",
+  "family": "WA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "tri_WXF",
+  "kind": "top1",
+  "data": [
+   "tri",
+   [
+    "W",
+    "X",
+    "F"
+   ],
+   "MII"
+  ],
+  "src": "v2.5 #4: wxf = MII (SFB X->F accepted over RMI full scissor)",
+  "family": "FXW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "tri_QFB",
+  "kind": "top1",
+  "data": [
+   "tri",
+   [
+    "Q",
+    "F",
+    "B"
+   ],
+   "PMI"
+  ],
+  "src": "v2.2 #4: natural QFB = pinky-middle-index (hand tilt)",
+  "family": "QFB",
+  "note": "interpretive: user called it 'unergonomic overall'",
+  "soft": true
+ },
+ {
+  "id": "ord_IM_XW_UM",
+  "kind": "order",
+  "data": [
+   [
+    "I",
+    "M",
+    "M",
+    "I"
+   ],
+   [
+    "X",
+    "I",
+    "W",
+    "M"
+   ],
+   [
+    "U",
+    "M",
+    "M",
+    "I"
+   ]
+  ],
+  "src": "v2.7 #1: required order I-M < X-W < U-M",
+  "family": "IMXWUM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "ord_RP_dir",
+  "kind": "order",
+  "data": [
+   [
+    "W",
+    "R",
+    "A",
+    "P"
+   ],
+   [
+    "A",
+    "P",
+    "W",
+    "R"
+   ]
+  ],
+  "src": "v2.6 #4: ring->pinky 'significantly' better than pinky->ring",
+  "family": "RPDIR",
+  "note": "margin 0.15 enforced",
+  "soft": false
+ },
+ {
+  "id": "ord_RM_dir",
+  "kind": "order",
+  "data": [
+   [
+    "S",
+    "R",
+    "D",
+    "M"
+   ],
+   [
+    "D",
+    "M",
+    "S",
+    "R"
+   ]
+  ],
+  "src": "v2.6 #3: ring->middle slightly better than middle->ring",
+  "family": "RMDIR",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "ord_leap",
+  "kind": "order",
+  "data": [
+   [
+    "D",
+    "M",
+    "F",
+    "I"
+   ],
+   [
+    "S",
+    "R",
+    "F",
+    "I"
+   ],
+   [
+    "A",
+    "P",
+    "F",
+    "I"
+   ]
+  ],
+  "src": "comfort.py leap comment (user Q4): 'he' (pinky->index, gap 3) uncomfortable; 'st' (ring->index, gap 2) mild; adjacent roll best",
+  "family": "LEAP",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "tie_MI_sym",
+  "kind": "tie",
+  "data": [
+   [
+    "D",
+    "M",
+    "F",
+    "I"
+   ],
+   [
+    "F",
+    "I",
+    "D",
+    "M"
+   ]
+  ],
+  "src": "v2.6 #2: M<->I rolls equally comfortable in both directions",
+  "family": "MISYM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "ladder",
+  "kind": "tiers",
+  "data": [
+   [
+    [
+     "E",
+     "M",
+     "F",
+     "I"
+    ],
+    [
+     "F",
+     "I",
+     "E",
+     "M"
+    ]
+   ],
+   [
+    [
+     "D",
+     "M",
+     "F",
+     "I"
+    ],
+    [
+     "F",
+     "I",
+     "D",
+     "M"
+    ],
+    [
+     "E",
+     "M",
+     "R",
+     "I"
+    ],
+    [
+     "R",
+     "I",
+     "E",
+     "M"
+    ]
+   ],
+   [
+    [
+     "D",
+     "M",
+     "V",
+     "I"
+    ],
+    [
+     "V",
+     "I",
+     "D",
+     "M"
+    ]
+   ],
+   [
+    [
+     "C",
+     "M",
+     "V",
+     "I"
+    ],
+    [
+     "V",
+     "I",
+     "C",
+     "M"
+    ],
+    [
+     "E",
+     "M",
+     "V",
+     "I"
+    ],
+    [
+     "V",
+     "I",
+     "E",
+     "M"
+    ]
+   ],
+   [
+    [
+     "D",
+     "M",
+     "R",
+     "I"
+    ],
+    [
+     "R",
+     "I",
+     "D",
+     "M"
+    ],
+    [
+     "C",
+     "M",
+     "F",
+     "I"
+    ],
+    [
+     "F",
+     "I",
+     "C",
+     "M"
+    ]
+   ],
+   [
+    [
+     "C",
+     "M",
+     "R",
+     "I"
+    ],
+    [
+     "R",
+     "I",
+     "C",
+     "M"
+    ]
+   ]
+  ],
+  "src": "comfort.py _MI_LADDER: the user's dictated ordinal ladder for left-hand M/I rolls",
+  "family": "LADDER",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_LM,R",
+  "kind": "infeas",
+  "data": [
+   "L",
+   "M",
+   ",",
+   "R"
+  ],
+  "src": "v2.2 #1: L->, with middle in ring's column / ring in middle's: impossible and absurd",
+  "family": "INF0",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_OM,R",
+  "kind": "infeas",
+  "data": [
+   "O",
+   "M",
+   ",",
+   "R"
+  ],
+  "src": "v2.2 #1: O->, swapped columns: impossible",
+  "family": "INF1",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_SRWM",
+  "kind": "infeas",
+  "data": [
+   "S",
+   "R",
+   "W",
+   "M"
+  ],
+  "src": "v2.2 #1: S->W stack against hand angle AND stagger: impossible",
+  "family": "INF2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_SMWR",
+  "kind": "infeas",
+  "data": [
+   "S",
+   "M",
+   "W",
+   "R"
+  ],
+  "src": "v2.5 #1: half-span ring-up/middle-down stack stays impossible",
+  "family": "INF3",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_XRSM",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "R",
+   "S",
+   "M"
+  ],
+  "src": "v2.2 #1: X->S stack: impossible",
+  "family": "INF4",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_XMSR",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "M",
+   "S",
+   "R"
+  ],
+  "src": "v2.5 #1: half-span ring-up/middle-down stack stays impossible",
+  "family": "INF5",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_XIFM",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "I",
+   "F",
+   "M"
+  ],
+  "src": "v2.3 (wxf): index on X + middle on F crosses 1.5 keys: impossible",
+  "family": "INF6",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_XRQP",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "R",
+   "Q",
+   "P"
+  ],
+  "src": "v2.7 #4-5: ring-pinky reverse full scissor: impossible",
+  "family": "INF7",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_QPXR",
+  "kind": "infeas",
+  "data": [
+   "Q",
+   "P",
+   "X",
+   "R"
+  ],
+  "src": "v2.7 #4-5: ring-pinky reverse full scissor: impossible",
+  "family": "INF8",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_XIWR",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "I",
+   "W",
+   "R"
+  ],
+  "src": "v2.3 #1: index+ring same column squeezes middle: impossible",
+  "family": "INF9",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "inf_ORcM",
+  "kind": "infeas",
+  "data": [
+   "O",
+   "R",
+   ",",
+   "M"
+  ],
+  "src": "user, this session: 'ring on O + middle on comma' = full reverse M/R scissor: disallow",
+  "family": "INFNEW",
+  "note": "only enforced in the 'disallow full M/R' variant",
+  "soft": false
+ },
+ {
+  "id": "feas_OMLR",
+  "kind": "feasible",
+  "data": [
+   "O",
+   "M",
+   "L",
+   "R"
+  ],
+  "src": "v2.5 #1: O->L stack is viable when stagger-aligned and natural direction",
+  "family": "FEAS0",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "feas_UMMI",
+  "kind": "feasible",
+  "data": [
+   "U",
+   "M",
+   "M",
+   "I"
+  ],
+  "src": "v2.6 #1: U->M MI (crossed .75 but diagonal) is comfortable",
+  "family": "FEAS1",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "feas_IMKI",
+  "kind": "feasible",
+  "data": [
+   "I",
+   "M",
+   "K",
+   "I"
+  ],
+  "src": "comfort.py CROSS_DEADZONE comment (user Q3): nc (right, M top -> I home, crossed .25) completely comfortable",
+  "family": "FEAS2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "feas_WRAP",
+  "kind": "feasible",
+  "data": [
+   "W",
+   "R",
+   "A",
+   "P"
+  ],
+  "src": "v2.6: ring-pinky half roll fine",
+  "family": "FEAS3",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "feas_OR.P",
+  "kind": "feasible",
+  "data": [
+   "O",
+   "R",
+   ".",
+   "P"
+  ],
+  "src": "v2.3 #2: ring->pinky across 1 row 'somewhat works'",
+  "family": "FEAS4",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "key_Q",
+  "kind": "key1",
+  "data": [
+   "Q",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_Q",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_W",
+  "kind": "key1",
+  "data": [
+   "W",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_W",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_E",
+  "kind": "key1",
+  "data": [
+   "E",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_E",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_R",
+  "kind": "key1",
+  "data": [
+   "R",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_R",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_T",
+  "kind": "key1",
+  "data": [
+   "T",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_T",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_Y",
+  "kind": "key1",
+  "data": [
+   "Y",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_Y",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_U",
+  "kind": "key1",
+  "data": [
+   "U",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_U",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_I",
+  "kind": "key1",
+  "data": [
+   "I",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_I",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_O",
+  "kind": "key1",
+  "data": [
+   "O",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_O",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_P",
+  "kind": "key1",
+  "data": [
+   "P",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_P",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_A",
+  "kind": "key1",
+  "data": [
+   "A",
+   "P"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_A",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_S",
+  "kind": "key1",
+  "data": [
+   "S",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_S",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_D",
+  "kind": "key1",
+  "data": [
+   "D",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_D",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_F",
+  "kind": "key1",
+  "data": [
+   "F",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_F",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_G",
+  "kind": "key1",
+  "data": [
+   "G",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_G",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_H",
+  "kind": "key1",
+  "data": [
+   "H",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_H",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_J",
+  "kind": "key1",
+  "data": [
+   "J",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_J",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_K",
+  "kind": "key1",
+  "data": [
+   "K",
+   "M"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_K",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_L",
+  "kind": "key1",
+  "data": [
+   "L",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_L",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_;",
+  "kind": "key1",
+  "data": [
+   ";",
+   "P"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_;",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_Z",
+  "kind": "key1",
+  "data": [
+   "Z",
+   "P"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_Z",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_X",
+  "kind": "key1",
+  "data": [
+   "X",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_X",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_C",
+  "kind": "key1",
+  "data": [
+   "C",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_C",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_V",
+  "kind": "key1",
+  "data": [
+   "V",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_V",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_B",
+  "kind": "key1",
+  "data": [
+   "B",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_B",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_N",
+  "kind": "key1",
+  "data": [
+   "N",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_N",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_M",
+  "kind": "key1",
+  "data": [
+   "M",
+   "I"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_M",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_,",
+  "kind": "key1",
+  "data": [
+   ",",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_,",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_.",
+  "kind": "key1",
+  "data": [
+   ".",
+   "R"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_.",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "key_/",
+  "kind": "key1",
+  "data": [
+   "/",
+   "P"
+  ],
+  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
+  "family": "DEFAULT_/",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "r8_KJM",
+  "kind": "top1",
+  "data": [
+   "tri",
+   [
+    "K",
+    "J",
+    "M"
+   ],
+   "RMI"
+  ],
+  "src": "round8 audit: K-J-M = ring/middle/index ('hey'; K ring avoids the K-M half-SFB)",
+  "family": "R8_KJM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_FJM",
+  "kind": "top1",
+  "data": [
+   "tri",
+   [
+    "F",
+    "J",
+    "M"
+   ],
+   "IMI"
+  ],
+  "src": "round8 audit: F-J-M = index/middle/index ('ney')",
+  "family": "R8_FJM",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_MJI",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "M",
+    "J",
+    "I"
+   ],
+   "req": [
+    [
+     0,
+     "I"
+    ],
+    [
+     1,
+     "I"
+    ]
+   ],
+   "forbid": [],
+   "margin": 0.05
+  },
+  "src": "round8: M-J-I first two strokes index (ruled trigram beats the direct M-J bigram)",
+  "family": "r8_MJI",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_HTJ",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "H",
+    "T",
+    "J"
+   ],
+   "req": [],
+   "forbid": [
+    [
+     2,
+     "M"
+    ]
+   ],
+   "margin": 0.05
+  },
+  "src": "round8: H-T-J ('exp') blocks J middle",
+  "family": "r8_HTJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_IUJ",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "I",
+    "U",
+    "J"
+   ],
+   "req": [],
+   "forbid": [
+    [
+     2,
+     "M"
+    ]
+   ],
+   "margin": 0.05
+  },
+  "src": "round8: I-U-J ('age') blocks J middle",
+  "family": "r8_IUJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_VGJ",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "V",
+    "G",
+    "J"
+   ],
+   "req": [
+    [
+     0,
+     "I"
+    ],
+    [
+     1,
+     "I"
+    ]
+   ],
+   "forbid": [],
+   "margin": 0.05
+  },
+  "src": "round8: V-G-J ('ble') forces V and G index",
+  "family": "r8_VGJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_COR",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "C",
+    "O",
+    "R"
+   ],
+   "req": [
+    [
+     0,
+     "I"
+    ],
+    [
+     2,
+     "I"
+    ]
+   ],
+   "forbid": [],
+   "margin": 0.05
+  },
+  "src": "round8: C-O-R ('vid') endpoints index",
+  "family": "r8_COR",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_ROC",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "R",
+    "O",
+    "C"
+   ],
+   "req": [
+    [
+     0,
+     "I"
+    ],
+    [
+     2,
+     "I"
+    ]
+   ],
+   "forbid": [],
+   "margin": 0.05
+  },
+  "src": "round8: R-O-C ('div') endpoints index",
+  "family": "r8_ROC",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_LO",
+  "kind": "cons",
+  "data": {
+   "keys": [
+    "L",
+    "O"
+   ],
+   "req": [
+    [
+     0,
+     "I"
+    ]
+   ],
+   "forbid": [],
+   "margin": -0.2
+  },
+  "src": "round8: L->O keeps L on index within 0.2 of the best",
+  "family": "r8_LO",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_CRrev_a",
+  "kind": "band",
+  "data": [
+   [
+    "C",
+    "I",
+    "R",
+    "M"
+   ],
+   3.0,
+   7.0
+  ],
+  "src": "round8 W_CR_REVERSE=3.6: index/middle FULL-SPAN reverse scissor is 'barely possible, very uncomfortable'",
+  "family": "R8_CRREV",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r8_CRrev_b",
+  "kind": "band",
+  "data": [
+   [
+    "R",
+    "M",
+    "C",
+    "I"
+   ],
+   3.0,
+   7.0
+  ],
+  "src": "round8 W_CR_REVERSE=3.6 (other direction)",
+  "family": "R8_CRREV",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_WD_RM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "D"
+   ],
+   "RM"
+  ],
+  "src": "user 2026-10-27: no strain felt on W->D with ring on W / middle on D (th)",
+  "family": "R9_WD",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_DW_MR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "D",
+    "W"
+   ],
+   "MR"
+  ],
+  "src": "user 2026-10-27: middle->ring (D->W) is the more comfortable direction on W-D",
+  "family": "R9_WD",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_ord_WD",
+  "kind": "order",
+  "data": [
+   [
+    "D",
+    "M",
+    "W",
+    "R"
+   ],
+   [
+    "W",
+    "R",
+    "D",
+    "M"
+   ]
+  ],
+  "src": "user 2026-10-27: middle->ring on W-D is more comfortable than ring->middle",
+  "family": "R9_WD",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_inf_XRAP",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "R",
+   "A",
+   "P"
+  ],
+  "src": "user 2026-10-27: ring on X + pinky on A is practically impossible",
+  "family": "R9_XA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_inf_APXR",
+  "kind": "infeas",
+  "data": [
+   "A",
+   "P",
+   "X",
+   "R"
+  ],
+  "src": "user 2026-10-27: ring on X + pinky on A is practically impossible",
+  "family": "R9_XA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_UJ",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "U",
+    "J"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
+  "family": "R9_U",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_JU",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "J",
+    "U"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
+  "family": "R9_U",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_UH",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "U",
+    "H"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
+  "family": "R9_U",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_HU",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "H",
+    "U"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
+  "family": "R9_U",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_XA_IR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "X",
+    "A"
+   ],
+   "IR"
+  ],
+  "src": "user 2026-10-27: X->A: index->ring is preferred over any other combination",
+  "family": "R9_XA2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_AX_RI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "X"
+   ],
+   "RI"
+  ],
+  "src": "user 2026-10-27: X-A: index+ring most preferred (A->X ring->index)",
+  "family": "R9_XA2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_ord_XA",
+  "kind": "order",
+  "data": [
+   [
+    "X",
+    "I",
+    "A",
+    "R"
+   ],
+   [
+    "X",
+    "M",
+    "A",
+    "R"
+   ]
+  ],
+  "src": "user 2026-10-27: X->A: index+ring first, middle+ring second",
+  "family": "R9_XA3",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_OK_RM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    "K"
+   ],
+   "RM"
+  ],
+  "src": "user 2026-10-27: O->K ring->middle",
+  "family": "R9_OK",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_KO_MR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "K",
+    "O"
+   ],
+   "MR"
+  ],
+  "src": "user 2026-10-27: K->O middle->ring (mirror of O->K)",
+  "family": "R9_OK",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "r9_K;_MP",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "K",
+    ";"
+   ],
+   "MP"
+  ],
+  "src": "user 2026-10-27: K->; middle->pinky",
+  "family": "R9_KS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_;K_PM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ";",
+    "K"
+   ],
+   "PM"
+  ],
+  "src": "user 2026-10-27: ;->K pinky->middle",
+  "family": "R9_KS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_AE_PM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "E"
+   ],
+   "PM"
+  ],
+  "src": "user 2026-10-27: A->E pinky->middle",
+  "family": "R9_AE",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r9_EA_MP",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "E",
+    "A"
+   ],
+   "MP"
+  ],
+  "src": "user 2026-10-27: E->A middle->pinky (mirror)",
+  "family": "R9_AE",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "rest_AW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "W"
+   ],
+   "PR"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_AW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_AE",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "E"
+   ],
+   "PM"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_AE",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_AF",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "F"
+   ],
+   "PI"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_AF",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_WA",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "A"
+   ],
+   "RP"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_AW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_WE",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "E"
+   ],
+   "RM"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_EW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_WF",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "W",
+    "F"
+   ],
+   "RI"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_FW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_EA",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "E",
+    "A"
+   ],
+   "MP"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_AE",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_EW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "E",
+    "W"
+   ],
+   "MR"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_EW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_EF",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "E",
+    "F"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_EF",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_FA",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "F",
+    "A"
+   ],
+   "IP"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_AF",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_FW",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "F",
+    "W"
+   ],
+   "IR"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_FW",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_FE",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "F",
+    "E"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_EF",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_;O",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ";",
+    "O"
+   ],
+   "PR"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_;O",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_;I",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ";",
+    "I"
+   ],
+   "PM"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_;I",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_;J",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ";",
+    "J"
+   ],
+   "PI"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_;J",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_O;",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    ";"
+   ],
+   "RP"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_;O",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_OI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    "I"
+   ],
+   "RM"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_IO",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_OJ",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    "J"
+   ],
+   "RI"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_JO",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_I;",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "I",
+    ";"
+   ],
+   "MP"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_;I",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_IO",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "I",
+    "O"
+   ],
+   "MR"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_IO",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_IJ",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "I",
+    "J"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_IJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_J;",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "J",
+    ";"
+   ],
+   "IP"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_;J",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_JO",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "J",
+    "O"
+   ],
+   "IR"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_JO",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "rest_JI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "J",
+    "I"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
+  "family": "REST_IJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_inf_XIAP",
+  "kind": "infeas",
+  "data": [
+   "X",
+   "I",
+   "A",
+   "P"
+  ],
+  "src": "user 2026-10-28: index + pinky with only one column of space is madness (X index, A pinky)",
+  "family": "R10_XA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_inf_APXI",
+  "kind": "infeas",
+  "data": [
+   "A",
+   "P",
+   "X",
+   "I"
+  ],
+  "src": "user 2026-10-28: index + pinky with only one column of space is madness (A pinky, X index)",
+  "family": "R10_XA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_ord_XA_IM",
+  "kind": "order",
+  "data": [
+   [
+    "X",
+    "I",
+    "A",
+    "R"
+   ],
+   [
+    "X",
+    "I",
+    "A",
+    "M"
+   ]
+  ],
+  "src": "user 2026-10-28: X->A index->middle is wanted (rolls easily with index on X); index->ring stays the favourite",
+  "family": "R10_XA2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_XA_IM_top2",
+  "kind": "order",
+  "data": [
+   [
+    "X",
+    "I",
+    "A",
+    "M"
+   ],
+   [
+    "X",
+    "M",
+    "A",
+    "P"
+   ]
+  ],
+  "src": "user 2026-10-28 pm: X->A middle + pinky on A is out (middle on bottom row is bad; pinky on A = reverse scissor)",
+  "family": "R10_XA2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_XA_MR_top2",
+  "kind": "order",
+  "data": [
+   [
+    "X",
+    "M",
+    "A",
+    "R"
+   ],
+   [
+    "X",
+    "M",
+    "A",
+    "P"
+   ]
+  ],
+  "src": "user 2026-10-28 pm: X->A middle + pinky on A is out (middle on bottom row is bad; pinky on A = reverse scissor)",
+  "family": "R10_XA2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_TG_MI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "T",
+    "G"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-28: TG = left middle / left index (T is a middle-finger key)",
+  "family": "R10_TG",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r10_GT_IM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "G",
+    "T"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-28: GT mirror of TG",
+  "family": "R10_TG",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_ord_XA_MR_IM",
+  "kind": "order",
+  "data": [
+   [
+    "X",
+    "M",
+    "A",
+    "R"
+   ],
+   [
+    "X",
+    "I",
+    "A",
+    "M"
+   ]
+  ],
+  "src": "user 2026-10-28 pm: X->A prefers middle->ring over index->middle",
+  "family": "R11_XA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_DA_MP",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "D",
+    "A"
+   ],
+   "MP"
+  ],
+  "src": "user 2026-10-28 pm: D->A middle->pinky (middle travels one key)",
+  "family": "R11_DA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_AD_PM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "D"
+   ],
+   "PM"
+  ],
+  "src": "user 2026-10-28 pm: A->D pinky->middle",
+  "family": "R11_DA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_ord_DA",
+  "kind": "order",
+  "data": [
+   [
+    "D",
+    "M",
+    "A",
+    "P"
+   ],
+   [
+    "D",
+    "I",
+    "A",
+    "P"
+   ]
+  ],
+  "src": "user 2026-10-28 pm: D-A index instead of middle is awkward",
+  "family": "R11_DA",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_FS_IR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "F",
+    "S"
+   ],
+   "IR"
+  ],
+  "src": "user 2026-10-28 pm: F->S index->ring (rest-key rule)",
+  "family": "R11_FS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_SF_RI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "S",
+    "F"
+   ],
+   "RI"
+  ],
+  "src": "user 2026-10-28 pm: S->F ring->index",
+  "family": "R11_FS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_OJ_RI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "O",
+    "J"
+   ],
+   "RI"
+  ],
+  "src": "user 2026-10-28: O->J ring->index (both at rest)",
+  "family": "R11_OJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_JO_IR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "J",
+    "O"
+   ],
+   "IR"
+  ],
+  "src": "user 2026-10-28: J->O index->ring (both at rest)",
+  "family": "R11_OJ",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_RT_RM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "R",
+    "T"
+   ],
+   "RM"
+  ],
+  "src": "user 2026-10-28 pm: RT = ring on R, middle on T",
+  "family": "R11_RT",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r11_TR_MR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "T",
+    "R"
+   ],
+   "MR"
+  ],
+  "src": "user 2026-10-28 pm: TR = middle on T, ring on R",
+  "family": "R11_RT",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r12_YU_MR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "Y",
+    "U"
+   ],
+   "MR"
+  ],
+  "src": "user 2026-10-28 late: YU and RT/TR both ring-middle / middle-ring (Y middle, U ring)",
+  "family": "R12_YU",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r12_UY_RM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "U",
+    "Y"
+   ],
+   "RM"
+  ],
+  "src": "user 2026-10-28 late: UY mirror (U ring, Y middle)",
+  "family": "R12_YU",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_AS_PR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "A",
+    "S"
+   ],
+   "PR"
+  ],
+  "src": "user 2026-10-29 (corrected): A-S pinky->ring (supersedes the 2026-10-27 ring/middle answer)",
+  "family": "R13_AS",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_SA_RP",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "S",
+    "A"
+   ],
+   "RP"
+  ],
+  "src": "user 2026-10-29 (corrected): S-A mirror of A-S (ring->pinky)",
+  "family": "R13_AS",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "r13_;U_PM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ";",
+    "U"
+   ],
+   "PM"
+  ],
+  "src": "user 2026-10-29: ;-U pinky->middle",
+  "family": "R13_SU",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_U;_MP",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "U",
+    ";"
+   ],
+   "MP"
+  ],
+  "src": "user 2026-10-29: U-; mirror (middle->pinky)",
+  "family": "R13_SU",
+  "note": "",
+  "soft": true
+ },
+ {
+  "id": "r13_band_;RUM",
+  "kind": "band",
+  "data": [
+   [
+    ";",
+    "R",
+    "U",
+    "M"
+   ],
+   5.0,
+   12.0
+  ],
+  "src": "user 2026-10-29: ring-middle on ;-U 'makes absolutely no sense and is borderline impossible'",
+  "family": "R13_SU2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_band_URM;",
+  "kind": "band",
+  "data": [
+   [
+    "U",
+    "M",
+    ";",
+    "R"
+   ],
+   5.0,
+   12.0
+  ],
+  "src": "user 2026-10-29: ring-middle on ;-U (reverse order) borderline impossible",
+  "family": "R13_SU2",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_JY_IM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "J",
+    "Y"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-29: J-Y index on J, middle on Y (both default fingers)",
+  "family": "R13_JY",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_YJ_MI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "Y",
+    "J"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-29: Y-J middle on Y, index on J",
+  "family": "R13_JY",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_TF_IM",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "T",
+    "F"
+   ],
+   "IM"
+  ],
+  "src": "user 2026-10-29: T-F index on T, middle on F",
+  "family": "R13_TF",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_FT_MI",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "F",
+    "T"
+   ],
+   "MI"
+  ],
+  "src": "user 2026-10-29: F-T middle on F, index on T",
+  "family": "R13_TF",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_;L_PR",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    ";",
+    "L"
+   ],
+   "PR"
+  ],
+  "src": "user 2026-10-29: ;-L pinky->ring",
+  "family": "R13_SL",
+  "note": "",
+  "soft": false
+ },
+ {
+  "id": "r13_L;_RP",
+  "kind": "top1",
+  "data": [
+   "bi",
+   [
+    "L",
+    ";"
+   ],
+   "RP"
+  ],
+  "src": "user 2026-10-29: L-; mirror (ring->pinky)",
+  "family": "R13_SL",
+  "note": "",
+  "soft": true
+ }
+]
