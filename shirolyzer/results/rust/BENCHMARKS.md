@@ -37,3 +37,17 @@ practice; the measured Rust-only delta gain over a full-score quench is 4.6x,
 and the remaining gain comes from parallel seeds and the compiled
 implementation.
 
+## Parallel seeds
+
+`compute --runs 8 --iters 50000 --ils 2 --seed 1234` on the qwerty-only
+reference set:
+
+| Threads | Wall | Results |
+|---:|---:|---|
+| 1 | 27.0 s | baseline |
+| 16 | 13.2 s | byte-identical JSON |
+
+Parallel seed evaluation gives a **2.0x** wall-clock speedup and is
+deterministic: results, best layout, best secondary, valid layouts, and
+selection are identical for both thread counts.
+

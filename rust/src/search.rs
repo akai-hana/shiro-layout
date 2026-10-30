@@ -589,7 +589,7 @@ mod tests {
     use super::*;
     use crate::evaluate::flat_share_from_config;
 
-    fn setup() -> (crate::config::Config, crate::evaluate::Evaluator<'static>) {
+    pub(super) fn setup() -> (crate::config::Config, crate::evaluate::Evaluator<'static>) {
         let cfg = crate::config::load(None).expect("config");
         let geom = crate::geometry::Geometry::new();
         let model = crate::config::build_model(&cfg).expect("model");

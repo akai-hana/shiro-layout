@@ -44,23 +44,29 @@ impl Corpus {
         bigrams: HashMap<(char, char), f64>,
         trigrams: HashMap<(char, char, char), f64>,
     ) -> Self {
-        let total_letters = letters.values().sum();
-        let total_bigrams = bigrams.values().sum();
-        let total_trigrams = trigrams.values().sum();
+        let mut letter_keys: Vec<char> = letters.keys().copied().collect();
+        letter_keys.sort_unstable();
+        let total_letters = letter_keys.iter().map(|k| letters[k]).sum();
+        let mut bigram_keys: Vec<(char, char)> = bigrams.keys().copied().collect();
+        bigram_keys.sort_unstable();
+        let total_bigrams = bigram_keys.iter().map(|k| bigrams[k]).sum();
+        let mut trigram_keys: Vec<(char, char, char)> = trigrams.keys().copied().collect();
+        trigram_keys.sort_unstable();
+        let total_trigrams = trigram_keys.iter().map(|k| trigrams[k]).sum();
         let mut bi_ids = Vec::new();
         let mut bi_counts = Vec::new();
-        for (&(a, b), &count) in &bigrams {
+        for &(a, b) in &bigram_keys {
             if let (Some(ai), Some(bi)) = (cid(a), cid(b)) {
                 bi_ids.push([ai, bi]);
-                bi_counts.push(count);
+                bi_counts.push(bigrams[&(a, b)]);
             }
         }
         let mut tri_ids = Vec::new();
         let mut tri_counts = Vec::new();
-        for (&(a, b, c), &count) in &trigrams {
+        for &(a, b, c) in &trigram_keys {
             if let (Some(ai), Some(bi), Some(ci)) = (cid(a), cid(b), cid(c)) {
                 tri_ids.push([ai, bi, ci]);
-                tri_counts.push(count);
+                tri_counts.push(trigrams[&(a, b, c)]);
             }
         }
         Self {
@@ -99,14 +105,21 @@ impl Corpus {
         let mut bigrams = HashMap::new();
         let mut trigrams = HashMap::new();
         for corpus in corpora {
-            for (k, v) in &corpus.letters {
-                *letters.entry(*k).or_insert(0.0) += *v;
+            let mut letter_keys: Vec<char> = corpus.letters.keys().copied().collect();
+            letter_keys.sort_unstable();
+            for k in letter_keys {
+                *letters.entry(k).or_insert(0.0) += corpus.letters[&k];
             }
-            for (k, v) in &corpus.bigrams {
-                *bigrams.entry(*k).or_insert(0.0) += *v;
+            let mut bigram_keys: Vec<(char, char)> = corpus.bigrams.keys().copied().collect();
+            bigram_keys.sort_unstable();
+            for k in bigram_keys {
+                *bigrams.entry(k).or_insert(0.0) += corpus.bigrams[&k];
             }
-            for (k, v) in &corpus.trigrams {
-                *trigrams.entry(*k).or_insert(0.0) += *v;
+            let mut trigram_keys: Vec<(char, char, char)> =
+                corpus.trigrams.keys().copied().collect();
+            trigram_keys.sort_unstable();
+            for k in trigram_keys {
+                *trigrams.entry(k).or_insert(0.0) += corpus.trigrams[&k];
             }
         }
         Ok(Self::new(letters, bigrams, trigrams))
