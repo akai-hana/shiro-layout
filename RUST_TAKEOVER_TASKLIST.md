@@ -200,7 +200,7 @@ with the pre-takeover baseline.
     from a clean checkout of the new layout.
   - Issue: #72.
 
-- [ ] **RTO.T3.2 — Update READMEs, repository map, and stale references**
+- [x] **RTO.T3.2 — Update READMEs, repository map, and stale references**
   - Update root `README.md`, `shirolyzer/README.md`, `RUST_REWRITE_TASKLIST.md`
     completion notes, and links to result reports.
   - Remove stale `rust/target`, Python runtime, and deleted-module instructions;
@@ -250,4 +250,7 @@ Python tree is never deleted from history, only from the current `main` tree.
   imports, and table construction still work.
 - 2026-10-30: Pointed `justfile` at the moved manifest and binary, replaced the
   Python parity recipe with the Rust baseline, and added a `dev-tools` recipe
-  for the retained Python tooling.
+  for the retained Python tooling. Rewrote the root and analyzer READMEs for
+  the new layout, removed the Python-runtime instructions, mapped the retained
+  development tools separately, and added a takeover note to the rewrite
+  completion record.
