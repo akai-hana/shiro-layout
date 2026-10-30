@@ -19,14 +19,32 @@ const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
 const FID2: [char; 5] = ['P', 'R', 'M', 'I', 'T'];
 const FORDER: [usize; 4] = [0, 1, 2, 3];
 
-fn keymap(layout: &str) -> HashMap<char, usize> {
-    let chars: Vec<char> = layout.chars().collect();
-    chars
-        .iter()
-        .enumerate()
-        .filter(|(_, c)| c.is_ascii_alphabetic())
-        .filter_map(|(i, c)| key_index(KEYS[i]).map(|k| (*c, k)))
-        .collect()
+type KeyMap = [Option<usize>; 27];
+
+fn letter_id(ch: char) -> Option<usize> {
+    match ch {
+        'a'..='z' => Some(ch as usize - 'a' as usize),
+        ' ' => Some(crate::corpus::SPACE_INDEX),
+        _ => None,
+    }
+}
+
+fn id_char(id: usize) -> char {
+    if id == crate::corpus::SPACE_INDEX {
+        ' '
+    } else {
+        (b'a' + id as u8) as char
+    }
+}
+
+fn keymap(layout: &str) -> KeyMap {
+    let mut map = [None; 27];
+    for (i, ch) in layout.chars().enumerate() {
+        if let (Some(id), Some(key)) = (letter_id(ch), key_index(KEYS[i])) {
+            map[id] = Some(key);
+        }
+    }
+    map
 }
 
 fn decode_finger(value: u8) -> char {
@@ -54,13 +72,12 @@ pub fn category_report(
     let mut total = 0.0;
     let mut worst = Vec::new();
     let mut scissors = Vec::new();
-    for (&(a, b), &cnt) in &corpus.bigrams {
-        if !m.contains_key(&a) || !m.contains_key(&b) {
+    for (ids, &cnt) in corpus.bi_ids.iter().zip(&corpus.bi_counts) {
+        let (Some(i), Some(j)) = (m[ids[0]], m[ids[1]]) else {
             continue;
-        }
+        };
+        let (a, b) = (id_char(ids[0]), id_char(ids[1]));
         total += cnt;
-        let i = m[&a];
-        let j = m[&b];
         let cost = tables.big[crate::scorer::big_idx(i, j)];
         let enc = tables.big_f[crate::scorer::big_idx(i, j)];
         let f1 = decode_finger(enc);
@@ -170,11 +187,12 @@ pub fn trigram_patterns(
     let m = keymap(layout);
     let mut acc: HashMap<String, f64> = HashMap::new();
     let mut total = 0.0;
-    for (&(a, b, c), &cnt) in &corpus.trigrams {
-        if !m.contains_key(&a) || !m.contains_key(&b) || !m.contains_key(&c) {
+    for (letter_ids, &cnt) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
+        let (Some(k0), Some(k1), Some(k2)) = (m[letter_ids[0]], m[letter_ids[1]], m[letter_ids[2]])
+        else {
             continue;
-        }
-        let ids = [m[&a], m[&b], m[&c]];
+        };
+        let ids = [k0, k1, k2];
         let enc = tables.tri_f[crate::scorer::tri_idx(ids[0], ids[1], ids[2])];
         let fs = [
             decode_finger_at(enc, 0),
@@ -251,11 +269,12 @@ pub fn finger_usage(
 ) -> HashMap<String, f64> {
     let m = keymap(layout);
     let mut usage = [[0.0f64; 4]; 2];
-    for (&(a, b, c), &cnt) in &corpus.trigrams {
-        if !m.contains_key(&a) || !m.contains_key(&b) || !m.contains_key(&c) {
+    for (letter_ids, &cnt) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
+        let (Some(k0), Some(k1), Some(k2)) = (m[letter_ids[0]], m[letter_ids[1]], m[letter_ids[2]])
+        else {
             continue;
-        }
-        let ids = [m[&a], m[&b], m[&c]];
+        };
+        let ids = [k0, k1, k2];
         let enc = tables.tri_f[crate::scorer::tri_idx(ids[0], ids[1], ids[2])];
         for (pos, &k) in ids.iter().enumerate() {
             let f = decode_finger_at(enc, pos);
@@ -293,14 +312,19 @@ pub fn fingering_guide(
     let m = keymap(layout);
     let mut agg: HashMap<char, HashMap<char, f64>> = HashMap::new();
     let mut ctx: HashMap<char, HashMap<char, HashMap<[char; 3], f64>>> = HashMap::new();
-    for (&(a, b, c), &cnt) in &corpus.trigrams {
-        if !m.contains_key(&a) || !m.contains_key(&b) || !m.contains_key(&c) {
+    for (letter_ids, &cnt) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
+        let (Some(k0), Some(k1), Some(k2)) = (m[letter_ids[0]], m[letter_ids[1]], m[letter_ids[2]])
+        else {
             continue;
-        }
-        let ids = [m[&a], m[&b], m[&c]];
+        };
+        let ids = [k0, k1, k2];
         let enc = tables.tri_f[crate::scorer::tri_idx(ids[0], ids[1], ids[2])];
-        let tg = [a, b, c];
-        for (pos, &ch) in [a, b, c].iter().enumerate() {
+        let tg = [
+            id_char(letter_ids[0]),
+            id_char(letter_ids[1]),
+            id_char(letter_ids[2]),
+        ];
+        for (pos, &ch) in [tg[0], tg[1], tg[2]].iter().enumerate() {
             let f = decode_finger_at(enc, pos);
             *agg.entry(ch).or_default().entry(f).or_insert(0.0) += cnt;
             *ctx.entry(ch)
@@ -313,7 +337,9 @@ pub fn fingering_guide(
     }
     let mut guide = HashMap::new();
     for ch in LETTERS.chars() {
-        let Some(&key) = m.get(&ch) else { continue };
+        let Some(key) = m[letter_id(ch).unwrap()] else {
+            continue;
+        };
         let default = model.default_finger[key];
         let entry = agg.get(&ch).cloned().unwrap_or_default();
         let total: f64 = entry.values().sum::<f64>().max(1.0);
