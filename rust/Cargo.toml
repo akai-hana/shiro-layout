@@ -27,3 +27,7 @@ toml = "0.8"
 [profile.release]
 lto = "thin"
 codegen-units = 1
+
+[[bench]]
+name = "score"
+harness = false
