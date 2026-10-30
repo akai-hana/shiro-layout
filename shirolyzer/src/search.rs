@@ -856,6 +856,21 @@ mod tests {
             assert_eq!(st.perm, perm);
         }
     }
+
+    #[test]
+    fn delta_quench_matches_full_quench() {
+        let (cfg, ev) = setup();
+        let dead = crate::evaluate::dead_of(&cfg.current_layout);
+        let perm = crate::evaluate::perm_of(&cfg.current_layout, &dead).expect("perm");
+        let tables = DeltaTables::build(&ev);
+        let mut delta_rng = rand::rngs::StdRng::seed_from_u64(99);
+        let (delta_perm, delta_score) =
+            quench(&ev, &tables, &perm, ev.score(&perm), &mut delta_rng);
+        let mut full_rng = rand::rngs::StdRng::seed_from_u64(99);
+        let (full_perm, full_score) = quench_generic(&ev, &perm, ev.score(&perm), &mut full_rng);
+        assert_eq!(delta_perm, full_perm);
+        assert!((delta_score - full_score).abs() < 1e-12);
+    }
 }
 
 #[cfg(test)]
