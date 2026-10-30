@@ -237,7 +237,7 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
 
 ### Branch `opt-prune`
 
-- [ ] **OPT.T3.1 — Audit and prototype aggressive pruning**
+- [x] **OPT.T3.1 — Audit and prototype aggressive pruning**
   - Identify candidates: empty/short cross lists, dominated moves, repeated
     no-op deltas, rare-trigram pruning, bounded move subsets, and early
     quench exits.
@@ -315,3 +315,8 @@ equivalence in the phase report under `shirolyzer/results/rust/`.
   remaining profile in `shirolyzer/results/rust/OPT_ANALYZER.md`. Interleaved
   unpinned analyze medians improved from 0.0433 s to 0.0262 s (1.65x); text and
   JSON output are identical, and the remaining cost is now `Tables::build`.
+- 2026-10-30: Audited and prototyped pruning candidates behind temporary
+  environment hooks. All 44,850 two-swap cross lists are non-empty (minimum
+  195 entries); bounded subsets, phase skips, and rare-trigram thresholds all
+  changed the search path or hard-set quality. Recorded the measurements in
+  `shirolyzer/results/rust/OPT_PRUNING.md`.
