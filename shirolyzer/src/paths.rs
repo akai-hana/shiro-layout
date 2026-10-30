@@ -3,11 +3,16 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Result};
 
+fn is_repo_root(path: &Path) -> bool {
+    path.join("shirolyzer/config/config.yaml").is_file()
+        && path.join("shirolyzer/Cargo.toml").is_file()
+}
+
 pub fn repo_root() -> PathBuf {
     if let Ok(dir) = std::env::current_dir() {
         let mut cur = dir.as_path();
         loop {
-            if cur.join("shirolyzer/config/config.yaml").is_file() {
+            if is_repo_root(cur) {
                 return cur.to_path_buf();
             }
             match cur.parent() {
@@ -17,10 +22,13 @@ pub fn repo_root() -> PathBuf {
         }
     }
     let manifest = Path::new(env!("CARGO_MANIFEST_DIR"));
+    if is_repo_root(manifest) {
+        return manifest.to_path_buf();
+    }
     manifest
         .parent()
         .map(Path::to_path_buf)
-        .filter(|p| p.join("shirolyzer/config/config.yaml").is_file())
+        .filter(|p| is_repo_root(p))
         .unwrap_or_else(|| manifest.to_path_buf())
 }
 
