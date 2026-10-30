@@ -24,6 +24,11 @@ pub fn key_index(key: &str) -> Option<usize> {
     KEYS.iter().position(|k| *k == key)
 }
 
+pub fn key_index_char(key: char) -> Option<usize> {
+    let key = key as u8;
+    KEYS.iter().position(|k| k.as_bytes().first() == Some(&key))
+}
+
 /// Index of a finger letter (P/R/M/I).
 pub fn finger_index(finger: char) -> Option<usize> {
     FINGERS.iter().position(|f| *f == finger)
