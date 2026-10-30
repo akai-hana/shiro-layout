@@ -144,7 +144,7 @@ with the pre-takeover baseline.
 
 ### Branch `takeover-move`
 
-- [ ] **RTO.T1.1 — Relocate the Rust crate into shirolyzer/**
+- [x] **RTO.T1.1 — Relocate the Rust crate into shirolyzer/**
   - Move `rust/Cargo.toml`, `Cargo.lock`, `src/`, `tests/`, and `benches/` into
     `shirolyzer/`; remove the now-empty `rust/` tree.
   - Keep `shirolyzer/config/`, `shirolyzer/results/`, `shirolyzer/fitting/`,
@@ -153,7 +153,7 @@ with the pre-takeover baseline.
     location.
   - Issue: #68.
 
-- [ ] **RTO.T1.2 — Update path and build assumptions for the moved crate**
+- [x] **RTO.T1.2 — Update path and build assumptions for the moved crate**
   - Update `shirolyzer/src/paths.rs` root discovery and manifest fallback for
     the new `shirolyzer/` manifest location.
   - Update any tests, bench paths, or build scripts that mention `rust/`.
@@ -163,24 +163,29 @@ with the pre-takeover baseline.
 
 ### Branch `takeover-python`
 
-- [ ] **RTO.T2.1 — Remove the Python runtime, CLI, facades, and tests**
+- [x] **RTO.T2.1 — Remove the Python runtime, CLI, facades, and tests**
   - Delete `shirolyzer/__main__.py`, `shirolyzer/analyze.py`,
-    `shirolyzer/compute.py`, `shirolyzer/commands/`, and `shirolyzer/tests/`.
+    `shirolyzer/compute.py`, `shirolyzer/commands/`, and `shirolyzer/tests/`
+    Python tests.
   - Delete runtime-only utility modules not imported by `shirolyzer/fitting/`
-    (expected: `config.py`, `conditions.py`, `corpus.py`, `diversity.py`,
-    `references.py`, `render.py`, `scorer.py`, `search.py`, `xkb.py`).
+    (expected: `corpus.py`, `diversity.py`, `references.py`, `render.py`,
+    `scorer.py`, `search.py`, `xkb.py`). `config.py` and `conditions.py` stay
+    because the retained `comfort`/`gates`/`fitting` tables import them.
   - Update the `shirolyzer` package docstring so it no longer advertises a
     Python runtime.
   - Done when no Python runtime entry point remains and `rg` finds no runtime
     command referencing `python -m shirolyzer`.
   - Issue: #70.
 
-- [ ] **RTO.T2.2 — Retain and verify the corpus parsers and fitting dev tools**
+- [x] **RTO.T2.2 — Retain and verify the corpus parsers and fitting dev tools**
   - Keep `corpora/*/parse_*.py`, `shirolyzer/fitting/`, and the Python modules
-    they import (`comfort`, `fitlib`, `gates`, `gateset`, `rulings`, `paths`,
-    `fingers`, `ansi`).
-  - Verify `shirolyzer.fitting` imports and the corpus parser `--help`/`--check`
-    paths still work; document that these are development-only tools.
+    they import (`comfort`, `config`, `conditions`, `fitlib`, `gates`, `gateset`,
+    `rulings`, `paths`, `fingers`, `ansi`).
+  - Trim `config.apply` down to the dev-tool state and drop dead corpus loading
+    so it no longer imports deleted runtime modules.
+  - Verify `shirolyzer.fitting` imports, table construction works, and the
+    corpus parser `--help`/`--check` paths still work; document that these are
+    development-only tools.
   - Done when retained tools import cleanly and the docs call them dev tools.
   - Issue: #71.
 
@@ -235,3 +240,11 @@ Python tree is never deleted from history, only from the current `main` tree.
   run, with matching scores and selected layouts.
 - 2026-10-30: Wrote this takeover plan, created milestone `Rust takeover`,
   labels, issues #66–#75, and started the stacked branch sequence.
+- 2026-10-30: Moved the crate to `shirolyzer/` and adapted the path discovery,
+  build commands, tests, and benchmarks. The binary builds and all Rust gates
+  pass from the new location.
+- 2026-10-30: Removed the Python runtime, CLI facades, command modules, and
+  Python runtime tests. Kept `config.py` and `conditions.py` as dev-tool
+  support after trimming `config.apply` so the retained refitting tables do not
+  import deleted search/scorer modules. Verified the corpus parsers, fitting
+  imports, and table construction still work.

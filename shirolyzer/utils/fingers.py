@@ -17,7 +17,8 @@ FI = {f: i for i, f in enumerate(FINGERS)}
 LENGTH_RANK = np.array([0.0, 1.0, 3.0, 2.0])
 NK, NF = len(KEYS), 4
 
-# Populated from the loaded YAML config by utils.config.apply().  Keeping the
-# same mapping object lets modules that imported it observe the configured map.
+# Populated from the loaded YAML config by utils.config.apply() for the
+# model-refitting tools.  Keeping the same mapping object lets modules that
+# imported it observe the configured map.
 DEFAULT_FINGER: dict[str, str] = {}
 NODEF_EXEMPT = set()
