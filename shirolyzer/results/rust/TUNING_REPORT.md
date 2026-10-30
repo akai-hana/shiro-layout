@@ -36,3 +36,30 @@ Fixed `--iters 200000 --ils 4`.
 Four random restarts already find shiro. More restarts add robustness but no
 quality change on this seed set.
 
+## ILS sweep
+
+Fixed `--iters 200000 --runs 8`.
+
+| ILS rounds | Completed ILS | Wall | Primary | Secondary |
+|---:|---:|---:|---:|---:|
+| 2 | 8 | 25.2 s | 3.520201897 | 3.704852567 |
+| 4 | 16 | 43.2 s | 3.520201897 | 3.704852567 |
+| 8 | 32 | 82.1 s | 3.520201897 | 3.704852567 |
+| 16 | 64 | 157.7 s | 3.520201897 | 3.704852567 |
+
+ILS reaches the same fixed point at 2 rounds. Extra rounds do not move either
+score.
+
+## Polish sweep
+
+Fixed `--iters 200000 --runs 8 --ils 8`.
+
+| Polish rounds | Wall | Primary | Secondary |
+|---:|---:|---:|---:|
+| 1 | 101.8 s | 3.520201897 | 3.704852567 |
+| 2 | 109.0 s | 3.520201897 | 3.704852567 |
+| 4 | 108.8 s | 3.520201897 | 3.704852567 |
+
+Polishing consumes time without changing the winner. Keeping it off is
+correct.
+
