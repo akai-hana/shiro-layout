@@ -7,7 +7,8 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Result};
 use rand::seq::SliceRandom;
-use rand::SeedableRng;
+use rand::{Rng, SeedableRng};
+use rayon::prelude::*;
 use rand_chacha::ChaCha8Rng;
 use serde_json::json;
 
@@ -79,6 +80,44 @@ fn fmt_sig(value: f64, sig: usize) -> String {
 
 fn choose3(rng: &mut impl rand::Rng, values: &[usize]) -> usize {
     values[rng.gen_range(0..values.len())]
+}
+
+fn seed_rng(seed: u64, index: usize) -> ChaCha8Rng {
+    const GOLDEN: u64 = 0x9e37_79b9_7f4a_7c15;
+    ChaCha8Rng::seed_from_u64(seed ^ GOLDEN.wrapping_mul(index as u64 + 1))
+}
+
+fn seed_anneal(seed: u64, index: usize) -> u64 {
+    seed.wrapping_add(17).wrapping_add((index as u64) << 32)
+}
+
+fn optimize_seed(
+    ev: &Evaluator<'_>,
+    delta_tables: &search::DeltaTables,
+    rng: &mut impl Rng,
+    name: &str,
+    start: &[usize],
+    iters: usize,
+    anneal_seed: u64,
+) -> Row {
+    let mut perm = start.to_vec();
+    let cs = ev.score(&perm);
+    let (p, _s) = search::quench(ev, delta_tables, &perm, cs, rng);
+    perm = p;
+    let (p, s) = search::anneal(ev, Some(&perm), iters, 0.35, 0.002, anneal_seed);
+    perm = p;
+    let (p, s) = search::quench(ev, delta_tables, &perm, s, rng);
+    perm = p;
+    let layout = ev.layout_str(&perm);
+    let primary = ev.score(&perm);
+    Row {
+        start: name.to_string(),
+        final_score: s,
+        primary,
+        secondary: None,
+        layout,
+        reference_name: None,
+    }
 }
 
 pub fn run(args: ComputeArgs) -> Result<()> {
@@ -196,51 +235,61 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     let mut results: Vec<Row> = Vec::new();
     let mut best_primary: Option<Row> = None;
     println!("{:<18} {:>9} {:>9}  layout", "start", "final", "primary");
-    for (name, start) in seeds {
-        if let Some(budget) = args.time_budget {
-            if !results.is_empty() && started.elapsed().as_secs_f64() >= budget {
-                println!("time budget reached; saving best so far");
-                break;
+    let parallel = args.time_budget.is_none() && seeds.len() > 1;
+    let mut seed_rows: Vec<Row> = if parallel {
+        seeds
+            .par_iter()
+            .enumerate()
+            .map(|(index, (name, start))| {
+                let mut rng = seed_rng(seed, index);
+                optimize_seed(
+                    &primary_ev,
+                    &delta_tables,
+                    &mut rng,
+                    name,
+                    start,
+                    args.iters,
+                    seed_anneal(seed, index),
+                )
+            })
+            .collect()
+    } else {
+        let mut rows = Vec::with_capacity(seeds.len());
+        for (index, (name, start)) in seeds.iter().enumerate() {
+            if let Some(budget) = args.time_budget {
+                if !rows.is_empty() && started.elapsed().as_secs_f64() >= budget {
+                    println!("time budget reached; saving best so far");
+                    break;
+                }
             }
+            let mut rng = seed_rng(seed, index);
+            rows.push(optimize_seed(
+                &primary_ev,
+                &delta_tables,
+                &mut rng,
+                name,
+                start,
+                args.iters,
+                seed_anneal(seed, index),
+            ));
         }
-        let mut perm = start;
-        let mut cs = primary_ev.score(&perm);
-        let (p, _s) = search::quench(&primary_ev, &delta_tables, &perm, cs, &mut rng);
-        perm = p;
-        let (p, s) = search::anneal(
-            &primary_ev,
-            Some(&perm),
-            args.iters,
-            0.35,
-            0.002,
-            seed + 17,
-        );
-        perm = p;
-        cs = s;
-        let (p, s) = search::quench(&primary_ev, &delta_tables, &perm, cs, &mut rng);
-        perm = p;
-        cs = s;
+        rows
+    };
+    for row in seed_rows.drain(..) {
         completed_runs += 1;
         completed_iterations += args.iters;
-        let layout = primary_ev.layout_str(&perm);
-        let primary = primary_ev.score(&perm);
-        let row = Row {
-            start: name.clone(),
-            final_score: cs,
-            primary,
-            secondary: None,
-            layout: layout.clone(),
-            reference_name: None,
-        };
-        results.push(row.clone());
+        println!(
+            "{:<18} {:>9.4} {:>9.4}  {}",
+            row.start, row.final_score, row.primary, row.layout
+        );
         if best_primary
             .as_ref()
-            .map(|b| primary < b.primary)
+            .map(|b| row.primary < b.primary)
             .unwrap_or(true)
         {
-            best_primary = Some(row);
+            best_primary = Some(row.clone());
         }
-        println!("{:<18} {:>9.4} {:>9.4}  {}", name, cs, primary, layout);
+        results.push(row);
     }
     if results.is_empty() {
         return Err(anyhow!("no completed runs"));
