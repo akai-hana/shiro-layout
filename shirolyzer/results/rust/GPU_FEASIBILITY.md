@@ -39,3 +39,19 @@ arithmetic. A Vulkan adapter is therefore available for a `wgpu` backend.
    numerics paths multiplies the test surface for a generator whose output is
    already at the observed plateau.
 
+## What is implemented
+
+- `compute --device cpu` is the default and is used for all results.
+- `compute --device gpu` prints
+  `warning: GPU mode is not enabled in this build; falling back to CPU` and
+  runs the CPU path. The JSON output records the device actually used.
+
+## Decision parity
+
+The shipped `--device gpu` path is a deliberate fallback, so parity is
+guaranteed by construction: the CPU evaluator is the only evaluator that runs.
+The integration tests exercise `compute` with a fixed seed and small budget and
+compare the resulting primary scores across the CPU and fallback paths; both
+must be identical. RNG streams and move ordering are never touched by the device
+selection flag.
+
