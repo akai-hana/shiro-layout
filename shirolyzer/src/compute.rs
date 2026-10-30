@@ -127,6 +127,154 @@ fn optimize_seed(
     }
 }
 
+struct IlsOutcome {
+    row: Row,
+    source_start: String,
+    start_score: f64,
+    rounds: usize,
+    iterations: usize,
+}
+
+fn ils_rng(seed: u64, rank: usize) -> ChaCha8Rng {
+    seed_rng(seed, 0x1000 + rank)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn optimize_ils_row(
+    ev: &Evaluator<'_>,
+    delta_tables: &search::DeltaTables,
+    row: &Row,
+    rank: usize,
+    iters: usize,
+    ils: usize,
+    anneal_base: u64,
+    rng: &mut impl Rng,
+    deadline: Option<Instant>,
+) -> Result<IlsOutcome> {
+    let mut best = perm_of(&row.layout, &[]).map_err(anyhow::Error::msg)?;
+    let mut best_s = row.final_score;
+    let mut rounds = 0usize;
+    let mut iterations = 0usize;
+    for it in 0..ils.max(1) {
+        if deadline.is_some_and(|d| Instant::now() >= d) {
+            break;
+        }
+        let k = choose3(rng, &[4, 6, 8]);
+        let cand = search::perturb(&best, rng, k);
+        let (cand, _cs) = search::quench(ev, delta_tables, &cand, ev.score(&cand), rng);
+        let round_iters = (iters / 2).max(1);
+        let (cand, cs) = search::anneal(
+            ev,
+            Some(&cand),
+            round_iters,
+            0.35,
+            0.002,
+            anneal_base.wrapping_add(it as u64),
+        );
+        let (cand, cs) = search::quench(ev, delta_tables, &cand, cs, rng);
+        rounds += 1;
+        iterations += round_iters;
+        if cs < best_s - 1e-12 {
+            best = cand;
+            best_s = cs;
+        }
+    }
+    let layout = ev.layout_str(&best);
+    let primary = ev.score(&best);
+    Ok(IlsOutcome {
+        row: Row {
+            start: format!("ILS{}:{}", rank + 1, row.start),
+            final_score: best_s,
+            primary,
+            secondary: None,
+            layout,
+            reference_name: None,
+        },
+        source_start: row.start.clone(),
+        start_score: row.final_score,
+        rounds,
+        iterations,
+    })
+}
+
+struct PolishOutcome {
+    row: Row,
+    passes: usize,
+    iterations: usize,
+    start_s: f64,
+}
+
+fn polish_rng(seed: u64, index: usize) -> ChaCha8Rng {
+    seed_rng(seed, 0x2000 + index)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn optimize_polish_row(
+    ev: &Evaluator<'_>,
+    delta_tables: &search::DeltaTables,
+    row: &Row,
+    index: usize,
+    polish_rounds: usize,
+    iters: usize,
+    seed: u64,
+    rng: &mut impl Rng,
+    secondary_ev: Option<&Evaluator<'_>>,
+    deadline: Option<Instant>,
+) -> Result<PolishOutcome> {
+    let mut best = perm_of(&row.layout, &[]).map_err(anyhow::Error::msg)?;
+    let mut best_s = ev.score(&best);
+    let start_s = best_s;
+    let mut passes = 0usize;
+    let mut iterations = 0usize;
+    for round_idx in 0..polish_rounds.max(1) {
+        if deadline.is_some_and(|d| Instant::now() >= d) {
+            break;
+        }
+        let k = choose3(rng, &[4, 6, 8]);
+        let mut cand = search::perturb(&best, rng, k);
+        let (p, _cs) = search::quench(ev, delta_tables, &cand, ev.score(&cand), rng);
+        cand = p;
+        let round_iters = iters.max(1);
+        let (p, cs) = search::anneal(
+            ev,
+            Some(&cand),
+            round_iters,
+            0.35,
+            0.002,
+            seed.wrapping_add(100_003)
+                .wrapping_add(17 * round_idx as u64)
+                .wrapping_add(index as u64)
+                .wrapping_add(1),
+        );
+        cand = p;
+        let (cand, cs) = search::quench(ev, delta_tables, &cand, cs, rng);
+        passes += 1;
+        iterations += round_iters;
+        if cs < best_s - 1e-12 {
+            best = cand;
+            best_s = cs;
+        } else {
+            break;
+        }
+    }
+    let layout = ev.layout_str(&best);
+    let primary = ev.score(&best);
+    let secondary = secondary_ev.map(|s| s.score(&best));
+    Ok(PolishOutcome {
+        row: Row {
+            start: format!("polish:{}", row.start),
+            final_score: best_s,
+            primary,
+            secondary,
+            layout,
+            reference_name: None,
+        },
+        passes,
+        iterations,
+        start_s,
+    })
+}
+
 pub fn run(args: ComputeArgs) -> Result<()> {
     let device = match args.device {
         Device::Cpu => "cpu",
@@ -339,56 +487,56 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     });
     top.truncate(4);
     println!("\nILS (primary):");
-    for (rank, r) in top.iter().enumerate() {
-        if let Some(budget) = args.time_budget {
-            if started.elapsed().as_secs_f64() >= budget {
+    let deadline = args
+        .time_budget
+        .map(|budget| started + std::time::Duration::from_secs_f64(budget));
+    let ils_outcomes: Vec<IlsOutcome> = if deadline.is_none() {
+        top.par_iter()
+            .enumerate()
+            .map(|(rank, r)| {
+                let mut rng = ils_rng(seed, rank);
+                optimize_ils_row(
+                    &primary_ev,
+                    &delta_tables,
+                    r,
+                    rank,
+                    args.iters,
+                    args.ils,
+                    seed_anneal(seed, 0x1000 + rank),
+                    &mut rng,
+                    None,
+                )
+            })
+            .collect::<Result<Vec<_>>>()?
+    } else {
+        let mut outcomes = Vec::new();
+        for (rank, r) in top.iter().enumerate() {
+            if deadline.is_some_and(|d| Instant::now() >= d) {
                 println!("time budget reached during ILS; saving best so far");
                 break;
             }
-        }
-        let mut best = perm_of(&r.layout, &dead).map_err(anyhow::Error::msg)?;
-        let mut best_s = r.final_score;
-        for it in 0..args.ils.max(1) {
-            if let Some(budget) = args.time_budget {
-                if started.elapsed().as_secs_f64() >= budget {
-                    break;
-                }
-            }
-            let k = choose3(&mut rng, &[4, 6, 8]);
-            let cand = search::perturb(&best, &mut rng, k);
-            let (cand, _cs) = search::quench(
+            let mut rng = ils_rng(seed, rank);
+            outcomes.push(optimize_ils_row(
                 &primary_ev,
                 &delta_tables,
-                &cand,
-                primary_ev.score(&cand),
+                r,
+                rank,
+                args.iters,
+                args.ils,
+                seed_anneal(seed, 0x1000 + rank),
                 &mut rng,
-            );
-            let (cand, cs) = search::anneal(
-                &primary_ev,
-                Some(&cand),
-                (args.iters / 2).max(1),
-                0.35,
-                0.002,
-                51 + it as u64,
-            );
-            let (cand, cs) = search::quench(&primary_ev, &delta_tables, &cand, cs, &mut rng);
-            completed_ils_rounds += 1;
-            completed_iterations += (args.iters / 2).max(1);
-            if cs < best_s - 1e-12 {
-                best = cand;
-                best_s = cs;
-            }
+                deadline,
+            )?);
         }
-        let ilay = primary_ev.layout_str(&best);
-        let ipri = primary_ev.score(&best);
-        let row = Row {
-            start: format!("ILS{}:{}", rank + 1, r.start),
-            final_score: best_s,
-            primary: ipri,
-            secondary: None,
-            layout: ilay.clone(),
-            reference_name: None,
-        };
+        outcomes
+    };
+    for (rank, outcome) in ils_outcomes.into_iter().enumerate() {
+        completed_ils_rounds += outcome.rounds;
+        completed_iterations += outcome.iterations;
+        let row = outcome.row;
+        let ilay = row.layout.clone();
+        let ipri = row.primary;
+        let final_score = row.final_score;
         results.push(row.clone());
         if best_primary
             .as_ref()
@@ -400,9 +548,9 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         println!(
             "  ILS{} {:<16} {:.4} -> {:.4} primary={:.4}  {}",
             rank + 1,
-            r.start,
-            r.final_score,
-            best_s,
+            outcome.source_start,
+            outcome.start_score,
+            final_score,
             ipri,
             ilay
         );
@@ -437,65 +585,61 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             args.min_layout_distance,
             args.polish_candidates,
         );
-        let mut polished = Vec::new();
-        for (i, row) in candidates.iter().enumerate() {
-            let mut best = perm_of(&row.layout, &dead).map_err(anyhow::Error::msg)?;
-            let mut best_s = primary_ev.score(&best);
-            let start_s = best_s;
-            let mut passes = 0;
-            for round_idx in 0..args.polish_rounds.max(1) {
-                let k = choose3(&mut rng, &[4, 6, 8]);
-                let mut cand = search::perturb(&best, &mut rng, k);
-                let (p, _cs) = search::quench(
+        let polish_outcomes: Vec<PolishOutcome> = if deadline.is_none() {
+            candidates
+                .par_iter()
+                .enumerate()
+                .map(|(i, row)| {
+                    let mut rng = polish_rng(seed, i);
+                    optimize_polish_row(
+                        &primary_ev,
+                        &delta_tables,
+                        row,
+                        i,
+                        args.polish_rounds,
+                        args.iters,
+                        seed,
+                        &mut rng,
+                        secondary_ev.as_ref(),
+                        None,
+                    )
+                })
+                .collect::<Result<Vec<_>>>()?
+        } else {
+            let mut outcomes = Vec::new();
+            for (i, row) in candidates.iter().enumerate() {
+                let mut rng = polish_rng(seed, i);
+                outcomes.push(optimize_polish_row(
                     &primary_ev,
                     &delta_tables,
-                    &cand,
-                    primary_ev.score(&cand),
+                    row,
+                    i,
+                    args.polish_rounds,
+                    args.iters,
+                    seed,
                     &mut rng,
-                );
-                cand = p;
-                let (p, cs) = search::anneal(
-                    &primary_ev,
-                    Some(&cand),
-                    args.iters.max(1),
-                    0.35,
-                    0.002,
-                    seed + 100003 + 17 * round_idx as u64 + i as u64 + 1,
-                );
-                cand = p;
-                let (cand, cs) = search::quench(&primary_ev, &delta_tables, &cand, cs, &mut rng);
-                completed_polish_rounds += 1;
-                passes += 1;
-                completed_iterations += args.iters.max(1);
-                if cs < best_s - 1e-12 {
-                    best = cand;
-                    best_s = cs;
-                } else {
-                    break;
-                }
+                    secondary_ev.as_ref(),
+                    deadline,
+                )?);
             }
-            let layout = primary_ev.layout_str(&best);
-            let primary = primary_ev.score(&best);
-            let secondary = secondary_ev.as_ref().map(|ev| ev.score(&best));
-            let new = Row {
-                start: format!("polish:{}", row.start),
-                final_score: best_s,
-                primary,
-                secondary,
-                layout: layout.clone(),
-                reference_name: None,
-            };
+            outcomes
+        };
+        let mut polished = Vec::new();
+        for (i, outcome) in polish_outcomes.into_iter().enumerate() {
+            completed_polish_rounds += outcome.passes;
+            completed_iterations += outcome.iterations;
+            let row = outcome.row;
             println!(
                 "  polish{} {:<16} {:.4} -> {:.4} primary={:.4} rounds={}  {}",
                 i + 1,
-                row.start,
-                start_s,
-                best_s,
-                primary,
-                passes,
-                layout
+                row.start.trim_start_matches("polish:"),
+                outcome.start_s,
+                row.final_score,
+                row.primary,
+                outcome.passes,
+                row.layout
             );
-            polished.push(new);
+            polished.push(row);
         }
         results.extend(polished.iter().cloned());
         for row in &polished {
