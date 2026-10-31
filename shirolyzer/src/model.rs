@@ -8,7 +8,9 @@ use std::path::Path;
 use anyhow::{anyhow, Result};
 use serde_json::Value;
 
-use crate::geometry::{finger_index, Geometry, FINGERS, NF, NK};
+use crate::geometry::{
+    finger_hand, finger_kind, finger_token, length_rank, Geometry, FINGERS, NF, NFINGER, NK,
+};
 
 pub const PARAM_NAMES: [&str; 47] = [
     "e_dn",
@@ -130,23 +132,26 @@ pub struct PairFeature {
 }
 
 pub fn pair_feature(geom: &Geometry, a: usize, fa: usize, b: usize, fb: usize) -> PairFeature {
-    let a_longer = crate::geometry::LENGTH_RANK[fa] > crate::geometry::LENGTH_RANK[fb];
+    let ka = finger_kind(fa);
+    let kb = finger_kind(fb);
+    let a_longer = length_rank(fa) > length_rank(fb);
     let g = if a_longer {
         geom.dv[fa][a] - geom.dv[fb][b]
     } else {
         geom.dv[fb][b] - geom.dv[fa][a]
     };
-    let inner_is_a = fa > fb;
+    let inner_is_a = ka > kb;
     let s = if inner_is_a {
-        geom.u[a] - geom.u[b]
+        geom.u8[fa][a] - geom.u8[fb][b]
     } else {
-        geom.u[b] - geom.u[a]
+        geom.u8[fb][b] - geom.u8[fa][a]
     };
-    let lo_f = fa.min(fb);
-    let hi_f = fa.max(fb);
+    let lo_f = ka.min(kb);
+    let hi_f = ka.max(kb);
     let dist = ((geom.cx[a] - geom.cx[b]).powi(2) + (geom.v[a] - geom.v[b]).powi(2)).sqrt();
+    let finger_hand_a = finger_hand(fa);
     PairFeature {
-        same_hand: geom.hand[a] == geom.hand[b],
+        same_hand: finger_hand_a == finger_hand(fb),
         diff_f: fa != fb,
         g,
         s,
@@ -155,9 +160,9 @@ pub fn pair_feature(geom: &Geometry, a: usize, fa: usize, b: usize, fb: usize) -
         lo_f,
         hi_f,
         nadj: hi_f - lo_f,
-        direction: (fb as f64 - fa as f64).signum(),
-        rest_sep: geom.rest_u[geom.hand[a]][hi_f] - geom.rest_u[geom.hand[a]][lo_f],
-        second_longer: crate::geometry::LENGTH_RANK[fb] > crate::geometry::LENGTH_RANK[fa],
+        direction: (kb as f64 - ka as f64).signum(),
+        rest_sep: geom.rest_u[finger_hand_a][hi_f] - geom.rest_u[finger_hand_a][lo_f],
+        second_longer: length_rank(fb) > length_rank(fa),
         a_longer,
     }
 }
@@ -205,16 +210,16 @@ pub struct ModelTables {
 pub struct Model {
     pub params: Vec<f64>,
     index: HashMap<&'static str, usize>,
-    pub disallow_full_reverse: [[bool; NF]; NF],
-    pub default_finger: [char; NK],
+    pub disallow_full_reverse: [[bool; NFINGER]; NFINGER],
+    pub default_finger: [usize; NK],
     pub scales: Scales,
 }
 
 impl Model {
     pub fn new(
         parameters: Vec<f64>,
-        disallow_full_reverse: [[bool; NF]; NF],
-        default_finger: [char; NK],
+        disallow_full_reverse: [[bool; NFINGER]; NFINGER],
+        default_finger: [usize; NK],
     ) -> Self {
         let mut index = HashMap::new();
         for (i, name) in PARAM_NAMES.iter().enumerate() {
@@ -231,8 +236,8 @@ impl Model {
 
     pub fn from_file(
         path: &Path,
-        disallow_full_reverse: [[bool; NF]; NF],
-        default_finger: [char; NK],
+        disallow_full_reverse: [[bool; NFINGER]; NFINGER],
+        default_finger: [usize; NK],
     ) -> Result<Self> {
         let data: Value = serde_json::from_str(&crate::paths::read_to_string(path)?)?;
         let obj = data
@@ -255,11 +260,7 @@ impl Model {
     }
 
     pub fn default_finger_index(&self) -> [usize; NK] {
-        let mut out = [0usize; NK];
-        for k in 0..NK {
-            out[k] = finger_index(self.default_finger[k]).unwrap_or(0);
-        }
-        out
+        self.default_finger
     }
 
     pub fn key_cost(&self, geom: &Geometry) -> (Vec<f64>, Vec<f64>) {
@@ -275,23 +276,25 @@ impl Model {
         let up_pen = [self.p("e_up_P"), 0.0, 0.0, self.p("e_up_I")];
         for k in 0..NK {
             for f in 0..NF {
+                let kind = finger_kind(f);
+                let hand = finger_hand(f);
                 let dv = geom.dv[f][k];
                 let du = geom.du[f][k];
-                let colup = if f == 3 {
+                let colup = if kind == 3 {
                     self.p("e_upcol")
                         * (1.0 - du.abs() / 0.5).max(0.0)
                         * if dv < 0.0 { 1.0 } else { 0.0 }
                 } else {
                     0.0
                 };
-                let ov = if f < 3 {
-                    (du - geom.inner_sep[geom.hand[k]][f]).max(0.0)
+                let ov = if kind < 3 {
+                    (du - geom.inner_sep[hand][kind]).max(0.0)
                 } else {
                     0.0
                 };
                 let mut cost = colup
                     + self.p("e_dn") * dv.max(0.0)
-                    + up_pen[f] * (-dv).max(0.0)
+                    + up_pen[kind] * (-dv).max(0.0)
                     + self.p("e_lat") * du.abs()
                     + self.p("e_lat2") * (du.abs() - 1.0).max(0.0).powi(2)
                     + self.p("e_dn2") * (dv - 1.0).max(0.0).powi(2)
@@ -322,7 +325,7 @@ impl Model {
                 let ndv = e_nd * nd[i] + e_ndgap * gap;
                 final_nd[i] = ndv;
                 let mut value = e[i] + ndv + e_nd_rest * ndr[i];
-                if !geom.reach[k][f] {
+                if !geom.is_reachable(k, f) {
                     value = f64::INFINITY;
                 }
                 final_e[i] = value;
@@ -536,7 +539,7 @@ impl Model {
                         if a == b {
                             out = W_REPEAT + if fa != fb { W_REPEAT_SWAP } else { 0.0 };
                         }
-                        let reach = geom.reach[a][fa] && geom.reach[b][fb];
+                        let reach = geom.is_reachable(a, fa) && geom.is_reachable(b, fb);
                         if !reach {
                             out = f64::INFINITY;
                         }
@@ -612,13 +615,15 @@ impl Model {
                         let d2 = f3 as i32 - f2 as i32;
                         let turn = d1 * d2 < 0;
                         let cont = d1 * d2 > 0;
-                        let has_p = f1 == 0 || f2 == 0 || f3 == 0;
+                        let has_p =
+                            finger_kind(f1) == 0 || finger_kind(f2) == 0 || finger_kind(f3) == 0;
                         let mut cost = tabs.e[e_idx(ka, f1)]
                             + tabs.e[e_idx(kb, f2)]
                             + tabs.e[e_idx(kc, f3)]
                             + tabs.pt[pt_idx(ka, f1, kb, f2)]
                             + tabs.pt[pt_idx(kb, f2, kc, f3)];
-                        let same = geom.same_hand(ka, kb) && geom.same_hand(kb, kc);
+                        let same = finger_hand(f1) == finger_hand(f2)
+                            && finger_hand(f2) == finger_hand(f3);
                         if same {
                             let add = (if turn {
                                 if has_p {
@@ -639,16 +644,17 @@ impl Model {
                         } else {
                             let s13 = tabs.strain[pt_idx(ka, f1, kc, f3)];
                             let s13 = if s13.is_finite() { s13 } else { 0.0 };
-                            let alt13 =
-                                geom.same_hand(ka, kc) && !geom.same_hand(ka, kb) && ka != kc;
+                            let alt13 = finger_hand(f1) == finger_hand(f3)
+                                && finger_hand(f1) != finger_hand(f2)
+                                && ka != kc;
                             if alt13 && f1 != f3 {
                                 cost += gamma13_alt * self.scales.scissor * s13;
                             }
                         }
                         let f1_eq_f2 = f1 == f2;
                         let m13 = f1 == f3
-                            && !(geom.same_hand(ka, kb) && f1_eq_f2)
-                            && geom.same_hand(ka, kc)
+                            && !(finger_hand(f1) == finger_hand(f2) && f1_eq_f2)
+                            && finger_hand(f1) == finger_hand(f3)
                             && ka != kc;
                         if m13 {
                             cost += sfs;
@@ -677,11 +683,16 @@ impl Model {
 }
 
 pub fn finger_letter(index: usize) -> char {
-    FINGERS[index]
+    FINGERS[finger_kind(index)]
+}
+
+pub fn finger_name(index: usize) -> &'static str {
+    finger_token(index)
 }
 
 pub fn parse_finger(token: &str) -> Option<usize> {
-    token.chars().last().and_then(finger_index)
+    crate::geometry::parse_finger8(token)
+        .or_else(|| token.chars().last().and_then(crate::geometry::finger_index))
 }
 
 /// Validate that every parameter name exists in a JSON object.
@@ -694,4 +705,54 @@ pub fn missing_parameters(data: &Value) -> Vec<String> {
         .filter(|name| !obj.contains_key(**name))
         .map(|s| s.to_string())
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::geometry::{key_index, parse_finger8, Geometry};
+
+    #[test]
+    fn cross_hand_key_costs_are_finite_and_not_hand_relative() {
+        let geom = Geometry::new();
+        let cfg = crate::config::load(None).unwrap();
+        let model = crate::config::build_model(&cfg).unwrap();
+        let (e, _) = model.key_cost(&geom);
+        let h = key_index("H").unwrap();
+        let y = key_index("Y").unwrap();
+        let li = parse_finger8("LI").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let ri = parse_finger8("RI").unwrap();
+
+        assert!(e[e_idx(h, li)].is_finite());
+        assert!(e[e_idx(y, lm)].is_finite());
+        assert!(e[e_idx(h, ri)].is_finite());
+        assert!(e[e_idx(h, li)] < 3.0);
+        assert!(e[e_idx(y, lm)] < 3.5);
+    }
+
+    #[test]
+    fn pair_feature_uses_the_fingers_hand() {
+        let geom = Geometry::new();
+        let h = key_index("H").unwrap();
+        let y = key_index("Y").unwrap();
+        let j = key_index("J").unwrap();
+        let li = parse_finger8("LI").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let ri = parse_finger8("RI").unwrap();
+
+        // H and Y are right-hand keys, but LI/LM are both left fingers.
+        let left_pair = pair_feature(&geom, h, li, y, lm);
+        assert!(left_pair.same_hand);
+        assert_eq!(left_pair.lo_f, 2);
+        assert_eq!(left_pair.hi_f, 3);
+        assert!((left_pair.rest_sep - (geom.rest_u[0][3] - geom.rest_u[0][2])).abs() < 1e-9);
+
+        // A cross-hand fingering alternates hands even on adjacent right keys.
+        let cross_pair = pair_feature(&geom, h, li, j, ri);
+        assert!(!cross_pair.same_hand);
+
+        // Same-hand pairs remain same-hand.
+        assert!(pair_feature(&geom, h, ri, j, ri).same_hand);
+    }
 }

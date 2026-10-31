@@ -9,7 +9,7 @@
 
 use crate::conditions::Conditions;
 use crate::config::{AltMode, AltRule, Config};
-use crate::geometry::NF;
+use crate::geometry::{finger_hand, NF};
 
 pub const XPEN: f64 = 12.0;
 pub const FALLBACK_PENALTY: f64 = XPEN;
@@ -71,9 +71,6 @@ impl Gates {
                 allow_len = len;
             }
         }
-        if allow_len == 0 && self.matching_len(keys) == 0 {
-            return;
-        }
         let mut allow_groups: Vec<(usize, Vec<&AltRule>)> = Vec::new();
         let mut block_rules: Vec<(usize, &AltRule)> = Vec::new();
         for rule in &self.rules {
@@ -95,6 +92,10 @@ impl Gates {
                 }
             }
         }
+        let key_hands: Vec<usize> = keys
+            .iter()
+            .map(|key| crate::geometry::hand_of(&key.to_string()))
+            .collect();
         for (idx, value) in out.iter_mut().enumerate() {
             let fingers = decode(idx, n);
             if block_rules.iter().any(|(start, rule)| {
@@ -122,6 +123,25 @@ impl Gates {
                 *value += fallback;
             } else {
                 *value = f64::INFINITY;
+                continue;
+            }
+            // Cross-hand fingerings are impossible by default.  An allow rule
+            // must name the exact cross-hand state at that sequence position.
+            for (pos, &finger) in fingers.iter().enumerate() {
+                if finger_hand(finger) == key_hands[pos] {
+                    continue;
+                }
+                let licensed = allow_groups.iter().any(|(start, group)| {
+                    pos >= *start
+                        && pos < *start + allow_len
+                        && group
+                            .iter()
+                            .any(|rule| rule.fingers[pos - *start] == finger)
+                });
+                if !licensed {
+                    *value = f64::INFINITY;
+                    break;
+                }
             }
         }
     }
@@ -140,4 +160,58 @@ pub fn decode(mut idx: usize, n: usize) -> Vec<usize> {
         idx /= NF;
     }
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::conditions::Conditions;
+    use crate::config::{AltMode, AltRule};
+    use crate::geometry::parse_finger8;
+
+    fn conditions_off() -> Conditions {
+        Conditions {
+            enabled: false,
+            rules: Vec::new(),
+            pair_denied: None,
+        }
+    }
+
+    #[test]
+    fn cross_hand_states_need_an_explicit_allow_rule() {
+        let conditions = conditions_off();
+        let li = parse_finger8("LI").unwrap();
+        let ri = parse_finger8("RI").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let rm = parse_finger8("RM").unwrap();
+
+        let plain = Gates { rules: Vec::new() };
+        let h = plain.penalty_mask(&['H'], &conditions);
+        assert!(h[li].is_infinite());
+        assert!(h[ri].is_finite());
+        let y = plain.penalty_mask(&['Y'], &conditions);
+        assert!(y[lm].is_infinite());
+        assert!(y[rm].is_finite());
+
+        let licensed = Gates {
+            rules: vec![
+                AltRule {
+                    keys: vec!['H'],
+                    fingers: vec![li],
+                    mode: AltMode::Allow,
+                },
+                AltRule {
+                    keys: vec!['Y'],
+                    fingers: vec![lm],
+                    mode: AltMode::Allow,
+                },
+            ],
+        };
+        let h = licensed.penalty_mask(&['H'], &conditions);
+        assert!(h[li].is_finite());
+        assert!(h[ri].is_infinite());
+        let y = licensed.penalty_mask(&['Y'], &conditions);
+        assert!(y[lm].is_finite());
+        assert!(y[rm].is_infinite());
+    }
 }
