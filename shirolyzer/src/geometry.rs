@@ -15,8 +15,13 @@ use serde::Deserialize;
 pub const ROWS: [&str; 3] = ["QWERTYUIOP", "ASDFGHJKL;", "ZXCVBNM,./"];
 pub const ROW_OFFSET: [f64; 3] = [0.0, 0.25, 0.75];
 pub const FINGERS: [char; 4] = ['P', 'R', 'M', 'I'];
+/// Number of finger kinds (P/R/M/I) before the hand dimension is added.
+pub const NFINGER: usize = 4;
+/// Eight finger states in `hand * NFINGER + finger` order.
+pub const FINGERS8: [&str; 8] = ["LP", "LR", "LM", "LI", "RP", "RR", "RM", "RI"];
 pub const NK: usize = 30;
-pub const NF: usize = 4;
+pub const NF: usize = 8;
+pub const CROSS_REACH_MAX: f64 = 4.5;
 
 pub const KEYS: [&str; NK] = [
     "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "A", "S", "D", "F", "G", "H", "J", "K", "L",
@@ -24,7 +29,7 @@ pub const KEYS: [&str; NK] = [
 ];
 
 /// Finger length rank.  Python: `np.array([0, 1, 3, 2])` for P/R/M/I.
-pub const LENGTH_RANK: [f64; NF] = [0.0, 1.0, 3.0, 2.0];
+pub const LENGTH_RANK: [f64; NFINGER] = [0.0, 1.0, 3.0, 2.0];
 
 pub fn key_index(key: &str) -> Option<usize> {
     KEYS.iter().position(|k| *k == key)
@@ -38,6 +43,45 @@ pub fn key_index_char(key: char) -> Option<usize> {
 /// Index of a finger letter (P/R/M/I).
 pub fn finger_index(finger: char) -> Option<usize> {
     FINGERS.iter().position(|f| *f == finger)
+}
+
+/// Hand of an eight-state finger index.
+#[inline]
+pub fn finger_hand(finger: usize) -> usize {
+    finger / NFINGER
+}
+
+/// Finger kind (P/R/M/I) of an eight-state finger index.
+#[inline]
+pub fn finger_kind(finger: usize) -> usize {
+    finger % NFINGER
+}
+
+/// Eight-state index for a finger letter on a hand (0 = left, 1 = right).
+#[inline]
+pub fn finger_index8(finger: char, hand: usize) -> Option<usize> {
+    finger_index(finger).map(|kind| hand * NFINGER + kind)
+}
+
+/// Parse an explicit hand/finger token such as `LI` or `RM`.
+pub fn parse_finger8(token: &str) -> Option<usize> {
+    let text = token.to_uppercase();
+    let chars: Vec<char> = text.chars().collect();
+    if chars.len() != 2 || !matches!(chars[0], 'L' | 'R') {
+        return None;
+    }
+    let hand = if chars[0] == 'L' { 0 } else { 1 };
+    finger_index8(chars[1], hand)
+}
+
+/// Canonical hand/finger token for an eight-state index.
+pub fn finger_token(finger: usize) -> &'static str {
+    FINGERS8[finger]
+}
+
+#[inline]
+pub fn length_rank(finger: usize) -> f64 {
+    LENGTH_RANK[finger_kind(finger)]
 }
 
 pub fn hand_of(key: &str) -> usize {
@@ -71,12 +115,14 @@ pub struct Geometry {
     pub row: [usize; NK],
     pub u: [f64; NK],
     pub v: [f64; NK],
-    pub rest_u: [[f64; NF]; 2],
-    pub rest_v: [[f64; NF]; 2],
-    pub inner_sep: [[f64; NF]; 2],
+    pub rest_u: [[f64; NFINGER]; 2],
+    pub rest_v: [[f64; NFINGER]; 2],
+    pub inner_sep: [[f64; NFINGER]; 2],
+    pub u8: [[f64; NK]; NF],
     pub du: [[f64; NK]; NF],
     pub dv: [[f64; NK]; NF],
     pub reach: [[bool; NF]; NK],
+    pub cross_reach: [[bool; NF]; NK],
     pub unlisted: [[bool; NF]; NK],
 }
 
@@ -169,8 +215,8 @@ impl Geometry {
             v[i] = cy[i];
         }
 
-        let mut rest_u = [[0.0; NF]; 2];
-        let mut rest_v = [[0.0; NF]; 2];
+        let mut rest_u = [[0.0; NFINGER]; 2];
+        let mut rest_v = [[0.0; NFINGER]; 2];
         for (h, map) in [&spec.rest.left, &spec.rest.right].iter().enumerate() {
             for (f, finger) in FINGERS.iter().enumerate() {
                 let key = map.get(&finger.to_string()).ok_or_else(|| {
@@ -201,24 +247,39 @@ impl Geometry {
                 rest_v[h][f] = v[k];
             }
         }
-        let mut inner_sep = [[0.0; NF]; 2];
+        let mut inner_sep = [[0.0; NFINGER]; 2];
         for h in 0..2 {
-            for f in 0..NF - 1 {
+            for f in 0..NFINGER - 1 {
                 inner_sep[h][f] = rest_u[h][f + 1] - rest_u[h][f];
             }
-            inner_sep[h][NF - 1] = 99.0;
+            inner_sep[h][NFINGER - 1] = 99.0;
         }
 
+        let mut u8 = [[0.0; NK]; NF];
         let mut du = [[0.0; NK]; NF];
         let mut dv = [[0.0; NK]; NF];
         for k in 0..NK {
             for f in 0..NF {
-                du[f][k] = u[k] - rest_u[hand[k]][f];
-                dv[f][k] = v[k] - rest_v[hand[k]][f];
+                let h = finger_hand(f);
+                let kind = finger_kind(f);
+                // Same-hand fingers use the existing hand-relative mirrored
+                // coordinate.  Cross-hand fingers use the absolute key column,
+                // mirrored by the finger's own hand so inner/outer keeps the
+                // same sign convention.
+                let fu = if h == hand[k] {
+                    u[k]
+                } else if h == 0 {
+                    cx[k]
+                } else {
+                    -cx[k]
+                };
+                u8[f][k] = fu;
+                du[f][k] = fu - rest_u[h][kind];
+                dv[f][k] = v[k] - rest_v[h][kind];
             }
         }
 
-        let mut approved: [Vec<(f64, f64)>; NF] = std::array::from_fn(|_| Vec::new());
+        let mut approved: [Vec<(f64, f64)>; NFINGER] = std::array::from_fn(|_| Vec::new());
         for (f, finger) in FINGERS.iter().enumerate() {
             let points = spec.approved.get(&finger.to_string()).ok_or_else(|| {
                 anyhow::anyhow!(
@@ -237,10 +298,25 @@ impl Geometry {
             approved[f] = points.clone();
         }
         let mut reach = [[false; NF]; NK];
-        for (f, points) in approved.iter().enumerate() {
+        for (kind, points) in approved.iter().enumerate() {
             let hull = convex_hull(points);
             for k in 0..NK {
+                let f = hand[k] * NFINGER + kind;
                 reach[k][f] = point_in_hull(&hull, du[f][k], dv[f][k], 1e-9);
+            }
+        }
+
+        // Cross-hand reach is deliberately separate from the approved
+        // same-hand polygons.  It is only a physical bound; gates still keep
+        // cross-hand fingerings impossible unless an `alt_fingers` allow rule
+        // explicitly licenses them.
+        let mut cross_reach = [[false; NF]; NK];
+        for k in 0..NK {
+            for f in 0..NF {
+                if finger_hand(f) == hand[k] {
+                    continue;
+                }
+                cross_reach[k][f] = (du[f][k].powi(2) + dv[f][k].powi(2)).sqrt() <= CROSS_REACH_MAX;
             }
         }
 
@@ -274,7 +350,7 @@ impl Geometry {
                         if h == 0 { "left" } else { "right" }
                     );
                 }
-                listed[k][f] = true;
+                listed[k][hand[k] * NFINGER + f] = true;
             }
         }
         let mut unlisted = [[false; NF]; NK];
@@ -295,15 +371,22 @@ impl Geometry {
             rest_u,
             rest_v,
             inner_sep,
+            u8,
             du,
             dv,
             reach,
+            cross_reach,
             unlisted,
         })
     }
 
     pub fn same_hand(&self, a: usize, b: usize) -> bool {
         self.hand[a] == self.hand[b]
+    }
+
+    #[inline]
+    pub fn is_reachable(&self, key: usize, finger: usize) -> bool {
+        self.reach[key][finger] || self.cross_reach[key][finger]
     }
 
     pub fn distance(&self, a: usize, b: usize) -> f64 {
@@ -372,4 +455,45 @@ fn point_in_hull(hull: &[(f64, f64)], x: f64, y: f64, eps: f64) -> bool {
         }
     }
     true
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn cross_hand_travel_uses_absolute_positions() {
+        let geom = Geometry::new();
+        let h = key_index("H").unwrap();
+        let y = key_index("Y").unwrap();
+        let li = parse_finger8("LI").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let ri = parse_finger8("RI").unwrap();
+
+        // The default same-hand table stays same-hand only.
+        assert!(geom.reach[h][ri]);
+        assert!(!geom.reach[h][li]);
+
+        // Explicit cross-hand states are physically reachable and priced from
+        // absolute key/finger columns rather than a hand-relative mirror.
+        assert!(geom.cross_reach[h][li]);
+        assert!(geom.is_reachable(h, li));
+        assert!(geom.is_reachable(y, lm));
+        assert!((geom.du[li][h] - (geom.cx[h] - geom.rest_u[0][3])).abs() < 1e-9);
+        assert!((geom.du[lm][y] - (geom.cx[y] - geom.rest_u[0][2])).abs() < 1e-9);
+        assert!(geom.du[li][h].abs() < 3.0);
+        assert!(geom.du[lm][y].abs() < 3.5);
+
+        // Same-hand travel still uses the mirrored hand-relative coordinate.
+        assert!((geom.du[ri][h] - (geom.u[h] - geom.rest_u[1][3])).abs() < 1e-9);
+    }
+
+    #[test]
+    fn cross_reach_rejects_far_cross_body_keys() {
+        let geom = Geometry::new();
+        let q = key_index("Q").unwrap();
+        let rp = parse_finger8("RP").unwrap();
+        assert!(!geom.cross_reach[q][rp]);
+        assert!(!geom.is_reachable(q, rp));
+    }
 }

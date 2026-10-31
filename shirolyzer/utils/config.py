@@ -162,7 +162,7 @@ def _finger_token(path: Path, where: str, value: Any) -> str:
     match = FINGER_RE.match(value.upper())
     if not match:
         _fail(path, where, f"invalid finger token {value!r}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI")
-    return match.group(1)
+    return match.group(0)
 
 
 def _hand_finger(path: Path, where: str, key: str, value: Any) -> str:
@@ -171,9 +171,8 @@ def _hand_finger(path: Path, where: str, key: str, value: Any) -> str:
     if not match:
         _fail(path, where, f"invalid finger {value!r}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI")
     hand, finger = match.group(1), match.group(2)
-    if hand and hand != ("L" if key in "QWERTASDFGZXCVB" else "R"):
-        _fail(path, where, f"finger {token!r} does not match the hand of key {key!r}")
-    return finger
+    key_hand = "L" if key in "QWERTASDFGZXCVB" else "R"
+    return (hand or key_hand) + finger
 
 
 def _normalise_corpora(path: Path, where: str, value: Any) -> list[dict]:
@@ -254,8 +253,7 @@ def _parse_alt_fingers(path: Path, value: Any) -> list[dict]:
                     _fail(path, f"{where}.context[{j}]", f"unknown QWERTY key {ctx!r}")
             if mode == "never" and context:
                 _fail(path, f"{where}.context", "mode 'never' does not take a context")
-            hand = "L" if key in "QWERTASDFGZXCVB" else "R"
-            out.append({"key": key, "finger": hand + finger, "mode": mode,
+            out.append({"key": key, "finger": finger, "mode": mode,
                         "context": [str(x).upper() for x in context],
                         "explicit": bool(item.get("explicit", False))})
         else:
@@ -270,8 +268,7 @@ def _parse_alt_fingers(path: Path, value: Any) -> list[dict]:
                 _fail(path, f"{where}.fingers", "expected one finger token per sequence position")
             parsed = []
             for j, (key, finger) in enumerate(zip(sequence, fingers)):
-                _hand_finger(path, f"{where}.fingers[{j}]", key, finger)
-                parsed.append(str(finger).upper())
+                parsed.append(_hand_finger(path, f"{where}.fingers[{j}]", key, finger))
             out.append({"sequence": sequence, "fingers": parsed})
     return out
 

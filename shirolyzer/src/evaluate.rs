@@ -4,7 +4,7 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 
 use crate::corpus::{Corpus, SPACE_INDEX};
-use crate::geometry::{finger_index, key_index, KEYS, NK};
+use crate::geometry::{finger_hand, finger_kind, key_index, KEYS, NK};
 use crate::model::Model;
 use crate::scorer::{tri_idx, tri_idx_u8, Tables, SPACE_ID};
 
@@ -98,9 +98,7 @@ impl<'a> Evaluator<'a> {
         }
         let slots: Vec<usize> = (0..N_ITEMS).collect();
         let slot_key: Vec<u8> = slots.iter().map(|&slot| slot as u8).collect();
-        let default_finger: Vec<usize> = (0..N_ITEMS)
-            .map(|i| finger_index(model.default_finger[i]).unwrap())
-            .collect();
+        let default_finger: Vec<usize> = (0..N_ITEMS).map(|i| model.default_finger[i]).collect();
         let hand: Vec<usize> = (0..N_ITEMS)
             .map(|i| crate::geometry::hand_of(KEYS[i]))
             .collect();
@@ -266,7 +264,8 @@ impl<'a> Evaluator<'a> {
         let mut usage = [[0.0f64; 4]; 2];
         for li in 0..N_LETTERS {
             let slot = perm[li];
-            usage[self.hand[slot]][self.default_finger[slot]] += self.lfreq[li];
+            let finger = self.default_finger[slot];
+            usage[finger_hand(finger)][finger_kind(finger)] += self.lfreq[li];
         }
         let mut pen = 0.0;
         for h in 0..2 {
