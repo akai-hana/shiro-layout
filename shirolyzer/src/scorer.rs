@@ -2,12 +2,14 @@
 //!
 //! Port of `shirolyzer/utils/scorer.py`.
 
+use anyhow::{bail, Result};
+use rayon::prelude::*;
+
 use crate::conditions::Conditions;
 use crate::config::Config;
 use crate::gates::Gates;
 use crate::geometry::{Geometry, KEYS, NF, NK};
 use crate::model::{Model, ModelTables, W_ALT};
-use rayon::prelude::*;
 
 pub const N: usize = 31;
 pub const SPACE_ID: usize = 30;
@@ -50,7 +52,7 @@ impl Tables {
         _cfg: &Config,
         gates: &Gates,
         conditions: &Conditions,
-    ) -> Self {
+    ) -> Result<Self> {
         let mt = model.tables(geom);
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
         let chars: Vec<char> = (0..NK).map(key_char).collect();
@@ -194,13 +196,39 @@ impl Tables {
             }
         }
 
-        Self {
+        for a in 0..NK {
+            for b in 0..NK {
+                if !big[big_idx(a, b)].is_finite() {
+                    bail!(
+                        "alt_fingers: no feasible fingering for bigram {}->{}",
+                        KEYS[a],
+                        KEYS[b]
+                    );
+                }
+            }
+        }
+        for a in 0..NK {
+            for b in 0..NK {
+                for c in 0..NK {
+                    if !tri[tri_idx(a, b, c)].is_finite() {
+                        bail!(
+                            "alt_fingers: no feasible fingering for trigram {}->{}->{}",
+                            KEYS[a],
+                            KEYS[b],
+                            KEYS[c]
+                        );
+                    }
+                }
+            }
+        }
+
+        Ok(Self {
             big,
             tri,
             big_f,
             tri_f,
             model: mt,
-        }
+        })
     }
 
     pub fn bigram_overhead(&self, a: usize, b: usize) -> f64 {

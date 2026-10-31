@@ -2,7 +2,7 @@
 
 > **Superseded 2026-10-26:** This report documents the cfgE-era model and
 > the Norvig/root corpus. The calibrated Shai-primary objective, search,
-> winner, and audit are in `findings/REPORT_round8.md`. Historical scores
+> winner, and audit are in `findings/rounds/REPORT_round8.md`. Historical scores
 > here are not comparable to the Shai-primary scores. Artifacts referenced
 > below now live under `analysis/legacy/` and `results/archive/`.
 

@@ -1,0 +1,5 @@
+Layout that rejects home-row as resting keys (uses AWEF-JIO;) for a "columnar-stagger-esque" effect, uses custom fingermap to avoid >1 key vertical travel in middle/pinky fingers and solve pinkies over-stretching / middles forcefully flexing, and relies on bigram/trigram-based contextual alt fingerings, embracing alts as a resource to maximize rolls and reduce SFBs/SFTs/scissors.
+
+ANSI, English-first, tuned for the Shai corpus with a re-tune on Douglas, to improve Spanish performance without hurting English. Letters [Z,X,C,V,T,Y] restricted to left hand for one-handed CTRL keybinds.
+
+More info & custom analyzer/generator that Shiro uses: https://github.com/akai-hana/shiro-layout

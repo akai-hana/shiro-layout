@@ -209,6 +209,20 @@ pub fn trigram_patterns(
         let add = |acc: &mut HashMap<String, f64>, key: &str| {
             *acc.entry(key.to_string()).or_insert(0.0) += cnt;
         };
+        let has_repeat = ids[0] == ids[1] || ids[1] == ids[2] || ids[0] == ids[2];
+        let is_sft = if hs[0] == hs[1] && hs[1] == hs[2] {
+            fs[0] == fs[1] || fs[1] == fs[2]
+        } else if hs[0] == hs[1] {
+            fs[0] == fs[1]
+        } else if hs[1] == hs[2] {
+            fs[1] == fs[2]
+        } else {
+            false
+        };
+        if is_sft && has_repeat {
+            add(&mut acc, "repeat");
+            continue;
+        }
         if (hs == [0, 1, 0]) || (hs == [1, 0, 1]) {
             add(&mut acc, "alternate");
         } else if hs[0] == hs[1] && hs[1] == hs[2] {
@@ -399,7 +413,14 @@ pub struct AnalyzeArgs<'a> {
 
 pub fn run(args: AnalyzeArgs) -> Result<()> {
     let ctx = context::Context::load(args.config)?;
-    let layout = args.layout.unwrap_or(&ctx.cfg.current_layout);
+    let latest;
+    let layout = match args.layout {
+        Some(layout) => layout,
+        None => {
+            latest = paths::read_latest_layout()?;
+            &latest
+        }
+    };
     if layout.chars().count() != 30 {
         return Err(anyhow!("layout must be 30 characters"));
     }
@@ -525,6 +546,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "redirect_weak",
         "total_redirects",
         "sfb_tri",
+        "repeat",
         "other",
     ] {
         out(format!(

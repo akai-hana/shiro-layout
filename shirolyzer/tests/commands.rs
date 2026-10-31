@@ -64,7 +64,7 @@ fn analyze_score_matches_baseline() {
     assert!(out.status.success());
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
-    assert!((score - 3.3940533330472595).abs() < 1e-12);
+    assert!((score - 3.591956515141598).abs() < 1e-12);
     for entry in value["guide"].as_object().unwrap().values() {
         for contexts in entry["alt_contexts"].as_object().unwrap().values() {
             for item in contexts.as_array().unwrap() {
@@ -83,7 +83,7 @@ fn compare_reports_baseline_scores() {
     assert!(out.status.success());
     let text = stdout(&out);
     assert!(text.contains("shiro"));
-    assert!(text.contains("3.394053"));
+    assert!(text.contains("3.591957"));
 }
 
 #[test]
@@ -165,7 +165,7 @@ fn compute_smoke() {
     );
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&out_json).unwrap()).unwrap();
     assert_eq!(value["completed_runs"], 1);
-    assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 1);
+    assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 2);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.520201897).abs() < 1e-6);
+    assert!((primary - 3.5546026137877202).abs() < 1e-6);
 }

@@ -6,6 +6,12 @@
 //! triangulation only as an inside-the-approved-hull test; an explicit convex
 //! hull gives the same answer.
 
+use std::collections::HashMap;
+use std::path::Path;
+
+use anyhow::{bail, Context, Result};
+use serde::Deserialize;
+
 pub const ROWS: [&str; 3] = ["QWERTYUIOP", "ASDFGHJKL;", "ZXCVBNM,./"];
 pub const ROW_OFFSET: [f64; 3] = [0.0, 0.25, 0.75];
 pub const FINGERS: [char; 4] = ['P', 'R', 'M', 'I'];
@@ -41,6 +47,23 @@ pub fn hand_of(key: &str) -> usize {
     }
 }
 
+#[derive(Debug, Deserialize)]
+struct RestSpec {
+    left: HashMap<String, String>,
+    right: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct GeometrySpec {
+    rows: Vec<String>,
+    row_offsets: Vec<f64>,
+    hand_split: usize,
+    rest: RestSpec,
+    approved: HashMap<String, Vec<(f64, f64)>>,
+    listed: HashMap<String, String>,
+}
+
+#[derive(Clone)]
 pub struct Geometry {
     pub cx: [f64; NK],
     pub cy: [f64; NK],
@@ -65,20 +88,80 @@ impl Default for Geometry {
 
 impl Geometry {
     pub fn new() -> Self {
+        let path = crate::paths::geometry_file("ansi");
+        Self::from_file(&path).unwrap_or_else(|err| panic!("{}", err))
+    }
+
+    pub fn from_file(path: &Path) -> Result<Self> {
+        let text = std::fs::read_to_string(path)
+            .with_context(|| format!("{}: read geometry", path.display()))?;
+        let spec: GeometrySpec = serde_yaml::from_str(&text)
+            .with_context(|| format!("{}: invalid geometry YAML", path.display()))?;
+        Self::from_spec(&spec, path)
+    }
+
+    fn from_spec(spec: &GeometrySpec, path: &Path) -> Result<Self> {
+        if spec.rows.len() != ROWS.len() {
+            bail!(
+                "{}: geometry.rows must have {} rows, got {}",
+                path.display(),
+                ROWS.len(),
+                spec.rows.len()
+            );
+        }
+        for (i, row) in spec.rows.iter().enumerate() {
+            if row != ROWS[i] {
+                bail!(
+                    "{}: geometry.rows[{}] must be {:?} for this build, got {:?}",
+                    path.display(),
+                    i,
+                    ROWS[i],
+                    row
+                );
+            }
+        }
+        if spec.row_offsets.len() != ROWS.len() {
+            bail!(
+                "{}: geometry.row_offsets must have {} values, got {}",
+                path.display(),
+                ROWS.len(),
+                spec.row_offsets.len()
+            );
+        }
+        if spec.hand_split != 5 {
+            bail!(
+                "{}: geometry.hand_split must be 5 for this build, got {}",
+                path.display(),
+                spec.hand_split
+            );
+        }
+
         let mut cx = [0.0; NK];
         let mut cy = [0.0; NK];
         let mut hand = [0usize; NK];
         let mut row = [0usize; NK];
         let mut idx = 0;
-        for (r, row_name) in ROWS.iter().enumerate() {
+        for (r, row_name) in spec.rows.iter().enumerate() {
             for (c, _ch) in row_name.chars().enumerate() {
-                cx[idx] = c as f64 + ROW_OFFSET[r] + 0.5;
+                if idx >= NK {
+                    bail!("{}: geometry has more than {} keys", path.display(), NK);
+                }
+                cx[idx] = c as f64 + spec.row_offsets[r] + 0.5;
                 cy[idx] = r as f64 + 0.5;
-                hand[idx] = if c < 5 { 0 } else { 1 };
+                hand[idx] = if c < spec.hand_split { 0 } else { 1 };
                 row[idx] = r;
                 idx += 1;
             }
         }
+        if idx != NK {
+            bail!(
+                "{}: geometry has {} keys, expected {}",
+                path.display(),
+                idx,
+                NK
+            );
+        }
+
         let mut u = [0.0; NK];
         let mut v = [0.0; NK];
         for i in 0..NK {
@@ -86,15 +169,34 @@ impl Geometry {
             v[i] = cy[i];
         }
 
-        const REST: [[(usize, char); NF]; 2] = [
-            [(10, 'P'), (1, 'R'), (2, 'M'), (13, 'I')],
-            [(19, 'P'), (8, 'R'), (7, 'M'), (16, 'I')],
-        ];
         let mut rest_u = [[0.0; NF]; 2];
         let mut rest_v = [[0.0; NF]; 2];
-        for h in 0..2 {
-            for f in 0..NF {
-                let (k, _) = REST[h][f];
+        for (h, map) in [&spec.rest.left, &spec.rest.right].iter().enumerate() {
+            for (f, finger) in FINGERS.iter().enumerate() {
+                let key = map.get(&finger.to_string()).ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "{}: geometry.rest.{} is missing finger {}",
+                        path.display(),
+                        if h == 0 { "left" } else { "right" },
+                        finger
+                    )
+                })?;
+                let k = key_index(key).ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "{}: geometry.rest.{}: unknown key {:?}",
+                        path.display(),
+                        if h == 0 { "left" } else { "right" },
+                        key
+                    )
+                })?;
+                if hand[k] != h {
+                    bail!(
+                        "{}: geometry.rest key {:?} is not on the {} hand",
+                        path.display(),
+                        key,
+                        if h == 0 { "left" } else { "right" }
+                    );
+                }
                 rest_u[h][f] = u[k];
                 rest_v[h][f] = v[k];
             }
@@ -116,7 +218,24 @@ impl Geometry {
             }
         }
 
-        let approved = approved_points();
+        let mut approved: [Vec<(f64, f64)>; NF] = std::array::from_fn(|_| Vec::new());
+        for (f, finger) in FINGERS.iter().enumerate() {
+            let points = spec.approved.get(&finger.to_string()).ok_or_else(|| {
+                anyhow::anyhow!(
+                    "{}: geometry.approved is missing finger {}",
+                    path.display(),
+                    finger
+                )
+            })?;
+            if points.is_empty() {
+                bail!(
+                    "{}: geometry.approved.{} must not be empty",
+                    path.display(),
+                    finger
+                );
+            }
+            approved[f] = points.clone();
+        }
         let mut reach = [[false; NF]; NK];
         for (f, points) in approved.iter().enumerate() {
             let hull = convex_hull(points);
@@ -124,7 +243,40 @@ impl Geometry {
                 reach[k][f] = point_in_hull(&hull, du[f][k], dv[f][k], 1e-9);
             }
         }
-        let listed = listed_keys();
+
+        let mut listed = [[false; NF]; NK];
+        for (token, keys) in &spec.listed {
+            let chars: Vec<char> = token.to_uppercase().chars().collect();
+            if chars.len() != 2 || !matches!(chars[0], 'L' | 'R') || !FINGERS.contains(&chars[1]) {
+                bail!(
+                    "{}: geometry.listed key {:?} must be LP/LR/LM/LI/RI/RM/RR/RP",
+                    path.display(),
+                    token
+                );
+            }
+            let h = if chars[0] == 'L' { 0 } else { 1 };
+            let f = finger_index(chars[1]).unwrap();
+            for key in keys.chars() {
+                let k = key_index(&key.to_string()).ok_or_else(|| {
+                    anyhow::anyhow!(
+                        "{}: geometry.listed.{}: unknown key {:?}",
+                        path.display(),
+                        token,
+                        key
+                    )
+                })?;
+                if hand[k] != h {
+                    bail!(
+                        "{}: geometry.listed.{} key {:?} is not on the {} hand",
+                        path.display(),
+                        token,
+                        key,
+                        if h == 0 { "left" } else { "right" }
+                    );
+                }
+                listed[k][f] = true;
+            }
+        }
         let mut unlisted = [[false; NF]; NK];
         for k in 0..NK {
             for f in 0..NF {
@@ -133,7 +285,7 @@ impl Geometry {
                 }
             }
         }
-        Self {
+        Ok(Self {
             cx,
             cy,
             hand,
@@ -147,7 +299,7 @@ impl Geometry {
             dv,
             reach,
             unlisted,
-        }
+        })
     }
 
     pub fn same_hand(&self, a: usize, b: usize) -> bool {
@@ -174,60 +326,6 @@ impl Hand {
         }
         hand
     }
-}
-
-fn approved_points() -> [Vec<(f64, f64)>; NF] {
-    let p = vec![(-0.5, 1.0), (-0.25, -1.0), (0.0, 0.0), (0.5, 1.0)];
-    let r = vec![
-        (-1.25, 1.0),
-        (-1.0, 0.0),
-        (-0.75, 2.0),
-        (-0.25, 1.0),
-        (0.0, 0.0),
-        (0.25, 1.0),
-        (0.25, 2.0),
-        (0.75, 1.0),
-        (0.75, 2.0),
-        (1.0, 0.0),
-        (2.0, 0.0),
-    ];
-    let m = vec![
-        (-2.0, 0.0),
-        (-1.75, 2.0),
-        (-1.25, 1.0),
-        (-1.0, 0.0),
-        (-0.75, 1.0),
-        (-0.75, 2.0),
-        (-0.25, 1.0),
-        (-0.25, 2.0),
-        (0.0, 0.0),
-        (0.25, 1.0),
-        (0.25, 2.0),
-        (0.75, 1.0),
-        (0.75, 2.0),
-        (1.0, 0.0),
-        (1.25, 1.0),
-        (1.75, 2.0),
-        (2.0, 0.0),
-        (2.25, 1.0),
-        (2.75, 2.0),
-    ];
-    let i = vec![
-        (-2.5, 1.0),
-        (-2.0, 0.0),
-        (-1.5, 1.0),
-        (-1.0, 0.0),
-        (-0.5, 1.0),
-        (-0.25, -1.0),
-        (0.0, 0.0),
-        (0.25, -1.0),
-        (0.5, 1.0),
-        (0.75, -1.0),
-        (1.0, 0.0),
-        (1.25, -1.0),
-        (1.5, 1.0),
-    ];
-    [p, r, m, i]
 }
 
 fn cross(o: (f64, f64), a: (f64, f64), b: (f64, f64)) -> f64 {
@@ -274,25 +372,4 @@ fn point_in_hull(hull: &[(f64, f64)], x: f64, y: f64, eps: f64) -> bool {
         }
     }
     true
-}
-
-fn listed_keys() -> [[bool; NF]; NK] {
-    let mut out = [[false; NF]; NK];
-    for k in 0..NK {
-        for f in 0..NF {
-            let listed = match (Hand::default_hand()[k], FINGERS[f]) {
-                (0, 'P') => "QAZ",
-                (1, 'P') => ";./",
-                (0, 'R') => "QWERSXA",
-                (1, 'R') => "UIOPKL;,.",
-                (0, 'M') => "QWERTSDFGXCVB",
-                (1, 'M') => "YUIOJKLM,.",
-                (0, 'I') => "WXRTSDFGCVB",
-                (1, 'I') => "YUHJKLNM,.",
-                _ => "",
-            };
-            out[k][f] = listed.contains(KEYS[k]);
-        }
-    }
-    out
 }

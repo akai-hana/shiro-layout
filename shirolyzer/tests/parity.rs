@@ -16,7 +16,7 @@ fn setup() -> (
     let model = config::build_model(&cfg).expect("model");
     let gates = gates::Gates::from_config(&cfg);
     let conds = conditions::Conditions::from_config(&cfg, &geom);
-    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds);
+    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
     let paths: Vec<PathBuf> = cfg
         .primary_corpus
         .iter()
@@ -34,11 +34,11 @@ fn tables_have_expected_shape_and_values() {
     let tri = |a: usize, b: usize, c: usize| tables.tri[a * 961 + b * 31 + c];
     let cases = [
         ((0, 0, 0), 4.800000000000001),
-        ((0, 1, 2), 4.049892025259336),
-        ((5, 10, 20), 6.350740375174762),
+        ((0, 1, 2), 13.583620387057007),
+        ((5, 10, 20), 7.101148117967329),
         ((10, 10, 10), 4.2),
-        ((30, 30, 30), 1.5599999999999996),
-        ((29, 28, 27), 4.33673969934016),
+        ((30, 30, 30), 1.56),
+        ((29, 28, 27), 4.646922177562787),
     ];
     for ((a, b, c), expected) in cases {
         assert!((tri(a, b, c) - expected).abs() < 1e-12, "{a},{b},{c}");
@@ -46,10 +46,10 @@ fn tables_have_expected_shape_and_values() {
     let big = |a: usize, b: usize| tables.big[a * 31 + b];
     for ((a, b), expected) in [
         ((0, 0), 3.0),
-        ((0, 1), 2.5836103751735946),
-        ((5, 10), 2.2830620072166514),
+        ((0, 1), 2.583620377973183),
+        ((5, 10), 2.283062007216651),
         ((30, 30), 0.0),
-        ((29, 28), 3.2943697677613986),
+        ((29, 28), 3.576544872166762),
     ] {
         assert!((big(a, b) - expected).abs() < 1e-12, "{a},{b}");
     }

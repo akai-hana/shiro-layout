@@ -11,11 +11,16 @@ use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
 use serde_json::json;
 
+use crate::analyze::{category_report, finger_usage, trigram_patterns};
+use crate::config::Sacrifice;
 use crate::context::{self, Context};
+use crate::corpus::Corpus;
 use crate::diversity::{self, Row};
-use crate::evaluate::{dead_of, flat_share_from_config, perm_of, Evaluator};
+use crate::evaluate::{flat_share_from_config, perm_of, Evaluator};
+use crate::geometry::Geometry;
 use crate::paths;
 use crate::references;
+use crate::scorer::Tables;
 use crate::search;
 use crate::xkb;
 
@@ -35,6 +40,98 @@ pub fn parse_budget(value: &str) -> Result<f64> {
         Ok(number(v)? * 3600.0)
     } else {
         number(&value)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct Metrics {
+    sfb_sft: f64,
+    scissors: f64,
+    redirects: f64,
+    rolls: f64,
+    alternation: f64,
+    finger_balance: f64,
+}
+
+impl Metrics {
+    fn evaluate(
+        layout: &str,
+        corpus: &Corpus,
+        tables: &Tables,
+        geom: &Geometry,
+        targets: &std::collections::HashMap<char, f64>,
+    ) -> Self {
+        let cat = category_report(layout, corpus, tables, geom);
+        let pats = trigram_patterns(layout, corpus, tables, geom);
+        let usage = finger_usage(layout, corpus, tables, geom);
+        let sfb = cat.cats.get("sfb").copied().unwrap_or(0.0);
+        let sft = pats.get("sfb_tri").copied().unwrap_or(0.0);
+        let scissors = [
+            "scissor_IM_hsb",
+            "scissor_IM_fsb",
+            "scissor_MR",
+            "scissor_RP",
+        ]
+        .iter()
+        .map(|k| cat.cats.get(*k).copied().unwrap_or(0.0))
+        .sum();
+        let mut finger_balance = 0.0;
+        for hand in ['L', 'R'] {
+            for finger in ['P', 'R', 'M', 'I'] {
+                let token = format!("{hand}{finger}");
+                let target = targets.get(&finger).copied().unwrap_or(0.0);
+                finger_balance += (usage.get(&token).copied().unwrap_or(0.0) - target).abs();
+            }
+        }
+        Self {
+            sfb_sft: sfb + 2.0 * sft,
+            scissors,
+            redirects: pats.get("total_redirects").copied().unwrap_or(0.0),
+            rolls: pats.get("total_rolls").copied().unwrap_or(0.0),
+            alternation: pats.get("hand_alternation").copied().unwrap_or(0.0),
+            finger_balance,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct MetricLimits {
+    sfb_sft: Option<f64>,
+    scissors: Option<f64>,
+    redirects: Option<f64>,
+    rolls: Option<f64>,
+    alternation: Option<f64>,
+    finger_balance: Option<f64>,
+}
+
+impl MetricLimits {
+    fn new(base: &Metrics, sacrifice: &Sacrifice) -> Self {
+        let lower =
+            |percent: Option<f64>, value: f64| percent.map(|p| value + value.abs() * p / 100.0);
+        let higher = |percent: Option<f64>, value: f64| {
+            percent.map(|p| (value - value.abs() * p / 100.0).max(0.0))
+        };
+        Self {
+            sfb_sft: lower(sacrifice.sfb_sft, base.sfb_sft),
+            scissors: lower(sacrifice.scissors, base.scissors),
+            redirects: lower(sacrifice.redirects, base.redirects),
+            rolls: higher(sacrifice.rolls, base.rolls),
+            alternation: higher(sacrifice.alternation, base.alternation),
+            finger_balance: lower(sacrifice.finger_balance, base.finger_balance),
+        }
+    }
+
+    fn allows(&self, metrics: &Metrics) -> bool {
+        let below =
+            |limit: Option<f64>, value: f64| limit.map(|l| value <= l + 1e-12).unwrap_or(true);
+        let above =
+            |limit: Option<f64>, value: f64| limit.map(|l| value + 1e-12 >= l).unwrap_or(true);
+        below(self.sfb_sft, metrics.sfb_sft)
+            && below(self.scissors, metrics.scissors)
+            && below(self.redirects, metrics.redirects)
+            && above(self.rolls, metrics.rolls)
+            && above(self.alternation, metrics.alternation)
+            && below(self.finger_balance, metrics.finger_balance)
     }
 }
 
@@ -150,7 +247,7 @@ fn optimize_ils_row(
     rng: &mut impl Rng,
     deadline: Option<Instant>,
 ) -> Result<IlsOutcome> {
-    let mut best = perm_of(&row.layout, &[]).map_err(anyhow::Error::msg)?;
+    let mut best = perm_of(&row.layout, &ev.punctuation).map_err(anyhow::Error::msg)?;
     let mut best_s = row.final_score;
     let mut rounds = 0usize;
     let mut iterations = 0usize;
@@ -220,7 +317,7 @@ fn optimize_polish_row(
     secondary_ev: Option<&Evaluator<'_>>,
     deadline: Option<Instant>,
 ) -> Result<PolishOutcome> {
-    let mut best = perm_of(&row.layout, &[]).map_err(anyhow::Error::msg)?;
+    let mut best = perm_of(&row.layout, &ev.punctuation).map_err(anyhow::Error::msg)?;
     let mut best_s = ev.score(&best);
     let start_s = best_s;
     let mut passes = 0usize;
@@ -283,15 +380,23 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         }
     };
     let ctx = Context::load(args.config)?;
+    let timestamp = paths::timestamp();
+    let stem = match args.name.as_deref() {
+        Some(name) => format!("{}_{}", name, timestamp),
+        None => timestamp.clone(),
+    };
     let out_path = args
         .out
         .clone()
-        .unwrap_or_else(|| paths::result_path("compute", args.name.as_deref(), ".txt"));
+        .unwrap_or_else(|| paths::result_path("compute", Some(stem.as_str()), ".txt"));
     let out_json = args
         .out_json
         .clone()
-        .unwrap_or_else(|| paths::result_path("compute", args.name.as_deref(), ".json"));
-    let primary_sacrifice = args.primary_sacrifice.unwrap_or(ctx.cfg.primary_sacrifice);
+        .unwrap_or_else(|| paths::result_path("compute", Some(stem.as_str()), ".json"));
+    let sacrifice = args
+        .primary_sacrifice
+        .map(Sacrifice::score_only)
+        .unwrap_or_else(|| ctx.cfg.primary_sacrifice.clone());
     let started = Instant::now();
     let mut completed_runs = 0usize;
     let mut completed_iterations = 0usize;
@@ -334,22 +439,13 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         }
     };
 
-    let base_layout = args
-        .seed_layout
-        .first()
-        .cloned()
-        .unwrap_or_else(|| ctx.cfg.current_layout.clone());
-    if base_layout.chars().count() != 30 {
-        return Err(anyhow!("layout must be 30 characters"));
-    }
-    let dead = dead_of(&base_layout);
     let flat_share = flat_share_from_config(&ctx.cfg);
     let (w_balance, w_hand) = ctx.cfg.balance_weights();
     let mut primary_ev = Evaluator::new(
         &primary_corpus,
         &ctx.tables,
         &ctx.model,
-        &dead,
+        &ctx.cfg.punctuation,
         flat_share,
         w_balance,
         w_hand,
@@ -363,7 +459,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 corpus,
                 &ctx.tables,
                 &ctx.model,
-                &dead,
+                &ctx.cfg.punctuation,
                 flat_share,
                 w_balance,
                 w_hand,
@@ -383,7 +479,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     let mut seen = std::collections::HashSet::new();
     for entry in references::load_references(Some(&refs_path))? {
         if seen.insert(entry.layout.clone()) {
-            let perm = perm_of(&entry.layout, &dead).map_err(anyhow::Error::msg)?;
+            let perm = perm_of(&entry.layout, &ctx.cfg.punctuation).map_err(anyhow::Error::msg)?;
             if !primary_ev.perm_allowed(&perm) {
                 eprintln!(
                     "warning: skipping seed {:?}: violates the configured hand restrictions",
@@ -396,7 +492,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     }
     for (i, layout) in args.seed_layout.iter().enumerate() {
         if layout.chars().count() == 30 && seen.insert(layout.clone()) {
-            let perm = perm_of(layout, &dead).map_err(anyhow::Error::msg)?;
+            let perm = perm_of(layout, &ctx.cfg.punctuation).map_err(anyhow::Error::msg)?;
             if !primary_ev.perm_allowed(&perm) {
                 eprintln!(
                     "warning: skipping user seed {}: violates the configured hand restrictions",
@@ -674,14 +770,45 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     let mut final_row = best_primary.clone();
     let mut best_secondary: Option<Row> = None;
     if let Some(secondary_ev) = secondary_ev.as_ref() {
-        let budget = best_primary.primary.abs() * primary_sacrifice / 100.0;
-        let limit = best_primary.primary + budget + 1e-12;
+        let score_limit = sacrifice
+            .score
+            .map(|pct| best_primary.primary + best_primary.primary.abs() * pct / 100.0 + 1e-12);
+        let base_metrics = sacrifice.has_metrics().then(|| {
+            Metrics::evaluate(
+                &best_primary.layout,
+                &primary_corpus,
+                &ctx.tables,
+                &ctx.geom,
+                &ctx.cfg.finger_balance,
+            )
+        });
+        let metric_limits = base_metrics
+            .as_ref()
+            .map(|base| MetricLimits::new(base, &sacrifice));
+        let metric_allows = |layout: &str| -> bool {
+            metric_limits
+                .as_ref()
+                .map(|limits| {
+                    limits.allows(&Metrics::evaluate(
+                        layout,
+                        &primary_corpus,
+                        &ctx.tables,
+                        &ctx.geom,
+                        &ctx.cfg.finger_balance,
+                    ))
+                })
+                .unwrap_or(true)
+        };
         let constrained = |perm: &[usize]| -> f64 {
-            if primary_ev.score(perm) > limit {
-                f64::INFINITY
-            } else {
-                secondary_ev.score(perm)
+            if let Some(limit) = score_limit {
+                if primary_ev.score(perm) > limit {
+                    return f64::INFINITY;
+                }
             }
+            if metric_limits.is_some() && !metric_allows(&primary_ev.layout_str(perm)) {
+                return f64::INFINITY;
+            }
+            secondary_ev.score(perm)
         };
         let mut primary_results: Vec<Row> = results
             .iter()
@@ -694,10 +821,12 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
         primary_results.truncate(4);
+        let score_text = score_limit
+            .map(|limit| format!("score <= {}", fmt_sig(limit, 6)))
+            .unwrap_or_else(|| "score unconstrained".into());
         println!(
-            "\nsecondary phase (sacrifice {}% = {}):",
-            fmt_sig(primary_sacrifice, 6),
-            fmt_sig(budget, 3)
+            "\nsecondary phase ({score_text}; per-metric budgets active: {}):",
+            sacrifice.has_metrics()
         );
         for r in primary_results {
             if let Some(t) = args.time_budget {
@@ -706,7 +835,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     break;
                 }
             }
-            let perm = perm_of(&r.layout, &dead).map_err(anyhow::Error::msg)?;
+            let perm = perm_of(&r.layout, &ctx.cfg.punctuation).map_err(anyhow::Error::msg)?;
             let cur = constrained(&perm);
             if !cur.is_finite() {
                 continue;
@@ -725,14 +854,18 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 if !cand_s.is_finite() {
                     continue;
                 }
-                let (cand, cand_s) = search::quench_constrained(
+                let (cand, _) = search::quench_constrained(
                     &primary_ev,
                     secondary_ev,
                     &cand,
-                    limit,
+                    score_limit.unwrap_or(f64::INFINITY),
                     cand_s,
                     &mut rng,
                 );
+                let cand_s = constrained(&cand);
+                if !cand_s.is_finite() {
+                    continue;
+                }
                 if cand_s < best_sec - 1e-12 {
                     best_perm = cand;
                     best_sec = cand_s;
@@ -766,11 +899,13 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         if let Some(ref b) = best_secondary {
             final_row = b.clone();
         }
-        let budget = best_primary.primary.abs() * primary_sacrifice / 100.0;
-        let limit = best_primary.primary + budget + 1e-12;
         let eligible: Vec<Row> = results
             .iter()
-            .filter(|r| r.secondary.is_some() && r.primary <= limit)
+            .filter(|r| {
+                r.secondary.is_some()
+                    && score_limit.map(|limit| r.primary <= limit).unwrap_or(true)
+                    && metric_allows(&r.layout)
+            })
             .cloned()
             .collect();
         if let Some(best) = eligible.into_iter().min_by(|a, b| {
@@ -824,6 +959,12 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "multiple_valid"
     };
     final_row = valid_rows[0].clone();
+    let latest_path = paths::write_latest_layout(&final_row.layout, &timestamp)?;
+    println!(
+        "latest layout: {} -> {}",
+        paths::latest_layout_file().display(),
+        latest_path.display()
+    );
 
     let append_path = args
         .append_references
@@ -898,7 +1039,13 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         format!("append_references={}", append_path.display()),
         format!("reference_added={}", added_name.clone().unwrap_or_default()),
         format!("references_added={}", added_names.join(",")),
-        format!("primary_sacrifice_pct={}", fmt_sig(primary_sacrifice, 6)),
+        format!(
+            "primary_sacrifice_pct={}",
+            sacrifice
+                .score
+                .map(|pct| fmt_sig(pct, 6))
+                .unwrap_or_else(|| "none".into())
+        ),
         format!(
             "selection={} valid_layouts_truncated={}",
             selection_status, valid_truncated
@@ -960,7 +1107,15 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "primary_corpora": primary_paths,
         "secondary_corpora": secondary_paths,
         "references": refs_path,
-        "primary_sacrifice_pct": primary_sacrifice,
+        "primary_sacrifice_pct": sacrifice.score,
+        "primary_sacrifice_metrics": {
+            "sfb_sft": sacrifice.sfb_sft,
+            "scissors": sacrifice.scissors,
+            "redirects": sacrifice.redirects,
+            "rolls": sacrifice.rolls,
+            "alternation": sacrifice.alternation,
+            "finger_balance": sacrifice.finger_balance,
+        },
         "elapsed_seconds": started.elapsed().as_secs_f64(),
         "time_budget_seconds": args.time_budget,
         "completed_runs": completed_runs,

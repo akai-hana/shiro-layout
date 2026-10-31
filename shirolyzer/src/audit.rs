@@ -542,6 +542,8 @@ pub fn collect(
     rulings_path: Option<&Path>,
     quiet: bool,
 ) -> Result<AuditOutcome> {
+    let calibration = ctx.calibration()?;
+    let ctx = &calibration;
     let mut lines: Vec<String> = Vec::new();
     macro_rules! out {
         ($e:expr) => {{
@@ -556,7 +558,20 @@ pub fn collect(
         "config {}  (explicit alt-licence table: {:?})",
         cfg_name,
         {
-            let mut v: Vec<(char, char)> = ctx.gates.all.keys().cloned().collect();
+            let mut v: Vec<String> = ctx
+                .gates
+                .rules
+                .iter()
+                .map(|r| {
+                    let keys: String = r.keys.iter().collect();
+                    let fingers: String = r
+                        .fingers
+                        .iter()
+                        .map(|f| crate::geometry::FINGERS[*f])
+                        .collect();
+                    format!("{keys}:{fingers}:{:?}", r.mode)
+                })
+                .collect();
             v.sort();
             v
         }
@@ -771,7 +786,8 @@ pub fn collect(
         "X->A index/ring first and cheaper than middle/ring; ring X + pinky A impossible",
         top["XA"] == "IR"
             && top["AX"] == "RI"
-            && xa_map["IR"] < xa_map["MR"]
+            && xa_map.get("IR").copied().unwrap_or(f64::INFINITY)
+                < xa_map.get("MR").copied().unwrap_or(f64::INFINITY)
             && xa
                 .iter()
                 .filter(|(_, f)| f == "RP")
@@ -875,7 +891,8 @@ pub fn collect(
             .collect::<Vec<_>>()
             .join(" ")
     );
-    chk!("X->A order: index/ring < middle/ring < index/middle < any pinky fingering; index/pinky never", xa_map.get("IP").copied().unwrap_or(99.0) >= 8.0 && xa_map["IR"] < xa_map["MR"] && xa_map["MR"] < xa_map["IM"] && xa_map["IM"] < xa_map["MP"], format!("IR {:.2} MR {:.2} IM {:.2} MP {:.2} IP {:.2}", xa_map["IR"], xa_map["MR"], xa_map["IM"], xa_map["MP"], xa_map.get("IP").copied().unwrap_or(99.0)));
+    let xa_get = |f: &str| xa_map.get(f).copied().unwrap_or(f64::INFINITY);
+    chk!("X->A order: index/ring < middle/ring < index/middle < any pinky fingering; index/pinky never", xa_get("IP") >= 8.0 && xa_get("IR") < xa_get("MR") && xa_get("MR") < xa_get("IM") && xa_get("IM") < xa_get("MP"), format!("IR {:.2} MR {:.2} IM {:.2} MP {:.2} IP {:.2}", xa_get("IR"), xa_get("MR"), xa_get("IM"), xa_get("MP"), xa_get("IP")));
     let mut ipbad = Vec::new();
     for a in KEYS {
         for b in KEYS {

@@ -1,12 +1,13 @@
-# Shirolyzer user-facing configuration.
-#
+# <>|> Shirolyzer user config! <~=| #
+
 # This file is the single source of truth for the physical layout, corpus
 # roles, fingermap, permitted alt fingers, geometric conditions, objective
 # priorities, and target finger balance.  Fitted model parameters stay in the
 # parameter file referenced by `model`.
 #
-# Fingermap tokens are two characters: a QWERTY key label followed by a finger
-# (P pinky, R ring, M middle, I index).  The three rows are in QWERTY order.
+# Fingermap tokens are hand/finger pairs in physical-key order:
+# LP/LR/LM/LI on the left hand and RI/RM/RR/RP on the right hand.
+# Physical key order is defined by the geometry file.
 
 # Search effort defaults live in commands/compute.py: 28 random runs, 100000
 # anneal iterations, and 8 ILS rounds.  They were calibrated in
@@ -16,26 +17,36 @@
 # 0.005 secondary tolerance, 4 key positions minimum distance, 8 valid layouts.
 # --polish-rounds is opt-in because it continues optimizing near-equal picks.
 general:
-  physical_layout: ansi
-  # Canonical layout for this repository. analyze.py uses it when --layout is
-  # omitted; compute.py uses it only as the punctuation/dead-key template.
-  # Search seeds come from references.toml, not from this value.
-  current_layout: ";ntgfjoehkrpmscuaydilbqvwxz,./"
+  geometry: geometry/ansi.yaml
+  # Non-letter characters placed by compute.  Letters occupy the other 26
+  # physical keys, so these four characters are permuted across the remaining
+  # positions.  analyze uses the most recent compute result when --layout is
+  # omitted.
+  punctuation: ";,./"
   primary_corpus:
     - {name: shai, weight: 100}
   secondary_corpus:
     - {name: douglas, weight: 100}
-  primary_sacrifice: 0.00023   # percent of the best primary score
+  primary_sacrifice:
+    score: 0.00023%            # percent of the best primary score
+    sfbs: 1%                   # combined SFB and SFT degradation
+    scissors: 1%
+    redirects: 1%
+    rolls: 1%
+    alternation: 1%
+    finger_balance: 1%
 
 model:
-  type: pattern
-  variant: A                   # disallow full-span M/R reverse scissor
+  # Fitted model parameters.  The reverse-scissor list names finger pairs whose
+  # full-span reverse scissors are disallowed; MR means middle/ring (both
+  # directions), and an empty list leaves all pairs to the fitted geometry.
   parameters_file: model/pattern_parameters_A_all.json
+  disallow_reverse_scissors: [MR]
 
 fingermap: |
-  QR WR EM RM TM  YM UM IM OR PR
-   AP SR DM FI GI  HI JI KM LR ;P
-    ZP XR CI VI BI  NI MI ,R .R /P
+  LR LR LM LM LM  RM RM RM RR RR
+  LP LR LM LI LI  RI RI RM RR RP
+  LP LR LI LI LI  RI RI RR RR RP
 
 # Optional search restriction: characters listed under `left` or `right` may
 # only be placed on keys of that hand by `compute`. Unlisted characters are
@@ -44,26 +55,127 @@ hand_restrictions:
   left: []
   right: []
 
-# Alt-finger context gates port the calibrated model's GATES_ALL table.
-# mode=only  : the non-default finger is permitted only when a context key is present
-# mode=block : the non-default finger is forbidden when a context key is present
-# mode=never : the non-default finger is always forbidden
-# Entries with `explicit: true` are enforced through the explicit context table
-# rather than left to geometry alone.  A user can also add an explicit sequence
-# override such as `{sequence: fw, fingers: [LM, LI]}`; sequence letters are QWERTY
-# positions and `fingers` supplies the finger for each position.
+# Alt-finger ngram rules.  Each entry names an ordered sequence of QWERTY
+# physical keys (`ngram`) and the finger used for each key (`fingers`).
+# mode=allow : only the listed fingering is considered for this ngram
+# mode=block : exactly the listed fingering is forbidden for this ngram
+# A rule applies only while its ngram occurs in the typed sequence.  A longer
+# rule overrides any shorter rule that overlaps it.  Fingers are written as
+# hand/finger pairs (LP/LR/LM/LI/RI/RM/RR/RP); the hand must match the key.
+# Repeated definitions of the same ngram are tried in order; later entries are
+# fallbacks used only when the earlier fingering is impossible.
+#
+# The list below was translated from the calibrated GATES_ALL table.  Context
+# keys prefer their default finger, with the other fingers of that hand listed
+# afterwards as fallbacks.  The target key keeps the finger from the old gate.
+# Unigram block entries preserve the old "only in this context" restriction.
 alt_fingers:
-  - {key: X, finger: LM, mode: only, context: [C, A]}
-  - {key: W, finger: LM, mode: only, context: [Q, X, S]}
-  - {key: L, finger: RI, mode: only, context: [O]}
-  - {key: J, finger: RM, mode: block, context: [T, I, G], explicit: true}
-  - {key: M, finger: RM, mode: block, context: [J]}
-  - {key: C, finger: LM, mode: block, context: [R]}
-  - {key: G, finger: LM, mode: never}
-  - {key: V, finger: LM, mode: block, context: [G]}
+  - {ngram: [C, X], fingers: [LI, LM], mode: allow}
+  - {ngram: [C, X], fingers: [LP, LM], mode: allow}
+  - {ngram: [C, X], fingers: [LR, LM], mode: allow}
+  - {ngram: [C, X], fingers: [LM, LM], mode: allow}
+  - {ngram: [X, C], fingers: [LM, LI], mode: allow}
+  - {ngram: [X, C], fingers: [LM, LP], mode: allow}
+  - {ngram: [X, C], fingers: [LM, LR], mode: allow}
+  - {ngram: [X, C], fingers: [LM, LM], mode: allow}
+  - {ngram: [A, X], fingers: [LR, LI], mode: allow}
+  - {ngram: [A, X], fingers: [LR, LM], mode: allow}
+  - {ngram: [A, X], fingers: [LM, LI], mode: allow}
+  - {ngram: [A, X], fingers: [LP, LM], mode: allow}
+  - {ngram: [X, A], fingers: [LI, LR], mode: allow}
+  - {ngram: [X, A], fingers: [LM, LR], mode: allow}
+  - {ngram: [X, A], fingers: [LI, LM], mode: allow}
+  - {ngram: [X, A], fingers: [LM, LP], mode: allow}
+  - {ngram: [X], fingers: [LM], mode: block}
+  - {ngram: [Q, W], fingers: [LR, LM], mode: allow}
+  - {ngram: [Q, W], fingers: [LP, LM], mode: allow}
+  - {ngram: [Q, W], fingers: [LM, LM], mode: allow}
+  - {ngram: [Q, W], fingers: [LI, LM], mode: allow}
+  - {ngram: [W, Q], fingers: [LM, LR], mode: allow}
+  - {ngram: [W, Q], fingers: [LM, LP], mode: allow}
+  - {ngram: [W, Q], fingers: [LM, LM], mode: allow}
+  - {ngram: [W, Q], fingers: [LM, LI], mode: allow}
+  - {ngram: [X, W], fingers: [LI, LM], mode: allow}
+  - {ngram: [X, W], fingers: [LR, LM], mode: allow}
+  - {ngram: [X, W], fingers: [LP, LM], mode: allow}
+  - {ngram: [X, W], fingers: [LM, LM], mode: allow}
+  - {ngram: [W, X], fingers: [LM, LI], mode: allow}
+  - {ngram: [W, X], fingers: [LM, LR], mode: allow}
+  - {ngram: [W, X], fingers: [LM, LP], mode: allow}
+  - {ngram: [W, X], fingers: [LM, LM], mode: allow}
+  - {ngram: [S, W], fingers: [LI, LM], mode: allow}
+  - {ngram: [S, W], fingers: [LR, LM], mode: allow}
+  - {ngram: [S, W], fingers: [LP, LM], mode: allow}
+  - {ngram: [S, W], fingers: [LM, LM], mode: allow}
+  - {ngram: [W, S], fingers: [LM, LI], mode: allow}
+  - {ngram: [W, S], fingers: [LM, LR], mode: allow}
+  - {ngram: [W, S], fingers: [LM, LP], mode: allow}
+  - {ngram: [W, S], fingers: [LM, LM], mode: allow}
+  - {ngram: [W], fingers: [LM], mode: block}
+  - {ngram: [O, L], fingers: [RM, RI], mode: allow}
+  - {ngram: [O, L], fingers: [RR, RI], mode: allow}
+  - {ngram: [O, L], fingers: [RP, RI], mode: allow}
+  - {ngram: [O, L], fingers: [RI, RI], mode: allow}
+  - {ngram: [L, O], fingers: [RI, RM], mode: allow}
+  - {ngram: [L, O], fingers: [RI, RR], mode: allow}
+  - {ngram: [L, O], fingers: [RI, RP], mode: allow}
+  - {ngram: [L, O], fingers: [RI, RI], mode: allow}
+  - {ngram: [L], fingers: [RI], mode: block}
+  - {ngram: [T, J], fingers: [LP, RM], mode: block}
+  - {ngram: [J, T], fingers: [RM, LP], mode: block}
+  - {ngram: [T, J], fingers: [LR, RM], mode: block}
+  - {ngram: [J, T], fingers: [RM, LR], mode: block}
+  - {ngram: [T, J], fingers: [LM, RM], mode: block}
+  - {ngram: [J, T], fingers: [RM, LM], mode: block}
+  - {ngram: [T, J], fingers: [LI, RM], mode: block}
+  - {ngram: [J, T], fingers: [RM, LI], mode: block}
+  - {ngram: [I, J], fingers: [RP, RM], mode: block}
+  - {ngram: [J, I], fingers: [RM, RP], mode: block}
+  - {ngram: [I, J], fingers: [RR, RM], mode: block}
+  - {ngram: [J, I], fingers: [RM, RR], mode: block}
+  - {ngram: [I, J], fingers: [RM, RM], mode: block}
+  - {ngram: [J, I], fingers: [RM, RM], mode: block}
+  - {ngram: [I, J], fingers: [RI, RM], mode: block}
+  - {ngram: [J, I], fingers: [RM, RI], mode: block}
+  - {ngram: [G, J], fingers: [LP, RM], mode: block}
+  - {ngram: [J, G], fingers: [RM, LP], mode: block}
+  - {ngram: [G, J], fingers: [LR, RM], mode: block}
+  - {ngram: [J, G], fingers: [RM, LR], mode: block}
+  - {ngram: [G, J], fingers: [LM, RM], mode: block}
+  - {ngram: [J, G], fingers: [RM, LM], mode: block}
+  - {ngram: [G, J], fingers: [LI, RM], mode: block}
+  - {ngram: [J, G], fingers: [RM, LI], mode: block}
+  - {ngram: [J, M], fingers: [RP, RM], mode: block}
+  - {ngram: [M, J], fingers: [RM, RP], mode: block}
+  - {ngram: [J, M], fingers: [RR, RM], mode: block}
+  - {ngram: [M, J], fingers: [RM, RR], mode: block}
+  - {ngram: [J, M], fingers: [RM, RM], mode: block}
+  - {ngram: [M, J], fingers: [RM, RM], mode: block}
+  - {ngram: [J, M], fingers: [RI, RM], mode: block}
+  - {ngram: [M, J], fingers: [RM, RI], mode: block}
+  - {ngram: [R, C], fingers: [LP, LM], mode: block}
+  - {ngram: [C, R], fingers: [LM, LP], mode: block}
+  - {ngram: [R, C], fingers: [LR, LM], mode: block}
+  - {ngram: [C, R], fingers: [LM, LR], mode: block}
+  - {ngram: [R, C], fingers: [LM, LM], mode: block}
+  - {ngram: [C, R], fingers: [LM, LM], mode: block}
+  - {ngram: [R, C], fingers: [LI, LM], mode: block}
+  - {ngram: [C, R], fingers: [LM, LI], mode: block}
+  - {ngram: [G, V], fingers: [LP, LM], mode: block}
+  - {ngram: [V, G], fingers: [LM, LP], mode: block}
+  - {ngram: [G, V], fingers: [LR, LM], mode: block}
+  - {ngram: [V, G], fingers: [LM, LR], mode: block}
+  - {ngram: [G, V], fingers: [LM, LM], mode: block}
+  - {ngram: [V, G], fingers: [LM, LM], mode: block}
+  - {ngram: [G, V], fingers: [LI, LM], mode: block}
+  - {ngram: [V, G], fingers: [LM, LI], mode: block}
+  - {ngram: [G], fingers: [LM], mode: block}
+
 
 # Conditions are evaluated from top to bottom; the first matching entry wins.
 # `allow: false` forbids a matching scissor, `allow: true` permits it.
+# If `reverse` is omitted or false, the rule matches both regular and reverse
+# scissors; `reverse: true` matches only the reverse direction.
 conditions:
   - {type: scissors, distance: full, reverse: true, fingers: [LP, LR, LM, RM, RR, RP], allow: false}
   - {type: scissors, distance: half, fingers: [LP, RP], allow: false}
@@ -72,21 +184,26 @@ conditions:
   - {type: separation, min_width: 1.9, fingers: [LP, LI], allow: false}
   - {type: crossing, deficit: 0.30, allow: false}
 
-# Higher tiers are more important.  Items in one list share a tier.
+# Tiered priority list.
+# High to low, most to least important in consideration.
+# Items grouped together share a tier. Tiers are weighted relative to the
+# default ordering: with N tiers, tier t (0 = highest) is multiplied by
+# 1 + 0.5 * (N - t - 1). The default ordering is left unweighted (all 1.0).
 priority_list:
-  - sfbs-sfts
-  - [scissors, redirects]
-  - [rolls, alternation]
-  - finger_balance
+  - sfbs-sfts # sfb/ts are the unavoidable devil
+  - [scissors, redirects] # flow disruptions that are bad to have
+  - [rolls, alternation] # flow improving niceties
+  # - finger_balance # balance doesn't matter to me
 
-# Target share of strokes per finger in percent.  The calibrated model uses the
-# same target for both hands: P 18%, R 25%, M 28%, I 29%.
+# Target share of strokes per finger in percent. The calibrated model uses the
+# same target for both hands: P 9%, R 12.5%, M 14%, I 14.5%.
 finger_balance:
-  LP: 18
-  LR: 25
-  LM: 28
-  LI: 29
-  RP: 18
-  RR: 25
-  RM: 28
-  RI: 29
+  LP: 9
+  LR: 12.5
+  LM: 14
+  LI: 14.5
+  RP: 9
+  RR: 12.5
+  RM: 14
+  RI: 14.5
+# = 100
