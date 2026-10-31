@@ -1,9 +1,9 @@
 # Cross-hand (8-finger) model refactor tasklist
 
-**Status: implemented and verified on `cross-hand/geometry` (working tree).**
-The small rules (ring-pinky reverse-scissor block, `XA` middle/ring block, `GSW`
-alt) were reviewed first. The remaining workflow steps are committing the phase
-work, merging `cross-hand/refactor`, and closing the tracking issue.
+**Status: complete.** Implemented and verified on `cross-hand/geometry`, merged
+through `cross-hand/refactor` into `main`, and tracked in issue #90. The small
+rules (ring-pinky reverse-scissor block, `XA` middle/ring block, `GSW` alt) were
+reviewed before the refactor started.
 
 ## Objective
 
@@ -167,13 +167,15 @@ Branch: `cross-hand/verify`
 - [x] Update `score_baseline.json` only for intentional score changes and
       document each one in the issue.
 - [x] Add a short "cross-hand alt-fingering" section to `shirolyzer/README.md`.
-- [ ] Close the issue with the final benchmark and test summary (pending commit
-      and merge of `cross-hand/refactor`).
+- [x] Close the issue with the final benchmark and test summary.
 
 Suggested commit: `cross-hand: verify, baseline, and document the refactor`
 
 ### Verification results (post-refactor)
 
+- Git: three commits on `cross-hand/geometry`, merged with `--no-ff` into
+  `cross-hand/refactor`, then merged with `--no-ff` into `main`; gates rerun on
+  `main` and passing.
 - `cargo test --release`: 19 unit + 1 baseline + 5 command + 3 parity passed;
   the ignored `compute_smoke` also passed when run explicitly.
 - `shirolyzer check-baseline`: `baseline OK: audit 166/166, 9 references`.
