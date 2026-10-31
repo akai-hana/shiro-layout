@@ -5,10 +5,25 @@ pattern model used by the Shiro layout.  It can score an existing layout,
 audit the model's fingering rules, rank reference layouts, and search for new
 30-key arrangements under primary and secondary corpora.
 
+The primary implementation is now the Rust binary
+`rust/target/release/shirolyzer`.  It exposes the same seven subcommands
+(`compute`, `analyze`, `render`, `xkb`, `compare`, `audit`, `check-baseline`)
+and is the target of the defaults and benchmarks below.  Build it with:
+
+```bash
+cargo build --manifest-path rust/Cargo.toml --release
+```
+
+The Python package documented in the rest of this file is the frozen parity
+oracle and the home of the corpus parsers and refitting tools.  Every
+`python3 -m shirolyzer ...` example can be replaced with
+`rust/target/release/shirolyzer ...`; see
+`shirolyzer/results/rust/PARITY_REPORT.md` for the equivalence evidence.
+
 All commands below run from the repository root.  `analyze.py` and `compute.py`
 are thin facades over `shirolyzer/commands/`; other commands run through
-`python3 -m shirolyzer`.  No installation step is required beyond the Python
-dependencies.
+`python3 -m shirolyzer`.  The Python path still needs the dependencies below;
+the Rust binary only needs the built corpora.
 
 ## Requirements
 
@@ -62,6 +77,7 @@ for the way valid layouts are reported.
 
 | Path | Purpose |
 |---|---|
+| `rust/` | Primary Rust implementation (`shirolyzer` binary, tests, benches) |
 | `corpora/shai/` | Shai English corpus parser and parsed frequency files |
 | `corpora/spanish/` | Spanish corpus parser and parsed frequency files |
 | `shirolyzer/analyze.py` | Facade: score one layout and print a detailed report |
@@ -279,7 +295,7 @@ Defaults:
 | Option | Default | Meaning |
 |---|---:|---|
 | `--runs` | `28` | Random restarts in addition to reference seeds |
-| `--iters` | `100000` | Anneal iterations per primary run |
+| `--iters` | `200000` | Anneal iterations per primary run |
 | `--ils` | `8` | ILS rounds per top primary layout |
 | `--primary-sacrifice` | `0.00023` | Percent of best primary allowed for secondary tuning |
 | `--valid-tolerance` | `0.002` | Primary window for valid layouts |
@@ -289,10 +305,14 @@ Defaults:
 | `--polish-rounds` | `0` | Maximum polish passes over distinct candidates; `0` disables |
 | `--polish-candidates` | `4` | Distinct primary candidates to polish |
 
-The effort defaults are calibrated in
-`shirolyzer/results/calibration/REPORT.md`: the primary score plateaus around
-40k-60k iterations and roughly ten total seeds, while ILS continues to help.
-Override any value per run.  `--time-budget` accepts seconds or strings such as
+The Rust effort defaults are validated in
+`shirolyzer/results/rust/TUNING_REPORT.md`: the search reaches the same optimum
+at 25k iterations, four restarts, and two ILS rounds, so the shipped
+`200k/28/8` values sit well past the plateau and remain robust for other
+corpora.  The older Python calibration is in
+`shirolyzer/results/calibration/REPORT.md`.  Add `--device gpu` to request a
+GPU run; this build warns and falls back to CPU
+(`shirolyzer/results/rust/GPU_FEASIBILITY.md`).  Override any value per run.  `--time-budget` accepts seconds or strings such as
 `30s`, `10m`, or `1h`, stops between runs/ILS/secondary operations, and always
 saves the best result found so far.
 
