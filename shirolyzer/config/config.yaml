@@ -37,6 +37,13 @@ fingermap: |
    AP SR DM FI GI  HI JI KM LR ;P
     ZP XR CI VI BI  NI MI ,R .R /P
 
+# Optional search restriction: characters listed under `left` or `right` may
+# only be placed on keys of that hand by `compute`. Unlisted characters are
+# free. Empty lists disable the restriction.
+hand_restrictions:
+  left: []
+  right: []
+
 # Alt-finger context gates port the calibrated model's GATES_ALL table.
 # mode=only  : the non-default finger is permitted only when a context key is present
 # mode=block : the non-default finger is forbidden when a context key is present

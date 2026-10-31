@@ -321,11 +321,11 @@ pub fn anneal(
     let mut rng = rand::rngs::StdRng::seed_from_u64(seed);
     let perm = match seed_perm {
         Some(p) => p.to_vec(),
-        None => {
+        None => ev.constrained_shuffle(&mut rng).unwrap_or_else(|_| {
             let mut p: Vec<usize> = (0..26).collect();
             p.shuffle(&mut rng);
             p
-        }
+        }),
     };
     let mut st = Local::new(ev, &perm);
     let mut cur = st.score();
@@ -334,11 +334,21 @@ pub fn anneal(
     let iters = iters.max(1);
     for it in 0..iters {
         let t = t0 * (t1 / t0).powf(it as f64 / iters as f64);
-        let i = rng.gen_range(0..26);
-        let mut j = rng.gen_range(0..25);
-        if j >= i {
-            j += 1;
+        let mut pair = None;
+        for _ in 0..100 {
+            let i = rng.gen_range(0..26);
+            let mut j = rng.gen_range(0..25);
+            if j >= i {
+                j += 1;
+            }
+            if ev.swap_allowed(&st.perm, i, j) {
+                pair = Some((i, j));
+                break;
+            }
         }
+        let Some((i, j)) = pair else {
+            continue;
+        };
         let w0 = st.weighted;
         let kid0 = st.kid;
         let s = st.swap(i, j);
@@ -373,6 +383,9 @@ pub fn quench(
             order.shuffle(rng);
             for &mi in &order {
                 let [i, j] = m.pairs[mi as usize];
+                if !ev.swap_allowed(&st.perm, i, j) {
+                    continue;
+                }
                 let w0 = st.weighted;
                 let kid0 = st.kid;
                 let s = st.swap(i, j);
@@ -397,6 +410,9 @@ pub fn quench(
                 let [p1, p2] = m.two_pairs[mi];
                 let [i1, j1] = m.pairs[p1];
                 let [i2, j2] = m.pairs[p2];
+                if !ev.swap_allowed(&st.perm, i1, j1) || !ev.swap_allowed(&st.perm, i2, j2) {
+                    continue;
+                }
                 let d1 = match cache[p1] {
                     Some(v) => v,
                     None => {
@@ -433,6 +449,9 @@ pub fn quench(
             order.shuffle(rng);
             for &mi in &order {
                 let [i, j, k] = m.three[mi as usize];
+                if !ev.cycle3_allowed(&st.perm, i, j, k) {
+                    continue;
+                }
                 let w0 = st.weighted;
                 let kid0 = st.kid;
                 let p0 = [st.perm[i], st.perm[j], st.perm[k]];
@@ -606,6 +625,9 @@ pub fn quench_constrained(
         order.shuffle(rng);
         for &mi in &order {
             let [i, j] = m.pairs[mi as usize];
+            if !primary.swap_allowed(&p.perm, i, j) {
+                continue;
+            }
             let pw0 = p.weighted;
             let pk0 = p.kid;
             let sw0 = s.weighted;
@@ -632,6 +654,9 @@ pub fn quench_constrained(
             let [p1, p2] = m.two_pairs[mi];
             let [i1, j1] = m.pairs[p1];
             let [i2, j2] = m.pairs[p2];
+            if !primary.swap_allowed(&p.perm, i1, j1) || !primary.swap_allowed(&p.perm, i2, j2) {
+                continue;
+            }
             let pw0 = p.weighted;
             let pk0 = p.kid;
             let sw0 = s.weighted;
@@ -661,6 +686,9 @@ pub fn quench_constrained(
         order.shuffle(rng);
         for &mi in &order {
             let [i, j, k] = m.three[mi as usize];
+            if !primary.cycle3_allowed(&p.perm, i, j, k) {
+                continue;
+            }
             let pw0 = p.weighted;
             let pk0 = p.kid;
             let pp0 = [p.perm[i], p.perm[j], p.perm[k]];
@@ -728,6 +756,47 @@ mod tests {
         )
         .expect("evaluator");
         (cfg, ev)
+    }
+
+    #[test]
+    fn hand_restrictions_are_preserved_by_search() {
+        let (_cfg, mut ev) = setup();
+        let mut required = [None; 26];
+        required[(b'z' - b'a') as usize] = Some(0);
+        required[(b'x' - b'a') as usize] = Some(1);
+        ev.set_hand_restrictions(required);
+
+        let mut rng = rand::rngs::StdRng::seed_from_u64(3);
+        let perm = ev.constrained_shuffle(&mut rng).expect("shuffle");
+        assert!(ev.perm_allowed(&perm));
+
+        for i in 0..26 {
+            for j in i + 1..26 {
+                let mut swapped = perm.clone();
+                swapped.swap(i, j);
+                if !ev.swap_allowed(&perm, i, j) {
+                    assert!(!ev.perm_allowed(&swapped));
+                }
+            }
+        }
+
+        let moved = ev.perturb(&perm, &mut rng, 8);
+        assert!(ev.perm_allowed(&moved));
+
+        let (annealed, _) = anneal(&ev, Some(&perm), 500, 0.35, 0.002, 9);
+        assert!(ev.perm_allowed(&annealed));
+
+        let tables = DeltaTables::build(&ev);
+        let (quenched, _) = quench(&ev, &tables, &perm, ev.score(&perm), &mut rng);
+        assert!(ev.perm_allowed(&quenched));
+    }
+
+    #[test]
+    fn hand_restrictions_reject_impossible_shuffles() {
+        let (_cfg, mut ev) = setup();
+        ev.set_hand_restrictions([Some(0); 26]);
+        let mut rng = rand::rngs::StdRng::seed_from_u64(4);
+        assert!(ev.constrained_shuffle(&mut rng).is_err());
     }
 
     #[test]

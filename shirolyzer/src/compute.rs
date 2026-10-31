@@ -6,7 +6,6 @@ use std::path::{Path, PathBuf};
 use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Result};
-use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
 use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
@@ -160,7 +159,7 @@ fn optimize_ils_row(
             break;
         }
         let k = choose3(rng, &[4, 6, 8]);
-        let cand = search::perturb(&best, rng, k);
+        let cand = ev.perturb(&best, rng, k);
         let (cand, _cs) = search::quench(ev, delta_tables, &cand, ev.score(&cand), rng);
         let round_iters = (iters / 2).max(1);
         let (cand, cs) = search::anneal(
@@ -231,7 +230,7 @@ fn optimize_polish_row(
             break;
         }
         let k = choose3(rng, &[4, 6, 8]);
-        let mut cand = search::perturb(&best, rng, k);
+        let mut cand = ev.perturb(&best, rng, k);
         let (p, _cs) = search::quench(ev, delta_tables, &cand, ev.score(&cand), rng);
         cand = p;
         let round_iters = iters.max(1);
@@ -346,7 +345,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     let dead = dead_of(&base_layout);
     let flat_share = flat_share_from_config(&ctx.cfg);
     let (w_balance, w_hand) = ctx.cfg.balance_weights();
-    let primary_ev = Evaluator::new(
+    let mut primary_ev = Evaluator::new(
         &primary_corpus,
         &ctx.tables,
         &ctx.model,
@@ -356,10 +355,11 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         w_hand,
     )
     .map_err(anyhow::Error::msg)?;
+    primary_ev.set_hand_restrictions(ctx.cfg.hand_restrictions);
     let delta_tables = search::DeltaTables::build(&primary_ev);
     let secondary_ev = match secondary_corpus.as_ref() {
-        Some(corpus) => Some(
-            Evaluator::new(
+        Some(corpus) => {
+            let mut ev = Evaluator::new(
                 corpus,
                 &ctx.tables,
                 &ctx.model,
@@ -368,8 +368,10 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 w_balance,
                 w_hand,
             )
-            .map_err(anyhow::Error::msg)?,
-        ),
+            .map_err(anyhow::Error::msg)?;
+            ev.set_hand_restrictions(ctx.cfg.hand_restrictions);
+            Some(ev)
+        }
         None => None,
     };
 
@@ -382,19 +384,34 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     for entry in references::load_references(Some(&refs_path))? {
         if seen.insert(entry.layout.clone()) {
             let perm = perm_of(&entry.layout, &dead).map_err(anyhow::Error::msg)?;
+            if !primary_ev.perm_allowed(&perm) {
+                eprintln!(
+                    "warning: skipping seed {:?}: violates the configured hand restrictions",
+                    entry.name
+                );
+                continue;
+            }
             seeds.push((entry.name, perm));
         }
     }
     for (i, layout) in args.seed_layout.iter().enumerate() {
         if layout.chars().count() == 30 && seen.insert(layout.clone()) {
             let perm = perm_of(layout, &dead).map_err(anyhow::Error::msg)?;
+            if !primary_ev.perm_allowed(&perm) {
+                eprintln!(
+                    "warning: skipping user seed {}: violates the configured hand restrictions",
+                    i
+                );
+                continue;
+            }
             seeds.push((format!("user{}", i), perm));
         }
     }
     for s in 0..args.runs {
-        let mut perm: Vec<usize> = (0..26).collect();
         let mut start_rng = ChaCha8Rng::seed_from_u64(seed + 1000 + s as u64);
-        perm.shuffle(&mut start_rng);
+        let perm = primary_ev
+            .constrained_shuffle(&mut start_rng)
+            .map_err(anyhow::Error::msg)?;
         seeds.push((format!("rand{}", seed + 1000 + s as u64), perm));
     }
 
@@ -703,7 +720,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     }
                 }
                 let k = choose3(&mut rng, &[2, 4, 6]);
-                let cand = search::perturb(&best_perm, &mut rng, k);
+                let cand = primary_ev.perturb(&best_perm, &mut rng, k);
                 let cand_s = constrained(&cand);
                 if !cand_s.is_finite() {
                     continue;

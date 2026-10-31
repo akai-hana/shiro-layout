@@ -100,8 +100,9 @@ display.
 The user-facing configuration is
 [`shirolyzer/config/config.yaml`](shirolyzer/config/config.yaml).  It controls
 the physical layout, current layout, corpora and weights, primary-sacrifice
-budget, fingermap, alt-finger rules, geometric conditions, objective priority
-tiers, and finger balance.  `general.current_layout` is the canonical layout
+budget, fingermap, alt-finger rules, optional per-hand character restrictions,
+geometric conditions, objective priority tiers, and finger balance.
+`general.current_layout` is the canonical layout
 used by `analyze` when no layout argument is given and by `compute` as its
 punctuation/dead-key template; search seeds come from the reference file.
 
