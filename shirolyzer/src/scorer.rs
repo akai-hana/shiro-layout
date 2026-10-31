@@ -8,7 +8,7 @@ use rayon::prelude::*;
 use crate::conditions::Conditions;
 use crate::config::Config;
 use crate::gates::Gates;
-use crate::geometry::{Geometry, KEYS, NF, NK};
+use crate::geometry::{finger_hand, Geometry, KEYS, NF, NK};
 use crate::model::{Model, ModelTables, W_ALT};
 
 pub const N: usize = 31;
@@ -16,6 +16,9 @@ pub const SPACE_ID: usize = 30;
 pub const SPACE: &str = "@space";
 pub const SPACE_EFFORT: f64 = 0.6;
 pub const PRESS: f64 = 1.0;
+/// Pseudo finger slot used for the space key in the compact scorer encoding.
+pub const SPACE_FINGER: usize = NF;
+pub const FINGER_SLOTS: usize = NF + 1;
 
 #[derive(Clone, Debug)]
 pub struct Tables {
@@ -80,7 +83,7 @@ impl Tables {
                             }
                             if c < best {
                                 best = c;
-                                best_f = fa * 5 + fb;
+                                best_f = fa * FINGER_SLOTS + fb;
                             }
                         }
                     }
@@ -125,16 +128,16 @@ impl Tables {
             });
 
         for a in 0..NK {
-            let (f, _) = argmin_finger(&e_with_press[a * NF..(a + 1) * NF]);
+            let (f, _) = argmin_same_hand_finger(geom, a, &e_with_press[a * NF..(a + 1) * NF]);
             let ea = mt.e[crate::model::e_idx(a, f)];
             let value = ea + PRESS + SPACE_EFFORT + W_ALT;
             big[big_idx(a, SPACE_ID)] = value;
-            big_f[big_idx(a, SPACE_ID)] = (f * 5 + 4) as u8;
+            big_f[big_idx(a, SPACE_ID)] = (f * FINGER_SLOTS + SPACE_FINGER) as u8;
             big[big_idx(SPACE_ID, a)] = value;
-            big_f[big_idx(SPACE_ID, a)] = (4 * 5 + f) as u8;
+            big_f[big_idx(SPACE_ID, a)] = (SPACE_FINGER * FINGER_SLOTS + f) as u8;
         }
         big[big_idx(SPACE_ID, SPACE_ID)] = 0.0;
-        big_f[big_idx(SPACE_ID, SPACE_ID)] = 4 * 5 + 4;
+        big_f[big_idx(SPACE_ID, SPACE_ID)] = (SPACE_FINGER * FINGER_SLOTS + SPACE_FINGER) as u8;
 
         for i in 0..N {
             for j in 0..N {
@@ -149,10 +152,13 @@ impl Tables {
                         .iter()
                         .map(|&x| {
                             if x == SPACE_ID {
-                                vec![4]
+                                vec![SPACE_FINGER]
                             } else {
                                 (0..NF)
-                                    .filter(|&f| mt.e[crate::model::e_idx(x, f)].is_finite())
+                                    .filter(|&f| {
+                                        finger_hand(f) == geom.hand[x]
+                                            && mt.e[crate::model::e_idx(x, f)].is_finite()
+                                    })
                                     .collect()
                             }
                         })
@@ -236,11 +242,11 @@ impl Tables {
     }
 }
 
-fn argmin_finger(values: &[f64]) -> (usize, f64) {
+fn argmin_same_hand_finger(geom: &Geometry, key: usize, values: &[f64]) -> (usize, f64) {
     let mut best = f64::INFINITY;
-    let mut idx = 0;
+    let mut idx = geom.hand[key] * crate::geometry::NFINGER;
     for (i, v) in values.iter().enumerate() {
-        if *v < best {
+        if finger_hand(i) == geom.hand[key] && *v < best {
             best = *v;
             idx = i;
         }
