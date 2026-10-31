@@ -3,7 +3,7 @@
 //! Port of `shirolyzer/utils/conditions.py`.
 
 use crate::config::{Condition, Config};
-use crate::geometry::{Geometry, NF, NK};
+use crate::geometry::{finger_hand, finger_kind, Geometry, NF, NK};
 use crate::model::{pair_feature, pt_idx};
 
 pub const PENALTY: f64 = 12.0;
@@ -45,32 +45,25 @@ impl Conditions {
         }
     }
 
-    pub fn matches_fingers(
-        &self,
-        cond: &Condition,
-        hand_a: usize,
-        fa: usize,
-        hand_b: usize,
-        fb: usize,
-    ) -> bool {
+    pub fn matches_fingers(&self, cond: &Condition, fa: usize, fb: usize) -> bool {
         let Some(fingers) = &cond.fingers else {
             return true;
         };
-        fingers.contains(&(hand_a, fa)) || fingers.contains(&(hand_b, fb))
+        let a = (finger_hand(fa), finger_kind(fa));
+        let b = (finger_hand(fb), finger_kind(fb));
+        fingers.contains(&a) || fingers.contains(&b)
     }
 
-    pub fn matches_pairs(
-        &self,
-        cond: &Condition,
-        hand_a: usize,
-        fa: usize,
-        hand_b: usize,
-        fb: usize,
-    ) -> bool {
+    pub fn matches_pairs(&self, cond: &Condition, fa: usize, fb: usize) -> bool {
         let Some(pairs) = &cond.pairs else {
             return true;
         };
-        let ab = (hand_a, fa, hand_b, fb);
+        let ab = (
+            finger_hand(fa),
+            finger_kind(fa),
+            finger_hand(fb),
+            finger_kind(fb),
+        );
         pairs
             .iter()
             .any(|[x, y]| ab == (x.0, x.1, y.0, y.1) || ab == (y.0, y.1, x.0, x.1))
@@ -79,18 +72,14 @@ impl Conditions {
     pub fn condition_matches(
         &self,
         cond: &Condition,
-        hand_a: usize,
         fa: usize,
-        hand_b: usize,
         fb: usize,
         pf: &crate::model::PairFeature,
     ) -> bool {
-        if !self.matches_fingers(cond, hand_a, fa, hand_b, fb)
-            || !self.matches_pairs(cond, hand_a, fa, hand_b, fb)
-        {
+        if !self.matches_fingers(cond, fa, fb) || !self.matches_pairs(cond, fa, fb) {
             return false;
         }
-        let same_hand = hand_a == hand_b;
+        let same_hand = finger_hand(fa) == finger_hand(fb);
         match cond.kind.as_str() {
             "scissors" => {
                 let drow = pf.drow;
@@ -161,7 +150,7 @@ pub fn allowed_pair(
     b: usize,
     fb: usize,
 ) -> bool {
-    if geom.hand[a] != geom.hand[b] || fa == fb {
+    if finger_hand(fa) != finger_hand(fb) || finger_kind(fa) == finger_kind(fb) {
         return true;
     }
     let pf = pair_feature(geom, a, fa, b, fb);
@@ -171,7 +160,7 @@ pub fn allowed_pair(
         pair_denied: None,
     };
     for cond in rules {
-        if conditions.condition_matches(cond, geom.hand[a], fa, geom.hand[b], fb, &pf) {
+        if conditions.condition_matches(cond, fa, fb, &pf) {
             return cond.allow;
         }
     }

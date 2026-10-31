@@ -10,13 +10,12 @@ use serde_json::json;
 
 use crate::context;
 use crate::evaluate::score_layout;
-use crate::geometry::{finger_index, key_index, KEYS};
+use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS};
 use crate::model::pair_feature;
 use crate::paths;
-use crate::scorer::Tables;
+use crate::scorer::{Tables, FINGER_SLOTS, SPACE_FINGER};
 
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
-const FID2: [char; 5] = ['P', 'R', 'M', 'I', 'T'];
 const FORDER: [usize; 4] = [0, 1, 2, 3];
 
 type KeyMap = [Option<usize>; 27];
@@ -47,18 +46,30 @@ fn keymap(layout: &str) -> KeyMap {
     map
 }
 
-fn decode_finger(value: u8) -> char {
-    FID2[(value / 5) as usize]
+fn finger_label(finger: usize) -> String {
+    if finger == SPACE_FINGER {
+        "T".to_string()
+    } else {
+        finger_token(finger).to_string()
+    }
 }
 
-fn decode_finger_at(value: [u8; 3], pos: usize) -> char {
-    FID2[value[pos] as usize]
+fn decode_finger(value: u8) -> usize {
+    (value as usize) / FINGER_SLOTS
+}
+
+fn decode_finger_b(value: u8) -> usize {
+    (value as usize) % FINGER_SLOTS
+}
+
+fn decode_finger_at(value: [u8; 3], pos: usize) -> usize {
+    value[pos] as usize
 }
 
 pub struct CategoryReport {
     pub cats: HashMap<String, f64>,
-    pub worst: Vec<(f64, String, char, char, f64)>,
-    pub scissors: Vec<(f64, f64, String, char, char, f64, String)>,
+    pub worst: Vec<(f64, String, String, String, f64)>,
+    pub scissors: Vec<(f64, f64, String, String, String, f64, String)>,
 }
 
 pub fn category_report(
@@ -81,17 +92,19 @@ pub fn category_report(
         let cost = tables.big[crate::scorer::big_idx(i, j)];
         let enc = tables.big_f[crate::scorer::big_idx(i, j)];
         let f1 = decode_finger(enc);
-        let f2 = FID2[(enc % 5) as usize];
-        worst.push((cost, format!("{}{}", a, b), f1, f2, cnt));
+        let f2 = decode_finger_b(enc);
+        let l1 = finger_label(f1);
+        let l2 = finger_label(f2);
+        worst.push((cost, format!("{}{}", a, b), l1.clone(), l2.clone(), cnt));
         if i == j {
             *stats.entry("repeat".into()).or_insert(0.0) += cnt;
-        } else if geom.hand[i] != geom.hand[j] {
+        } else if finger_hand(f1) != finger_hand(f2) {
             *stats.entry("alt".into()).or_insert(0.0) += cnt;
         } else if f1 == f2 {
             *stats.entry("sfb".into()).or_insert(0.0) += cnt;
         } else {
-            let d1 = FORDER[finger_index(f1).unwrap()];
-            let d2 = FORDER[finger_index(f2).unwrap()];
+            let d1 = FORDER[finger_kind(f1)];
+            let d2 = FORDER[finger_kind(f2)];
             let dcol = (geom.cx[i] - geom.cx[j]).abs();
             if d2.abs_diff(d1) >= 2 || dcol >= 3.0 {
                 *stats.entry("leap".into()).or_insert(0.0) += cnt;
@@ -100,19 +113,17 @@ pub fn category_report(
             } else {
                 *stats.entry("roll_out".into()).or_insert(0.0) += cnt;
             }
-            let pf = pair_feature(
-                geom,
-                i,
-                finger_index(f1).unwrap(),
-                j,
-                finger_index(f2).unwrap(),
-            );
+            let pf = pair_feature(geom, i, f1, j, f2);
             if pf.g > 0.25 {
-                let (outer, inner) = if d1 < d2 { (f1, f2) } else { (f2, f1) };
-                let kind = match inner {
-                    'M' => Some("scissor_IM"),
-                    'R' => Some("scissor_MR"),
-                    'P' => Some("scissor_RP"),
+                let (outer, inner) = if d1 < d2 {
+                    (l1.clone(), l2.clone())
+                } else {
+                    (l2.clone(), l1.clone())
+                };
+                let kind = match finger_kind(if d1 < d2 { f2 } else { f1 }) {
+                    2 => Some("scissor_IM"),
+                    1 => Some("scissor_MR"),
+                    0 => Some("scissor_RP"),
                     _ => None,
                 };
                 if let Some(kind) = kind {
@@ -126,8 +137,8 @@ pub fn category_report(
                         cost * cnt,
                         cost,
                         format!("{}{}", a, b),
-                        f1,
-                        f2,
+                        l1.clone(),
+                        l2.clone(),
                         cnt,
                         format!("{}{}", outer, inner),
                     ));
@@ -182,7 +193,7 @@ pub fn trigram_patterns(
     layout: &str,
     corpus: &crate::corpus::Corpus,
     tables: &Tables,
-    geom: &crate::geometry::Geometry,
+    _geom: &crate::geometry::Geometry,
 ) -> HashMap<String, f64> {
     let m = keymap(layout);
     let mut acc: HashMap<String, f64> = HashMap::new();
@@ -199,11 +210,11 @@ pub fn trigram_patterns(
             decode_finger_at(enc, 1),
             decode_finger_at(enc, 2),
         ];
-        let hs = [geom.hand[ids[0]], geom.hand[ids[1]], geom.hand[ids[2]]];
+        let hs = [finger_hand(fs[0]), finger_hand(fs[1]), finger_hand(fs[2])];
         let os_ = [
-            FORDER[finger_index(fs[0]).unwrap()],
-            FORDER[finger_index(fs[1]).unwrap()],
-            FORDER[finger_index(fs[2]).unwrap()],
+            FORDER[finger_kind(fs[0])],
+            FORDER[finger_kind(fs[1])],
+            FORDER[finger_kind(fs[2])],
         ];
         total += cnt;
         let add = |acc: &mut HashMap<String, f64>, key: &str| {
@@ -229,7 +240,7 @@ pub fn trigram_patterns(
             if fs[0] == fs[1] || fs[1] == fs[2] {
                 add(&mut acc, "sfb_tri");
             } else if (os_[1] as i64 - os_[0] as i64) * (os_[2] as i64 - os_[1] as i64) < 0 {
-                if fs.contains(&'I') {
+                if fs.iter().any(|&f| finger_kind(f) == 3) {
                     add(&mut acc, "redirect");
                 } else {
                     add(&mut acc, "redirect_weak");
@@ -279,7 +290,7 @@ pub fn finger_usage(
     layout: &str,
     corpus: &crate::corpus::Corpus,
     tables: &Tables,
-    geom: &crate::geometry::Geometry,
+    _geom: &crate::geometry::Geometry,
 ) -> HashMap<String, f64> {
     let m = keymap(layout);
     let mut usage = [[0.0f64; 4]; 2];
@@ -290,19 +301,16 @@ pub fn finger_usage(
         };
         let ids = [k0, k1, k2];
         let enc = tables.tri_f[crate::scorer::tri_idx(ids[0], ids[1], ids[2])];
-        for (pos, &k) in ids.iter().enumerate() {
+        for (pos, _k) in ids.iter().enumerate() {
             let f = decode_finger_at(enc, pos);
-            usage[geom.hand[k]][finger_index(f).unwrap()] += cnt;
+            usage[finger_hand(f)][finger_kind(f)] += cnt;
         }
     }
     let total: f64 = usage.iter().flat_map(|h| h.iter()).sum::<f64>().max(1.0);
     let mut out = HashMap::new();
     for (h, label) in [(0, 'L'), (1, 'R')] {
-        for f in ['P', 'R', 'M', 'I'] {
-            out.insert(
-                format!("{}{}", label, f),
-                usage[h][finger_index(f).unwrap()] / total * 100.0,
-            );
+        for (fi, f) in ['P', 'R', 'M', 'I'].iter().enumerate() {
+            out.insert(format!("{}{}", label, f), usage[h][fi] / total * 100.0);
         }
     }
     out.insert("handL".into(), usage[0].iter().sum::<f64>() / total * 100.0);
@@ -312,9 +320,9 @@ pub fn finger_usage(
 
 pub struct GuideEntry {
     pub key: String,
-    pub default: char,
-    pub share: Vec<(char, f64)>,
-    pub alt_contexts: Vec<(char, Vec<(String, f64)>)>,
+    pub default: usize,
+    pub share: Vec<(usize, f64)>,
+    pub alt_contexts: Vec<(usize, Vec<(String, f64)>)>,
 }
 
 pub fn fingering_guide(
@@ -324,8 +332,8 @@ pub fn fingering_guide(
     model: &crate::model::Model,
 ) -> HashMap<char, GuideEntry> {
     let m = keymap(layout);
-    let mut agg: HashMap<char, HashMap<char, f64>> = HashMap::new();
-    let mut ctx: HashMap<char, HashMap<char, HashMap<[char; 3], f64>>> = HashMap::new();
+    let mut agg: HashMap<char, HashMap<usize, f64>> = HashMap::new();
+    let mut ctx: HashMap<char, HashMap<usize, HashMap<[char; 3], f64>>> = HashMap::new();
     for (letter_ids, &cnt) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
         let (Some(k0), Some(k1), Some(k2)) = (m[letter_ids[0]], m[letter_ids[1]], m[letter_ids[2]])
         else {
@@ -357,12 +365,12 @@ pub fn fingering_guide(
         let default = model.default_finger[key];
         let entry = agg.get(&ch).cloned().unwrap_or_default();
         let total: f64 = entry.values().sum::<f64>().max(1.0);
-        let mut share: Vec<(char, f64)> =
+        let mut share: Vec<(usize, f64)> =
             entry.iter().map(|(f, c)| (*f, c / total * 100.0)).collect();
         share.sort_by(|a, b| {
             b.1.partial_cmp(&a.1)
                 .unwrap_or(std::cmp::Ordering::Equal)
-                .then_with(|| a.0.cmp(&b.0))
+                .then_with(|| finger_label(a.0).cmp(&finger_label(b.0)))
         });
         let mut alt_contexts = Vec::new();
         for &(f, _) in &share {
@@ -577,13 +585,13 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         let shares: Vec<String> = g
             .share
             .iter()
-            .map(|(f, v)| format!("{}={:.1}%", f, v))
+            .map(|(f, v)| format!("{}={:.1}%", finger_label(*f), v))
             .collect();
         out(format!(
             "  {}@{:<2} default {}  {}",
             ch,
             g.key,
-            g.default,
+            finger_label(g.default),
             shares.join(" ")
         ));
         for (f, tops) in &g.alt_contexts {
@@ -592,7 +600,11 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
                 .take(5)
                 .map(|(tg, n)| format!("{}:{:.0}", tg, n))
                 .collect();
-            out(format!("      alt {}: {}", f, text.join(", ")));
+            out(format!(
+                "      alt {}: {}",
+                finger_label(*f),
+                text.join(", ")
+            ));
         }
     }
     if let Some(parent) = out_path.parent() {
@@ -608,14 +620,14 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             let share: serde_json::Map<String, serde_json::Value> = g
                 .share
                 .iter()
-                .map(|(f, v)| (f.to_string(), json!(v)))
+                .map(|(f, v)| (finger_label(*f), json!(v)))
                 .collect();
             let alts: serde_json::Map<String, serde_json::Value> = g
                 .alt_contexts
                 .iter()
                 .map(|(f, items)| {
                     (
-                        f.to_string(),
+                        finger_label(*f),
                         json!(items
                             .iter()
                             .map(|(tg, n)| json!([tg, n.round_ties_even() as i64]))
@@ -627,7 +639,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
                 ch.to_string(),
                 json!({
                     "key": g.key,
-                    "default": g.default.to_string(),
+                    "default": finger_label(g.default),
                     "share": share,
                     "alt_contexts": alts,
                 }),
