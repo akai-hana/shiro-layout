@@ -1,2 +1,0 @@
-rename "spanish" to "douglas", so this dir becomes "douglas/", and the parser becomes "parse_douglas.py".
-handle any remaining broken imports and stale references.

@@ -8,7 +8,8 @@ The source is downloaded to a temporary file, decompressed as a stream, and
 deleted on success. We count maximal [a-z]+ runs after lowercasing. Space,
 punctuation, and every non-ASCII byte break a run, so the letters-only corpus
 contains no fabricated cross-punctuation pairs. Counts are stored as raw
-integers, matching the existing corpora/*/parsed/*_freq.json convention.
+integers, matching the existing corpora/*/parsed/*_freq.json convention, and
+each file is ordered from most to least frequent (ties by key).
 
 Usage:
     python3 corpora/shai/parse_shai.py            # download, parse, write parsed/
@@ -122,10 +123,17 @@ def compare(name, new, old):
     return diffs
 
 
+def render_json(data):
+    items = sorted(data.items(), key=lambda item: (-item[1], item[0]))
+    return json.dumps(dict(items), indent=0) + "\n"
+
+
 def write_json(path, data):
-    with open(path, "w") as f:
-        json.dump(dict(sorted(data.items())), f, indent=0)
-        f.write("\n")
+    text = render_json(data)
+    if path.exists() and path.read_text() == text:
+        return False
+    path.write_text(text)
+    return True
 
 
 def main():
@@ -191,16 +199,34 @@ def main():
                                 ("trigrams", T, old[2])):
             all_diffs.extend(compare(name, new, prev))
 
+    outputs = (("letter", L), ("bigram", B), ("trigram", T))
+    changed_files = [
+        name
+        for name, data in outputs
+        if not (OUTDIR / f"{name}_freq.json").exists()
+        or (OUTDIR / f"{name}_freq.json").read_text() != render_json(data)
+    ]
+
     if args.check:
-        if all_diffs:
-            raise SystemExit("check failed: parsed data differs")
+        if changed_files:
+            raise SystemExit(
+                "check failed: parsed data differs for "
+                + ", ".join(f"{name}_freq.json" for name in changed_files)
+            )
         print("check OK: parsed data matches")
         return
 
     OUTDIR.mkdir(parents=True, exist_ok=True)
-    for name, data in (("letter", L), ("bigram", B), ("trigram", T)):
-        write_json(OUTDIR / f"{name}_freq.json", data)
-    print(f"wrote {OUTDIR}")
+    written = [
+        name
+        for name, data in outputs
+        if write_json(OUTDIR / f"{name}_freq.json", data)
+    ]
+    if written:
+        print(f"updated {OUTDIR}: "
+              + ", ".join(f"{name}_freq.json" for name in written))
+    else:
+        print(f"parsed data unchanged; no JSON files modified in {OUTDIR}")
 
 
 if __name__ == "__main__":

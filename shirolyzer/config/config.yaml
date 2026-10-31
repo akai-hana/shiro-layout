@@ -24,7 +24,7 @@ general:
   primary_corpus:
     - {name: shai, weight: 100}
   secondary_corpus:
-    - {name: spanish, weight: 100}
+    - {name: douglas, weight: 100}
   primary_sacrifice: 0.00023   # percent of the best primary score
 
 model:
