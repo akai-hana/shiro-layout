@@ -32,7 +32,11 @@ fn hand_finger(hand: usize, f: usize) -> String {
     format!("{h}{}", FINGERS[f])
 }
 
-fn parse_desired(tokens: &[&str], keys: &[usize], geom: &shirolyzer::geometry::Geometry) -> Result<Vec<usize>, String> {
+fn parse_desired(
+    tokens: &[&str],
+    keys: &[usize],
+    geom: &shirolyzer::geometry::Geometry,
+) -> Result<Vec<usize>, String> {
     let mut out = Vec::new();
     for (pos, token) in tokens.iter().enumerate() {
         let text = token.to_uppercase();
@@ -57,7 +61,8 @@ fn parse_desired(tokens: &[&str], keys: &[usize], geom: &shirolyzer::geometry::G
 fn tri_cost(ctx: &context::Context, keys: &[usize], fs: &[usize]) -> (f64, f64, f64) {
     let chars: Vec<char> = keys.iter().map(|&k| key_char(k)).collect();
     let mut pm = vec![0.0; NF * NF * NF];
-    ctx.gates.penalty_mask_into(&chars, &ctx.conditions, &mut pm);
+    ctx.gates
+        .penalty_mask_into(&chars, &ctx.conditions, &mut pm);
     let mut cond = vec![0.0; NF * NF * NF];
     ctx.conditions.penalty_mask_into(&chars, &mut cond);
     let mut costs = vec![0.0; NF * NF * NF];
@@ -76,7 +81,8 @@ fn tri_cost(ctx: &context::Context, keys: &[usize], fs: &[usize]) -> (f64, f64, 
 fn bi_cost(ctx: &context::Context, keys: &[usize], fs: &[usize]) -> (f64, f64, f64) {
     let chars: Vec<char> = keys.iter().map(|&k| key_char(k)).collect();
     let mut pm = vec![0.0; NF * NF];
-    ctx.gates.penalty_mask_into(&chars, &ctx.conditions, &mut pm);
+    ctx.gates
+        .penalty_mask_into(&chars, &ctx.conditions, &mut pm);
     let mut cond = vec![0.0; NF * NF];
     ctx.conditions.penalty_mask_into(&chars, &mut cond);
     if keys[0] == keys[1] && fs[0] != fs[1] {
@@ -100,50 +106,182 @@ fn main() -> Result<()> {
     let m = keymap(layout);
 
     let entries = [
-        Entry { ngram: "oje", desired: &[&["I", "R", "P"]] },
-        Entry { ngram: "ayi", desired: &[&["I", "M", "R"]] },
-        Entry { ngram: "xch", desired: &[&["RI", "LI", "RR"]] },
-        Entry { ngram: "oyi", desired: &[&["I", "M", "R"]] },
-        Entry { ngram: "osc", desired: &[&["LI", "RI", "LI"]] },
-        Entry { ngram: "itz", desired: &[&["I", "M", "R"]] },
-        Entry { ngram: "rph", desired: &[&["I", "M", "R"]] },
-        Entry { ngram: "npl", desired: &[&["M", "I", "I"]] },
-        Entry { ngram: "rsc", desired: &[&["RM", "RI", "LI"]] },
-        Entry { ngram: "aje", desired: &[&["I", "R", "P"]] },
-        Entry { ngram: "kti", desired: &[&["I", "M", "I"]] },
-        Entry { ngram: "okt", desired: &[&["I", "M", "R"]] },
-        Entry { ngram: "xv", desired: &[&["RI", "LI"]] },
-        Entry { ngram: "fd", desired: &[&["I", "R"]] },
-        Entry { ngram: "wv", desired: &[&["RI", "LI"]] },
-        Entry { ngram: "xg", desired: &[&["I", "M"]] },
-        Entry { ngram: "xs", desired: &[&["I", "M"]] },
-        Entry { ngram: "hf", desired: &[&["M", "I"]] },
-        Entry { ngram: "wc", desired: &[&["RI", "LI"], &["LI", "LM"]] },
-        Entry { ngram: "cw", desired: &[&["LI", "RI"], &["LM", "LI"]] },
-        Entry { ngram: "pn", desired: &[&["I", "M"]] },
-        Entry { ngram: "nb", desired: &[&["M", "I"]] },
-        Entry { ngram: "vx", desired: &[&["LI", "RI"]] },
-        Entry { ngram: "df", desired: &[&["R", "I"]] },
-        Entry { ngram: "vw", desired: &[&["LI", "RI"]] },
-        Entry { ngram: "gx", desired: &[&["M", "I"]] },
-        Entry { ngram: "sx", desired: &[&["M", "I"]] },
-        Entry { ngram: "fh", desired: &[&["I", "M"]] },
-        Entry { ngram: "np", desired: &[&["M", "I"]] },
-        Entry { ngram: "bn", desired: &[&["I", "M"]] },
-        Entry { ngram: "ke", desired: &[&["R", "P"]] },
-        Entry { ngram: "ld", desired: &[&["M", "P"]] },
-        Entry { ngram: "ey", desired: &[&["P", "M"]] },
-        Entry { ngram: "ye", desired: &[&["M", "P"]] },
-        Entry { ngram: "ph", desired: &[&["M", "R"], &["I", "M"]] },
-        Entry { ngram: "mb", desired: &[&["R", "I"]] },
-        Entry { ngram: "dl", desired: &[&["P", "M"]] },
-        Entry { ngram: "ek", desired: &[&["P", "R"]] },
-        Entry { ngram: "mf", desired: &[&["P", "R"]] },
-        Entry { ngram: "pd", desired: &[&["R", "P"]] },
-        Entry { ngram: "bm", desired: &[&["M", "P"]] },
-        Entry { ngram: "hp", desired: &[&["R", "M"], &["M", "I"]] },
-        Entry { ngram: "dp", desired: &[&["P", "R"]] },
-        Entry { ngram: "fm", desired: &[&["R", "P"]] },
+        Entry {
+            ngram: "oje",
+            desired: &[&["I", "R", "P"]],
+        },
+        Entry {
+            ngram: "ayi",
+            desired: &[&["I", "M", "R"]],
+        },
+        Entry {
+            ngram: "xch",
+            desired: &[&["RI", "LI", "RR"]],
+        },
+        Entry {
+            ngram: "oyi",
+            desired: &[&["I", "M", "R"]],
+        },
+        Entry {
+            ngram: "osc",
+            desired: &[&["LI", "RI", "LI"]],
+        },
+        Entry {
+            ngram: "itz",
+            desired: &[&["I", "M", "R"]],
+        },
+        Entry {
+            ngram: "rph",
+            desired: &[&["I", "M", "R"]],
+        },
+        Entry {
+            ngram: "npl",
+            desired: &[&["M", "I", "I"]],
+        },
+        Entry {
+            ngram: "rsc",
+            desired: &[&["RM", "RI", "LI"]],
+        },
+        Entry {
+            ngram: "aje",
+            desired: &[&["I", "R", "P"]],
+        },
+        Entry {
+            ngram: "kti",
+            desired: &[&["I", "M", "I"]],
+        },
+        Entry {
+            ngram: "okt",
+            desired: &[&["I", "M", "R"]],
+        },
+        Entry {
+            ngram: "xv",
+            desired: &[&["RI", "LI"]],
+        },
+        Entry {
+            ngram: "fd",
+            desired: &[&["I", "R"]],
+        },
+        Entry {
+            ngram: "wv",
+            desired: &[&["RI", "LI"]],
+        },
+        Entry {
+            ngram: "xg",
+            desired: &[&["I", "M"]],
+        },
+        Entry {
+            ngram: "xs",
+            desired: &[&["I", "M"]],
+        },
+        Entry {
+            ngram: "hf",
+            desired: &[&["M", "I"]],
+        },
+        Entry {
+            ngram: "wc",
+            desired: &[&["RI", "LI"], &["LI", "LM"]],
+        },
+        Entry {
+            ngram: "cw",
+            desired: &[&["LI", "RI"], &["LM", "LI"]],
+        },
+        Entry {
+            ngram: "pn",
+            desired: &[&["I", "M"]],
+        },
+        Entry {
+            ngram: "nb",
+            desired: &[&["M", "I"]],
+        },
+        Entry {
+            ngram: "vx",
+            desired: &[&["LI", "RI"]],
+        },
+        Entry {
+            ngram: "df",
+            desired: &[&["R", "I"]],
+        },
+        Entry {
+            ngram: "vw",
+            desired: &[&["LI", "RI"]],
+        },
+        Entry {
+            ngram: "gx",
+            desired: &[&["M", "I"]],
+        },
+        Entry {
+            ngram: "sx",
+            desired: &[&["M", "I"]],
+        },
+        Entry {
+            ngram: "fh",
+            desired: &[&["I", "M"]],
+        },
+        Entry {
+            ngram: "np",
+            desired: &[&["M", "I"]],
+        },
+        Entry {
+            ngram: "bn",
+            desired: &[&["I", "M"]],
+        },
+        Entry {
+            ngram: "ke",
+            desired: &[&["R", "P"]],
+        },
+        Entry {
+            ngram: "ld",
+            desired: &[&["M", "P"]],
+        },
+        Entry {
+            ngram: "ey",
+            desired: &[&["P", "M"]],
+        },
+        Entry {
+            ngram: "ye",
+            desired: &[&["M", "P"]],
+        },
+        Entry {
+            ngram: "ph",
+            desired: &[&["M", "R"], &["I", "M"]],
+        },
+        Entry {
+            ngram: "mb",
+            desired: &[&["R", "I"]],
+        },
+        Entry {
+            ngram: "dl",
+            desired: &[&["P", "M"]],
+        },
+        Entry {
+            ngram: "ek",
+            desired: &[&["P", "R"]],
+        },
+        Entry {
+            ngram: "mf",
+            desired: &[&["P", "R"]],
+        },
+        Entry {
+            ngram: "pd",
+            desired: &[&["R", "P"]],
+        },
+        Entry {
+            ngram: "bm",
+            desired: &[&["M", "P"]],
+        },
+        Entry {
+            ngram: "hp",
+            desired: &[&["R", "M"], &["M", "I"]],
+        },
+        Entry {
+            ngram: "dp",
+            desired: &[&["P", "R"]],
+        },
+        Entry {
+            ngram: "fm",
+            desired: &[&["R", "P"]],
+        },
     ];
 
     for e in entries {
@@ -170,7 +308,13 @@ fn main() -> Result<()> {
             .enumerate()
             .map(|(pos, &f)| hand_finger(ctx.geom.hand[ids[pos]], f))
             .collect();
-        println!("\n{} -> {}  current {} cost={:.3}", e.ngram, keys.join(" "), cur_tokens.join("-"), cur_cost);
+        println!(
+            "\n{} -> {}  current {} cost={:.3}",
+            e.ngram,
+            keys.join(" "),
+            cur_tokens.join("-"),
+            cur_cost
+        );
         for alt in e.desired {
             match parse_desired(alt, &ids, &ctx.geom) {
                 Err(msg) => println!("  desired {:<14} INVALID: {msg}", alt.join("-")),

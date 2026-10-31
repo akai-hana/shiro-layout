@@ -25,6 +25,17 @@ DEFAULT_PRIORITY = [
     ["rolls", "alternation"],
     ["finger_balance"],
 ]
+DEFAULT_CONDITIONS = [
+    {"type": "scissors", "distance": "full", "reverse": True,
+     "fingers": ["LP", "LR", "LM", "RM", "RR", "RP"], "allow": False},
+    {"type": "scissors", "distance": "half",
+     "fingers": ["LP", "RP"], "allow": False},
+    {"type": "scissors", "distance": "half", "allow": True},
+    {"type": "spread", "max_extra": 2.0, "allow": False},
+    {"type": "separation", "min_width": 1.9,
+     "fingers": ["LP", "LI"], "allow": False},
+    {"type": "crossing", "deficit": 0.30, "allow": False},
+]
 DEFAULT_ALT_GATES = {
     ("X", "M"): ("only", {"C", "A"}, False),
     ("W", "M"): ("only", {"Q", "X", "S"}, False),
@@ -90,8 +101,7 @@ class Config:
 
     @property
     def conditions_are_default(self) -> bool:
-        default = _default_data()
-        return self.conditions == default.get("conditions")
+        return self.conditions == DEFAULT_CONDITIONS
 
     def priority_multipliers(self) -> dict[str, float]:
         if self.priority_list == DEFAULT_PRIORITY:
@@ -288,6 +298,20 @@ def _parse_conditions(path: Path, value: Any) -> list[dict]:
                 _fail(path, f"{where}.fingers", "expected a list of hand/finger tokens")
             for j, token in enumerate(fingers):
                 _finger_token(path, f"{where}.fingers[{j}]", token)
+            pairs = item.get("pairs") or []
+            if not isinstance(pairs, list):
+                _fail(path, f"{where}.pairs", "expected a list of two-finger pairs")
+            for j, pair in enumerate(pairs):
+                if not isinstance(pair, list) or len(pair) != 2:
+                    _fail(path, f"{where}.pairs[{j}]", "expected exactly two fingers")
+                for k, token in enumerate(pair):
+                    if not isinstance(token, str) or len(token) != 2 or token[0].upper() not in ("L", "R"):
+                        _fail(
+                            path,
+                            f"{where}.pairs[{j}][{k}]",
+                            "expected an explicit hand/finger token (LP/LR/LM/LI/RI/RM/RR/RP)",
+                        )
+                    _finger_token(path, f"{where}.pairs[{j}][{k}]", token)
         elif kind == "spread":
             _number(path, f"{where}.max_extra", item.get("max_extra", 2.0), minimum=0.0)
         elif kind == "separation":
@@ -346,10 +370,6 @@ def _parse_balance(path: Path, value: Any) -> tuple[dict[str, float], dict[str, 
     total = sum(per_finger.values())
     flat = {f: per_finger[f] / total for f in FINGERS}
     return per_finger, flat
-
-
-def _default_data() -> dict:
-    return yaml.safe_load(paths.CONFIG_FILE.read_text(encoding="utf-8"))
 
 
 @dataclass

@@ -86,6 +86,7 @@ alt_fingers:
   - {ngram: [X, A], fingers: [LM, LR], mode: allow}
   - {ngram: [X, A], fingers: [LI, LM], mode: allow}
   - {ngram: [X, A], fingers: [LM, LP], mode: allow}
+  - {ngram: [X, A], fingers: [LM, LR], mode: block}
   - {ngram: [X], fingers: [LM], mode: block}
   - {ngram: [Q, W], fingers: [LR, LM], mode: allow}
   - {ngram: [Q, W], fingers: [LP, LM], mode: allow}
@@ -107,6 +108,7 @@ alt_fingers:
   - {ngram: [S, W], fingers: [LR, LM], mode: allow}
   - {ngram: [S, W], fingers: [LP, LM], mode: allow}
   - {ngram: [S, W], fingers: [LM, LM], mode: allow}
+  - {ngram: [G, S, W], fingers: [LI, LM, LR], mode: allow}
   - {ngram: [W, S], fingers: [LM, LI], mode: allow}
   - {ngram: [W, S], fingers: [LM, LR], mode: allow}
   - {ngram: [W, S], fingers: [LM, LP], mode: allow}
@@ -176,13 +178,22 @@ alt_fingers:
 # `allow: false` forbids a matching scissor, `allow: true` permits it.
 # If `reverse` is omitted or false, the rule matches both regular and reverse
 # scissors; `reverse: true` matches only the reverse direction.
+# `fingers` matches when either endpoint is in the set.  Use `pairs` for an
+# exact two-finger match, e.g. `pairs: [[LR, LP], [RR, RP]]` matches only
+# ring/pinky pairs (in either direction).
+#
+# The calibrated model already implements its native geometry rules, so this
+# list is reserved for user-added overrides.  The shipped native defaults are
+# kept here for reference (they are not active unless copied into the list):
+#   - {type: scissors, distance: full, reverse: true, fingers: [LP, LR, LM, RM, RR, RP], allow: false}
+#   - {type: scissors, distance: half, fingers: [LP, RP], allow: false}
+#   - {type: scissors, distance: half, allow: true}
+#   - {type: spread, max_extra: 2.0, allow: false}
+#   - {type: separation, min_width: 1.9, fingers: [LP, LI], allow: false}
+#   - {type: crossing, deficit: 0.30, allow: false}
 conditions:
-  - {type: scissors, distance: full, reverse: true, fingers: [LP, LR, LM, RM, RR, RP], allow: false}
-  - {type: scissors, distance: half, fingers: [LP, RP], allow: false}
-  - {type: scissors, distance: half, allow: true}
-  - {type: spread, max_extra: 2.0, allow: false}
-  - {type: separation, min_width: 1.9, fingers: [LP, LI], allow: false}
-  - {type: crossing, deficit: 0.30, allow: false}
+  - {type: scissors, distance: half, reverse: true, pairs: [[LR, LP], [RR, RP]], allow: false}
+  - {type: scissors, distance: full, reverse: true, pairs: [[LR, LP], [RR, RP]], allow: false}
 
 # Tiered priority list.
 # High to low, most to least important in consideration.
