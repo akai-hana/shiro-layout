@@ -91,3 +91,37 @@ fn diversity_keeps_only_comparable_distinct_layouts() {
     assert!(!layouts.contains(&near.layout.as_str()));
     assert!(!layouts.contains(&outside.layout.as_str()));
 }
+
+#[test]
+fn cross_hand_alt_fingers_reach_the_scorer() {
+    let mut cfg = config::load(None).expect("config");
+    let h = geometry::key_index("H").unwrap();
+    let y = geometry::key_index("Y").unwrap();
+    let li = geometry::parse_finger8("LI").unwrap();
+    let lm = geometry::parse_finger8("LM").unwrap();
+    cfg.alt_fingers = vec![
+        config::AltRule {
+            keys: vec!['H'],
+            fingers: vec![li],
+            mode: config::AltMode::Allow,
+        },
+        config::AltRule {
+            keys: vec!['Y'],
+            fingers: vec![lm],
+            mode: config::AltMode::Allow,
+        },
+    ];
+
+    let geom = geometry::Geometry::new();
+    let model = config::build_model(&cfg).expect("model");
+    let gates = gates::Gates::from_config(&cfg);
+    let conds = conditions::Conditions::from_config(&cfg, &geom);
+    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
+
+    let big = tables.big_f[scorer::big_idx(h, y)] as usize;
+    assert_eq!(big / scorer::FINGER_SLOTS, li);
+    assert_eq!(big % scorer::FINGER_SLOTS, lm);
+
+    let tri = tables.tri_f[scorer::tri_idx(h, y, h)];
+    assert_eq!(tri, [li as u8, lm as u8, li as u8]);
+}
