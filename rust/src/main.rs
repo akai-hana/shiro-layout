@@ -69,7 +69,7 @@ struct ComputeArgs {
     primary_sacrifice: Option<f64>,
     #[arg(long, default_value_t = 28)]
     runs: usize,
-    #[arg(long, default_value_t = 100_000)]
+    #[arg(long, default_value_t = 200_000)]
     iters: usize,
     #[arg(long, default_value_t = 8)]
     ils: usize,
@@ -220,9 +220,8 @@ fn main() -> Result<()> {
                 render::render(&args.layout, None).map_err(anyhow::Error::msg)?
             } else {
                 let ctx = context::Context::load(args.config.as_deref())?;
-                let annotated =
-                    render::render(&args.layout, Some(&ctx.cfg.finger_tokens))
-                        .map_err(anyhow::Error::msg)?;
+                let annotated = render::render(&args.layout, Some(&ctx.cfg.finger_tokens))
+                    .map_err(anyhow::Error::msg)?;
                 if args.both {
                     format!(
                         "{}\n\n{}",
@@ -237,10 +236,7 @@ fn main() -> Result<()> {
             Ok(())
         }
         Command::Xkb(args) => {
-            let name = args
-                .name
-                .clone()
-                .unwrap_or(xkb::safe_name(&args.layout)?);
+            let name = args.name.clone().unwrap_or(xkb::safe_name(&args.layout)?);
             let path = args
                 .out
                 .clone()
