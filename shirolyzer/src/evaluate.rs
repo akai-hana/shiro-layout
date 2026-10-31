@@ -10,6 +10,8 @@ use crate::scorer::{tri_idx, tri_idx_u8, Tables, SPACE_ID};
 
 pub const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
 pub const FORDER: [char; 4] = ['P', 'R', 'M', 'I'];
+pub const N_LETTERS: usize = 26;
+pub const N_ITEMS: usize = NK;
 
 pub fn keymap(layout: &str) -> Vec<(char, usize)> {
     let chars: Vec<char> = layout.chars().collect();
@@ -57,70 +59,11 @@ pub fn score_layout(layout: &str, corpus: &Corpus, tables: &Tables) -> f64 {
     }
 }
 
-/// `slots_of`: letter -> slot index among the 26 non-dead keys.
-pub fn slots_of(layout: &str) -> Result<(Vec<usize>, Vec<(char, usize)>), String> {
-    let chars: Vec<char> = layout.chars().collect();
-    if chars.len() != 30 {
-        return Err(format!("layout must be 30 characters, got {}", chars.len()));
-    }
-    let mut dead = Vec::new();
-    let mut slots = Vec::new();
-    for (i, ch) in chars.iter().enumerate() {
-        if ch.is_ascii_lowercase() {
-            slots.push(i);
-        } else {
-            dead.push((*ch, i));
-        }
-    }
-    if slots.len() != 26 {
-        return Err(format!(
-            "layout must leave 26 letter slots, got {}",
-            slots.len()
-        ));
-    }
-    let mut seen = [false; 26];
-    let mut perm = vec![0usize; 26];
-    for (li, ch) in chars.iter().enumerate() {
-        if !ch.is_ascii_lowercase() {
-            continue;
-        }
-        let letter = (*ch as u8 - b'a') as usize;
-        if seen[letter] {
-            return Err(format!("layout repeats letter {ch:?}"));
-        }
-        seen[letter] = true;
-        let slot_idx = slots.iter().position(|&s| s == li).unwrap();
-        perm[letter] = slot_idx;
-    }
-    Ok((perm, dead))
-}
-
-pub fn layout_str(perm: &[usize], dead: &[(char, usize)]) -> String {
-    let mut arr = vec![' '; 30];
-    for (ch, pos) in dead {
-        arr[*pos] = *ch;
-    }
-    let mut letters = perm.iter().enumerate().collect::<Vec<_>>();
-    letters.sort_by_key(|(_, slot)| **slot);
-    for (li, slot_idx) in letters {
-        let pos = slot_positions(dead)[*slot_idx];
-        arr[pos] = LETTERS.as_bytes()[li] as char;
-    }
-    arr.into_iter().collect()
-}
-
-fn slot_positions(dead: &[(char, usize)]) -> Vec<usize> {
-    (0..30)
-        .filter(|i| !dead.iter().any(|(_, p)| p == i))
-        .collect()
-}
-
 pub struct Evaluator<'a> {
     pub corpus: &'a Corpus,
     pub tables: &'a Tables,
     pub model: &'a Model,
-    pub dead: Vec<(char, usize)>,
-    pub dead_count: usize,
+    pub punctuation: Vec<char>,
     pub slots: Vec<usize>,
     pub slot_key: Vec<u8>,
     pub default_finger: Vec<usize>,
@@ -141,28 +84,25 @@ impl<'a> Evaluator<'a> {
         corpus: &'a Corpus,
         tables: &'a Tables,
         model: &'a Model,
-        dead: &[(char, usize)],
+        punctuation: &[char],
         flat_share: [f64; 4],
         w_balance: f64,
         w_hand: f64,
     ) -> Result<Self, String> {
-        let mut slots: Vec<usize> = Vec::new();
-        for i in 0..30 {
-            if !dead.iter().any(|(_, p)| *p == i) {
-                slots.push(i);
-            }
+        if punctuation.len() != N_ITEMS - N_LETTERS {
+            return Err(format!(
+                "need {} punctuation characters, got {}",
+                N_ITEMS - N_LETTERS,
+                punctuation.len()
+            ));
         }
-        if slots.len() != 26 {
-            return Err(format!("need 26 letter slots, got {}", slots.len()));
-        }
+        let slots: Vec<usize> = (0..N_ITEMS).collect();
         let slot_key: Vec<u8> = slots.iter().map(|&slot| slot as u8).collect();
-        let default_finger: Vec<usize> = slots
-            .iter()
-            .map(|&i| finger_index(model.default_finger[i]).unwrap())
+        let default_finger: Vec<usize> = (0..N_ITEMS)
+            .map(|i| finger_index(model.default_finger[i]).unwrap())
             .collect();
-        let hand: Vec<usize> = slots
-            .iter()
-            .map(|&i| crate::geometry::hand_of(KEYS[i]))
+        let hand: Vec<usize> = (0..N_ITEMS)
+            .map(|i| crate::geometry::hand_of(KEYS[i]))
             .collect();
         let mut lfreq = vec![0.0; 26];
         for (i, ch) in LETTERS.chars().enumerate() {
@@ -176,7 +116,7 @@ impl<'a> Evaluator<'a> {
         }
         let mut tri_idx_slot = Vec::new();
         let mut tri_counts = Vec::new();
-        let mut inc: Vec<Vec<u32>> = vec![Vec::new(); 26];
+        let mut inc: Vec<Vec<u32>> = vec![Vec::new(); N_ITEMS];
         for (ids, &count) in corpus.tri_ids.iter().zip(corpus.tri_counts.iter()) {
             if ids.iter().all(|&c| c < 26) {
                 let k = tri_idx_slot.len() as u32;
@@ -192,8 +132,7 @@ impl<'a> Evaluator<'a> {
             corpus,
             tables,
             model,
-            dead: dead.to_vec(),
-            dead_count: dead.len(),
+            punctuation: punctuation.to_vec(),
             slots,
             slot_key,
             default_finger,
@@ -219,34 +158,43 @@ impl<'a> Evaluator<'a> {
         self.hand_restrictions[letter].is_none_or(|hand| self.hand[slot] == hand)
     }
 
+    #[inline]
+    fn item_hand_allowed(&self, item: usize, slot: usize) -> bool {
+        item >= N_LETTERS || self.slot_hand_allowed(item, slot)
+    }
+
     pub fn perm_allowed(&self, perm: &[usize]) -> bool {
-        (0..26).all(|letter| self.slot_hand_allowed(letter, perm[letter]))
+        (0..N_ITEMS).all(|item| self.item_hand_allowed(item, perm[item]))
     }
 
     pub fn swap_allowed(&self, perm: &[usize], a: usize, b: usize) -> bool {
-        self.slot_hand_allowed(a, perm[b]) && self.slot_hand_allowed(b, perm[a])
+        self.item_hand_allowed(a, perm[b]) && self.item_hand_allowed(b, perm[a])
     }
 
     pub fn cycle3_allowed(&self, perm: &[usize], a: usize, b: usize, c: usize) -> bool {
-        self.slot_hand_allowed(a, perm[b])
-            && self.slot_hand_allowed(b, perm[c])
-            && self.slot_hand_allowed(c, perm[a])
+        self.item_hand_allowed(a, perm[b])
+            && self.item_hand_allowed(b, perm[c])
+            && self.item_hand_allowed(c, perm[a])
     }
 
     pub fn constrained_shuffle(&self, rng: &mut impl Rng) -> Result<Vec<usize>, String> {
         let mut slots_by_hand: [Vec<usize>; 2] = [Vec::new(), Vec::new()];
-        for slot in 0..26 {
+        for slot in 0..N_ITEMS {
             slots_by_hand[self.hand[slot]].push(slot);
         }
         let mut letters_by_hand: [Vec<usize>; 2] = [Vec::new(), Vec::new()];
         let mut free = Vec::new();
-        for letter in 0..26 {
+        for letter in 0..N_LETTERS {
             match self.hand_restrictions[letter] {
                 Some(hand) => letters_by_hand[hand].push(letter),
                 None => free.push(letter),
             }
         }
-        let mut perm = vec![usize::MAX; 26];
+        for item in N_LETTERS..N_ITEMS {
+            free.push(item);
+        }
+        let mut perm = vec![usize::MAX; N_ITEMS];
+        let mut used = [false; N_ITEMS];
         for hand in 0..2 {
             if letters_by_hand[hand].len() > slots_by_hand[hand].len() {
                 return Err(format!(
@@ -258,20 +206,26 @@ impl<'a> Evaluator<'a> {
             }
             slots_by_hand[hand].shuffle(rng);
             for (i, &letter) in letters_by_hand[hand].iter().enumerate() {
-                perm[letter] = slots_by_hand[hand][i];
+                let slot = slots_by_hand[hand][i];
+                perm[letter] = slot;
+                used[slot] = true;
             }
         }
-        let mut remaining: Vec<usize> = (0..26).filter(|slot| !perm.contains(slot)).collect();
+        let mut remaining: Vec<usize> = (0..N_ITEMS).filter(|slot| !used[*slot]).collect();
         remaining.shuffle(rng);
-        for (letter, slot) in free.into_iter().zip(remaining) {
-            perm[letter] = slot;
+        free.shuffle(rng);
+        for (item, slot) in free.into_iter().zip(remaining) {
+            perm[item] = slot;
+        }
+        if perm.contains(&usize::MAX) {
+            return Err("could not assign every item to a slot".to_string());
         }
         Ok(perm)
     }
 
     pub fn perturb(&self, perm: &[usize], rng: &mut impl Rng, k: usize) -> Vec<usize> {
         let mut cand = perm.to_vec();
-        let mut idx: Vec<usize> = (0..26).collect();
+        let mut idx: Vec<usize> = (0..N_ITEMS).collect();
         idx.shuffle(rng);
         let moved = &idx[..(2 * k).min(idx.len())];
         let mut a = 0;
@@ -286,8 +240,8 @@ impl<'a> Evaluator<'a> {
         cand
     }
 
-    pub fn key_ids(&self, perm: &[usize]) -> [u8; 26] {
-        let mut kid = [0u8; 26];
+    pub fn key_ids(&self, perm: &[usize]) -> [u8; N_ITEMS] {
+        let mut kid = [0u8; N_ITEMS];
         for (li, &slot) in perm.iter().enumerate() {
             kid[li] = self.slot_key[slot];
         }
@@ -308,10 +262,11 @@ impl<'a> Evaluator<'a> {
         weighted
     }
 
-    pub fn penalty(&self, _perm: &[usize]) -> f64 {
+    pub fn penalty(&self, perm: &[usize]) -> f64 {
         let mut usage = [[0.0f64; 4]; 2];
-        for li in 0..26 {
-            usage[self.hand[li]][self.default_finger[li]] += self.lfreq[li];
+        for li in 0..N_LETTERS {
+            let slot = perm[li];
+            usage[self.hand[slot]][self.default_finger[slot]] += self.lfreq[li];
         }
         let mut pen = 0.0;
         for h in 0..2 {
@@ -336,51 +291,57 @@ impl<'a> Evaluator<'a> {
     }
 
     pub fn layout_str(&self, perm: &[usize]) -> String {
-        let mut arr = vec![' '; 30];
-        for (ch, pos) in &self.dead {
-            arr[*pos] = *ch;
-        }
-        for (li, slot_idx) in perm.iter().enumerate() {
-            let pos = self.slots[*slot_idx];
+        let mut arr = vec![' '; N_ITEMS];
+        for (li, &pos) in perm.iter().take(N_LETTERS).enumerate() {
             arr[pos] = LETTERS.as_bytes()[li] as char;
+        }
+        for (pi, &ch) in self.punctuation.iter().enumerate() {
+            arr[perm[N_LETTERS + pi]] = ch;
         }
         arr.into_iter().collect()
     }
 }
 
-/// Non-letter positions of a layout, preserving their characters.
-pub fn dead_of(layout: &str) -> Vec<(char, usize)> {
-    layout
-        .chars()
-        .enumerate()
-        .filter(|(_, ch)| !ch.is_ascii_lowercase())
-        .map(|(i, ch)| (ch, i))
-        .collect()
-}
-
-/// Letter-to-slot permutation in layout order (Python `search.slots_of`).
-pub fn perm_of(layout: &str, _dead: &[(char, usize)]) -> Result<Vec<usize>, String> {
+/// Item-to-slot permutation in layout order.  Items 0..26 are letters a-z and
+/// items 26..30 are non-letter positions, assigned in order of appearance.
+/// The actual non-letter characters do not affect scoring; `layout_str` emits
+/// the configured punctuation instead.
+pub fn perm_of(layout: &str, punctuation: &[char]) -> Result<Vec<usize>, String> {
     let chars: Vec<char> = layout.chars().collect();
-    if chars.len() != 30 {
-        return Err(format!("layout must be 30 characters, got {}", chars.len()));
-    }
-    let letters: Vec<char> = chars
-        .into_iter()
-        .filter(|c| c.is_ascii_lowercase())
-        .collect();
-    if letters.len() != 26 {
+    if chars.len() != N_ITEMS {
         return Err(format!(
-            "layout must contain 26 letters, got {}",
-            letters.len()
+            "layout must be {} characters, got {}",
+            N_ITEMS,
+            chars.len()
         ));
     }
-    let distinct: std::collections::HashSet<char> = letters.iter().copied().collect();
-    if distinct.len() != 26 {
-        return Err("layout does not contain 26 distinct letters".to_string());
+    let mut perm = vec![usize::MAX; N_ITEMS];
+    let mut seen_letters = [false; N_LETTERS];
+    let mut non_letters = Vec::new();
+    for (slot, ch) in chars.into_iter().enumerate() {
+        if ch.is_ascii_lowercase() {
+            let letter = (ch as u8 - b'a') as usize;
+            if letter >= N_LETTERS || seen_letters[letter] {
+                return Err(format!("layout repeats or has an invalid letter {ch:?}"));
+            }
+            seen_letters[letter] = true;
+            perm[letter] = slot;
+        } else {
+            non_letters.push(slot);
+        }
     }
-    let mut perm = vec![0usize; 26];
-    for (slot, ch) in letters.into_iter().enumerate() {
-        perm[(ch as u8 - b'a') as usize] = slot;
+    if seen_letters.iter().any(|seen| !seen) {
+        return Err("layout must contain all 26 letters".to_string());
+    }
+    if non_letters.len() != punctuation.len() {
+        return Err(format!(
+            "layout must contain {} non-letter characters, got {}",
+            punctuation.len(),
+            non_letters.len()
+        ));
+    }
+    for (pi, slot) in non_letters.into_iter().enumerate() {
+        perm[N_LETTERS + pi] = slot;
     }
     Ok(perm)
 }

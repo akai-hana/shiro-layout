@@ -3,9 +3,11 @@ use std::path::PathBuf;
 use std::time::Instant;
 
 use rand::SeedableRng;
-use shirolyzer::evaluate::{dead_of, flat_share_from_config, perm_of, Evaluator};
+use shirolyzer::evaluate::{flat_share_from_config, perm_of, Evaluator};
 use shirolyzer::search::{anneal, delta_swap_cost, quench, quench_generic, DeltaTables};
 use shirolyzer::{conditions, config, corpus, gates, geometry, scorer};
+
+const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
 
 fn main() {
     let cfg = config::load(None).expect("config");
@@ -14,7 +16,7 @@ fn main() {
     let gates = gates::Gates::from_config(&cfg);
     let conds = conditions::Conditions::from_config(&cfg, &geom);
     let start = Instant::now();
-    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds);
+    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
     println!(
         "tables build: {:.3} ms",
         start.elapsed().as_secs_f64() * 1e3
@@ -25,14 +27,13 @@ fn main() {
         .map(|e| cfg.corpus_path(e))
         .collect();
     let corpus = corpus::load_many(&paths).expect("corpus");
-    let dead = dead_of(&cfg.current_layout);
-    let perm = perm_of(&cfg.current_layout, &dead).expect("perm");
+    let perm = perm_of(SHIRO, &cfg.punctuation).expect("perm");
     let (w_balance, w_hand) = cfg.balance_weights();
     let ev = Evaluator::new(
         &corpus,
         &tables,
         &model,
-        &dead,
+        &cfg.punctuation,
         flat_share_from_config(&cfg),
         w_balance,
         w_hand,
@@ -60,7 +61,7 @@ fn main() {
     let start = Instant::now();
     black_box(delta_swap_cost(&ev, &perm, reps));
     let elapsed = start.elapsed().as_secs_f64();
-    let ops = reps * 325;
+    let ops = reps * 30 * 29 / 2;
     println!(
         "delta swap: {:.0} ns/op, {:.0} ops/s",
         elapsed / ops as f64 * 1e9,

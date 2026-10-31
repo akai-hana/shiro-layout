@@ -1,0 +1,83 @@
+# ANSI physical geometry.
+#
+# Rows are QWERTY physical key positions, not characters.  The row strings must
+# contain the same 30 key labels in the same order as the built-in ANSI table.
+rows:
+  - QWERTYUIOP
+  - ASDFGHJKL;
+  - ZXCVBNM,./
+row_offsets: [0.0, 0.25, 0.75]
+hand_split: 5
+
+# Resting key for each finger.  The left and right hands are symmetric in the
+# comfort model; these are the physical keys where each finger starts.
+rest:
+  left: {P: A, R: W, M: E, I: F}
+  right: {P: ";", R: O, M: I, I: J}
+
+# Approved reach polygons in finger-relative coordinates.  Each list is the
+# point set whose convex hull defines where that finger may reach.
+approved:
+  P:
+    - [-0.5, 1.0]
+    - [-0.25, -1.0]
+    - [0.0, 0.0]
+    - [0.5, 1.0]
+  R:
+    - [-1.25, 1.0]
+    - [-1.0, 0.0]
+    - [-0.75, 2.0]
+    - [-0.25, 1.0]
+    - [0.0, 0.0]
+    - [0.25, 1.0]
+    - [0.25, 2.0]
+    - [0.75, 1.0]
+    - [0.75, 2.0]
+    - [1.0, 0.0]
+    - [2.0, 0.0]
+  M:
+    - [-2.0, 0.0]
+    - [-1.75, 2.0]
+    - [-1.25, 1.0]
+    - [-1.0, 0.0]
+    - [-0.75, 1.0]
+    - [-0.75, 2.0]
+    - [-0.25, 1.0]
+    - [-0.25, 2.0]
+    - [0.0, 0.0]
+    - [0.25, 1.0]
+    - [0.25, 2.0]
+    - [0.75, 1.0]
+    - [0.75, 2.0]
+    - [1.0, 0.0]
+    - [1.25, 1.0]
+    - [1.75, 2.0]
+    - [2.0, 0.0]
+    - [2.25, 1.0]
+    - [2.75, 2.0]
+  I:
+    - [-2.5, 1.0]
+    - [-2.0, 0.0]
+    - [-1.5, 1.0]
+    - [-1.0, 0.0]
+    - [-0.5, 1.0]
+    - [-0.25, -1.0]
+    - [0.0, 0.0]
+    - [0.25, -1.0]
+    - [0.5, 1.0]
+    - [0.75, -1.0]
+    - [1.0, 0.0]
+    - [1.25, -1.0]
+    - [1.5, 1.0]
+
+# Keys that are explicitly listed for each hand/finger pair.  A reachable key
+# that is not listed is reported as an "unlisted" reach by the audit.
+listed:
+  LP: QAZ
+  RP: ";./"
+  LR: QWERSXA
+  RR: UIOPKL;,.
+  LM: QWERTSDFGXCVB
+  RM: YUIOJKLM,.
+  LI: WXRTSDFGCVB
+  RI: YUHJKLNM,.

@@ -201,10 +201,16 @@ def _parse_fingermap(path: Path, value: Any) -> tuple[dict[str, str], list[str]]
         _fail(path, "fingermap", f"expected {len(KEYS)} tokens, got {len(tokens)}")
     mapping, order = {}, []
     for i, token in enumerate(tokens):
-        key, finger = _token(path, f"fingermap[{i}]", token)
-        if key != KEYS[i]:
-            _fail(path, f"fingermap[{i}]", f"expected key {KEYS[i]!r} at this position, got {key!r}")
-        mapping[key] = finger
+        text = token.upper()
+        if len(text) != 2 or text[0] not in "LR" or text[1] not in "PRMI":
+            _fail(path, f"fingermap[{i}]",
+                  f"expected a hand/finger token (LP/LR/LM/LI/RI/RM/RR/RP), got {token!r}")
+        hand, finger = text[0], text[1]
+        expected = "L" if KEYS[i] in "QWERTASDFGZXCVB" else "R"
+        if hand != expected:
+            _fail(path, f"fingermap[{i}]",
+                  f"finger {token!r} does not match the {expected} hand of key {KEYS[i]!r}")
+        mapping[KEYS[i]] = finger
         order.append(finger)
     return mapping, order
 

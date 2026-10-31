@@ -205,13 +205,17 @@ pub struct ModelTables {
 pub struct Model {
     pub params: Vec<f64>,
     index: HashMap<&'static str, usize>,
-    pub disallow_full_mr: bool,
+    pub disallow_full_reverse: [[bool; NF]; NF],
     pub default_finger: [char; NK],
     pub scales: Scales,
 }
 
 impl Model {
-    pub fn new(parameters: Vec<f64>, disallow_full_mr: bool, default_finger: [char; NK]) -> Self {
+    pub fn new(
+        parameters: Vec<f64>,
+        disallow_full_reverse: [[bool; NF]; NF],
+        default_finger: [char; NK],
+    ) -> Self {
         let mut index = HashMap::new();
         for (i, name) in PARAM_NAMES.iter().enumerate() {
             index.insert(*name, i);
@@ -219,7 +223,7 @@ impl Model {
         Self {
             params: parameters,
             index,
-            disallow_full_mr,
+            disallow_full_reverse,
             default_finger,
             scales: Scales::default(),
         }
@@ -227,7 +231,7 @@ impl Model {
 
     pub fn from_file(
         path: &Path,
-        disallow_full_mr: bool,
+        disallow_full_reverse: [[bool; NF]; NF],
         default_finger: [char; NK],
     ) -> Result<Self> {
         let data: Value = serde_json::from_str(&crate::paths::read_to_string(path)?)?;
@@ -242,7 +246,7 @@ impl Model {
                 })?;
             }
         }
-        Ok(Self::new(values, disallow_full_mr, default_finger))
+        Ok(Self::new(values, disallow_full_reverse, default_finger))
     }
 
     #[inline]
@@ -386,7 +390,7 @@ impl Model {
                             beta * g.abs().powf(p)
                         };
                         let thr = if lo == 0 { G_IMP_RP } else { G_IMP };
-                        let step = if self.disallow_full_mr || lo == 0 {
+                        let step = if self.disallow_full_reverse[lo][hi] || lo == 0 {
                             B_IMP * sig((g - thr) / TAU)
                         } else {
                             5.85 * sig((g - thr) / TAU)

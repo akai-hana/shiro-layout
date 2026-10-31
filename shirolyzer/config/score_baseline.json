@@ -1,46 +1,46 @@
 {
-  "model": "pattern_parameters_A_all.json",
   "audit": {
     "config": "A:all",
     "passed": 166,
     "total": 166
   },
+  "model": "pattern_parameters_A_all.json",
   "references": {
-    "qwerty": {
-      "bigram": 2.4783997677093774,
-      "trigram": 4.2669630602387265
+    "canary": {
+      "bigram": 2.2812028968986673,
+      "trigram": 3.9685741509242867
     },
     "colemak": {
-      "bigram": 2.3147981691732897,
-      "trigram": 3.820607408434575
+      "bigram": 2.349189735469373,
+      "trigram": 4.1297110311477185
     },
     "colemak-dh": {
-      "bigram": 2.3054889724256804,
-      "trigram": 3.812332615778344
-    },
-    "canary": {
-      "bigram": 2.2491412114462634,
-      "trigram": 3.66859916313943
-    },
-    "sturdy": {
-      "bigram": 2.2678691913446505,
-      "trigram": 3.63996349703581
+      "bigram": 2.338533220335121,
+      "trigram": 4.127730720497332
     },
     "gallium": {
-      "bigram": 2.2274494815027075,
-      "trigram": 3.5885065846421957
+      "bigram": 2.2529240775077097,
+      "trigram": 3.856743141473211
+    },
+    "qwerty": {
+      "bigram": 2.589185868411661,
+      "trigram": 4.891226781512502
     },
     "semimak": {
-      "bigram": 2.218891043859751,
-      "trigram": 3.622449779272503
+      "bigram": 2.2434541254655707,
+      "trigram": 3.9121293656080436
     },
     "shiro": {
-      "bigram": 2.1412453707007715,
-      "trigram": 3.3940533330472595
+      "bigram": 2.1581506330493303,
+      "trigram": 3.591956515141598
+    },
+    "sturdy": {
+      "bigram": 2.298309254725721,
+      "trigram": 3.8895321120888493
     },
     "t5-diversity-2": {
-      "bigram": 2.155817864174392,
-      "trigram": 3.3956351604837973
+      "bigram": 2.174024522550337,
+      "trigram": 3.583037732011024
     }
   }
 }

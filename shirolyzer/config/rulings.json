@@ -10,7 +10,6 @@
    ],
    "MI"
   ],
-  "src": "v2.6 #5-6: O->L: MI is the PREFERRED default; MR only as SFB-avoiding fallback; reversals use the opposite fingers",
   "family": "OL",
   "note": "",
   "soft": false
@@ -26,7 +25,6 @@
    ],
    "IM"
   ],
-  "src": "v2.6 #5-6: O->L: MI is the PREFERRED default; MR only as SFB-avoiding fallback; reversals use the opposite fingers",
   "family": "OL",
   "note": "",
   "soft": false
@@ -42,7 +40,6 @@
    ],
    "IM"
   ],
-  "src": "v2.5 #2: X->Q = index-middle",
   "family": "XQ",
   "note": "",
   "soft": false
@@ -58,7 +55,6 @@
    ],
    "MI"
   ],
-  "src": "v2.5 #2: X->Q = index-middle",
   "family": "XQ",
   "note": "",
   "soft": false
@@ -74,7 +70,6 @@
    ],
    "IM"
   ],
-  "src": "v2.2 #1: S->W = I->M",
   "family": "SW",
   "note": "",
   "soft": false
@@ -90,7 +85,6 @@
    ],
    "MI"
   ],
-  "src": "v2.2 #1: S->W = I->M",
   "family": "SW",
   "note": "",
   "soft": false
@@ -106,7 +100,6 @@
    ],
    "IM"
   ],
-  "src": "v2.2 #1: X->S = I->M",
   "family": "XS",
   "note": "",
   "soft": false
@@ -122,7 +115,6 @@
    ],
    "MI"
   ],
-  "src": "v2.2 #1: X->S = I->M",
   "family": "XS",
   "note": "",
   "soft": false
@@ -138,7 +130,6 @@
    ],
    "IM"
   ],
-  "src": "v2.3 #1 / v2.7 #1: X->W = index on X, middle on W",
   "family": "XW",
   "note": "",
   "soft": false
@@ -154,7 +145,6 @@
    ],
    "MI"
   ],
-  "src": "v2.3 #1 / v2.7 #1: X->W = index on X, middle on W",
   "family": "XW",
   "note": "",
   "soft": false
@@ -170,7 +160,6 @@
    ],
    "MI"
   ],
-  "src": "v2.2 #1 / v2.3 #3: O->, = M->I (ring-on-O + middle-on-comma is 'ridiculous')",
   "family": "O,",
   "note": "",
   "soft": false
@@ -186,7 +175,6 @@
    ],
    "IM"
   ],
-  "src": "v2.2 #1 / v2.3 #3: O->, = M->I (ring-on-O + middle-on-comma is 'ridiculous')",
   "family": "O,",
   "note": "",
   "soft": false
@@ -202,7 +190,6 @@
    ],
    "MI"
   ],
-  "src": "v2.2 #1: L->, = M->I",
   "family": "L,",
   "note": "",
   "soft": false
@@ -218,7 +205,6 @@
    ],
    "IM"
   ],
-  "src": "v2.2 #1: L->, = M->I",
   "family": "L,",
   "note": "",
   "soft": false
@@ -234,7 +220,6 @@
    ],
    "IM"
   ],
-  "src": "v2.2 #2: Q<->S isolated prefers index+middle",
   "family": "SQ",
   "note": "",
   "soft": false
@@ -250,7 +235,6 @@
    ],
    "MI"
   ],
-  "src": "v2.2 #2: Q<->S isolated prefers index+middle",
   "family": "SQ",
   "note": "",
   "soft": false
@@ -266,7 +250,6 @@
    ],
    "MR"
   ],
-  "src": "v2.3 #4: W->Q middle->ring; pinky 'really bad'",
   "family": "WQ",
   "note": "",
   "soft": false
@@ -282,7 +265,6 @@
    ],
    "RM"
   ],
-  "src": "v2.3 #4: W->Q middle->ring; pinky 'really bad'",
   "family": "WQ",
   "note": "",
   "soft": false
@@ -298,7 +280,6 @@
    ],
    "RP"
   ],
-  "src": "v2.3 #2: O<->. ring-pinky 'somewhat works'; middle-index is wrong there",
   "family": "O.",
   "note": "",
   "soft": false
@@ -314,7 +295,6 @@
    ],
    "PR"
   ],
-  "src": "v2.3 #2: O<->. ring-pinky 'somewhat works'; middle-index is wrong there",
   "family": "O.",
   "note": "",
   "soft": false
@@ -330,7 +310,6 @@
    ],
    "IR"
   ],
-  "src": "v2.6 hard check: F->X ring-index (wide X-F gap is no smooth M roll)",
   "family": "FX",
   "note": "",
   "soft": false
@@ -346,7 +325,6 @@
    ],
    "RI"
   ],
-  "src": "v2.6 hard check: F->X ring-index (wide X-F gap is no smooth M roll)",
   "family": "FX",
   "note": "",
   "soft": false
@@ -362,7 +340,6 @@
    ],
    "MI"
   ],
-  "src": "v2.6 #1: U->M = MI ('middle extends for the U, index presses the M')",
   "family": "UM",
   "note": "",
   "soft": false
@@ -378,7 +355,6 @@
    ],
    "IM"
   ],
-  "src": "v2.6 #1: U->M = MI ('middle extends for the U, index presses the M')",
   "family": "UM",
   "note": "",
   "soft": false
@@ -394,7 +370,6 @@
    ],
    "MI"
   ],
-  "src": "v2.6 #1: R->V = MI",
   "family": "RV",
   "note": "",
   "soft": false
@@ -410,7 +385,6 @@
    ],
    "IM"
   ],
-  "src": "v2.6 #1: R->V = MI",
   "family": "RV",
   "note": "",
   "soft": false
@@ -426,7 +400,6 @@
    ],
    "MI"
   ],
-  "src": "v2.6 #1: I->M = MI (comfortable); v2.7 #1 easiest",
   "family": "IM",
   "note": "",
   "soft": false
@@ -442,7 +415,6 @@
    ],
    "IM"
   ],
-  "src": "v2.6 #1: I->M = MI (comfortable); v2.7 #1 easiest",
   "family": "IM",
   "note": "",
   "soft": false
@@ -458,7 +430,6 @@
    ],
    "RP"
   ],
-  "src": "v2.6 #4: ring<->pinky",
   "family": "WA",
   "note": "",
   "soft": false
@@ -474,7 +445,6 @@
    ],
    "PR"
   ],
-  "src": "v2.6 #4: ring<->pinky",
   "family": "WA",
   "note": "",
   "soft": false
@@ -491,7 +461,6 @@
    ],
    "MII"
   ],
-  "src": "v2.5 #4: wxf = MII (SFB X->F accepted over RMI full scissor)",
   "family": "FXW",
   "note": "",
   "soft": false
@@ -508,7 +477,6 @@
    ],
    "PMI"
   ],
-  "src": "v2.2 #4: natural QFB = pinky-middle-index (hand tilt)",
   "family": "QFB",
   "note": "interpretive: user called it 'unergonomic overall'",
   "soft": true
@@ -536,7 +504,6 @@
     "I"
    ]
   ],
-  "src": "v2.7 #1: required order I-M < X-W < U-M",
   "family": "IMXWUM",
   "note": "",
   "soft": false
@@ -558,7 +525,6 @@
     "R"
    ]
   ],
-  "src": "v2.6 #4: ring->pinky 'significantly' better than pinky->ring",
   "family": "RPDIR",
   "note": "margin 0.15 enforced",
   "soft": false
@@ -580,7 +546,6 @@
     "R"
    ]
   ],
-  "src": "v2.6 #3: ring->middle slightly better than middle->ring",
   "family": "RMDIR",
   "note": "",
   "soft": false
@@ -608,7 +573,6 @@
     "I"
    ]
   ],
-  "src": "comfort.py leap comment (user Q4): 'he' (pinky->index, gap 3) uncomfortable; 'st' (ring->index, gap 2) mild; adjacent roll best",
   "family": "LEAP",
   "note": "",
   "soft": false
@@ -630,7 +594,6 @@
     "M"
    ]
   ],
-  "src": "v2.6 #2: M<->I rolls equally comfortable in both directions",
   "family": "MISYM",
   "note": "",
   "soft": false
@@ -760,7 +723,6 @@
     ]
    ]
   ],
-  "src": "comfort.py _MI_LADDER: the user's dictated ordinal ladder for left-hand M/I rolls",
   "family": "LADDER",
   "note": "",
   "soft": false
@@ -774,7 +736,6 @@
    ",",
    "R"
   ],
-  "src": "v2.2 #1: L->, with middle in ring's column / ring in middle's: impossible and absurd",
   "family": "INF0",
   "note": "",
   "soft": false
@@ -788,7 +749,6 @@
    ",",
    "R"
   ],
-  "src": "v2.2 #1: O->, swapped columns: impossible",
   "family": "INF1",
   "note": "",
   "soft": false
@@ -802,7 +762,6 @@
    "W",
    "M"
   ],
-  "src": "v2.2 #1: S->W stack against hand angle AND stagger: impossible",
   "family": "INF2",
   "note": "",
   "soft": false
@@ -816,7 +775,6 @@
    "W",
    "R"
   ],
-  "src": "v2.5 #1: half-span ring-up/middle-down stack stays impossible",
   "family": "INF3",
   "note": "",
   "soft": false
@@ -830,7 +788,6 @@
    "S",
    "M"
   ],
-  "src": "v2.2 #1: X->S stack: impossible",
   "family": "INF4",
   "note": "",
   "soft": false
@@ -844,7 +801,6 @@
    "S",
    "R"
   ],
-  "src": "v2.5 #1: half-span ring-up/middle-down stack stays impossible",
   "family": "INF5",
   "note": "",
   "soft": false
@@ -858,7 +814,6 @@
    "F",
    "M"
   ],
-  "src": "v2.3 (wxf): index on X + middle on F crosses 1.5 keys: impossible",
   "family": "INF6",
   "note": "",
   "soft": false
@@ -872,7 +827,6 @@
    "Q",
    "P"
   ],
-  "src": "v2.7 #4-5: ring-pinky reverse full scissor: impossible",
   "family": "INF7",
   "note": "",
   "soft": false
@@ -886,7 +840,6 @@
    "X",
    "R"
   ],
-  "src": "v2.7 #4-5: ring-pinky reverse full scissor: impossible",
   "family": "INF8",
   "note": "",
   "soft": false
@@ -900,7 +853,6 @@
    "W",
    "R"
   ],
-  "src": "v2.3 #1: index+ring same column squeezes middle: impossible",
   "family": "INF9",
   "note": "",
   "soft": false
@@ -914,7 +866,6 @@
    ",",
    "M"
   ],
-  "src": "user, this session: 'ring on O + middle on comma' = full reverse M/R scissor: disallow",
   "family": "INFNEW",
   "note": "only enforced in the 'disallow full M/R' variant",
   "soft": false
@@ -928,7 +879,6 @@
    "L",
    "R"
   ],
-  "src": "v2.5 #1: O->L stack is viable when stagger-aligned and natural direction",
   "family": "FEAS0",
   "note": "",
   "soft": false
@@ -942,7 +892,6 @@
    "M",
    "I"
   ],
-  "src": "v2.6 #1: U->M MI (crossed .75 but diagonal) is comfortable",
   "family": "FEAS1",
   "note": "",
   "soft": false
@@ -956,7 +905,6 @@
    "K",
    "I"
   ],
-  "src": "comfort.py CROSS_DEADZONE comment (user Q3): nc (right, M top -> I home, crossed .25) completely comfortable",
   "family": "FEAS2",
   "note": "",
   "soft": false
@@ -970,7 +918,6 @@
    "A",
    "P"
   ],
-  "src": "v2.6: ring-pinky half roll fine",
   "family": "FEAS3",
   "note": "",
   "soft": false
@@ -984,7 +931,6 @@
    ".",
    "P"
   ],
-  "src": "v2.3 #2: ring->pinky across 1 row 'somewhat works'",
   "family": "FEAS4",
   "note": "",
   "soft": false
@@ -996,7 +942,6 @@
    "Q",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_Q",
   "note": "",
   "soft": true
@@ -1008,7 +953,6 @@
    "W",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_W",
   "note": "",
   "soft": true
@@ -1020,7 +964,6 @@
    "E",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_E",
   "note": "",
   "soft": true
@@ -1032,7 +975,6 @@
    "R",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_R",
   "note": "",
   "soft": true
@@ -1044,7 +986,6 @@
    "T",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_T",
   "note": "",
   "soft": true
@@ -1056,7 +997,6 @@
    "Y",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_Y",
   "note": "",
   "soft": true
@@ -1068,7 +1008,6 @@
    "U",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_U",
   "note": "",
   "soft": true
@@ -1080,7 +1019,6 @@
    "I",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_I",
   "note": "",
   "soft": true
@@ -1092,7 +1030,6 @@
    "O",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_O",
   "note": "",
   "soft": true
@@ -1104,7 +1041,6 @@
    "P",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_P",
   "note": "",
   "soft": true
@@ -1116,7 +1052,6 @@
    "A",
    "P"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_A",
   "note": "",
   "soft": true
@@ -1128,7 +1063,6 @@
    "S",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_S",
   "note": "",
   "soft": true
@@ -1140,7 +1074,6 @@
    "D",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_D",
   "note": "",
   "soft": true
@@ -1152,7 +1085,6 @@
    "F",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_F",
   "note": "",
   "soft": true
@@ -1164,7 +1096,6 @@
    "G",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_G",
   "note": "",
   "soft": true
@@ -1176,7 +1107,6 @@
    "H",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_H",
   "note": "",
   "soft": true
@@ -1188,7 +1118,6 @@
    "J",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_J",
   "note": "",
   "soft": true
@@ -1200,7 +1129,6 @@
    "K",
    "M"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_K",
   "note": "",
   "soft": true
@@ -1212,7 +1140,6 @@
    "L",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_L",
   "note": "",
   "soft": true
@@ -1224,7 +1151,6 @@
    ";",
    "P"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_;",
   "note": "",
   "soft": true
@@ -1236,7 +1162,6 @@
    "Z",
    "P"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_Z",
   "note": "",
   "soft": true
@@ -1248,7 +1173,6 @@
    "X",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_X",
   "note": "",
   "soft": true
@@ -1260,7 +1184,6 @@
    "C",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_C",
   "note": "",
   "soft": true
@@ -1272,7 +1195,6 @@
    "V",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_V",
   "note": "",
   "soft": true
@@ -1284,7 +1206,6 @@
    "B",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_B",
   "note": "",
   "soft": true
@@ -1296,7 +1217,6 @@
    "N",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_N",
   "note": "",
   "soft": true
@@ -1308,7 +1228,6 @@
    "M",
    "I"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_M",
   "note": "",
   "soft": true
@@ -1320,7 +1239,6 @@
    ",",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_,",
   "note": "",
   "soft": true
@@ -1332,7 +1250,6 @@
    ".",
    "R"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_.",
   "note": "",
   "soft": true
@@ -1344,7 +1261,6 @@
    "/",
    "P"
   ],
-  "src": "README A.1-A.10 default finger (user corrections: Q ring, period ring)",
   "family": "DEFAULT_/",
   "note": "",
   "soft": true
@@ -1361,7 +1277,6 @@
    ],
    "RMI"
   ],
-  "src": "round8 audit: K-J-M = ring/middle/index ('hey'; K ring avoids the K-M half-SFB)",
   "family": "R8_KJM",
   "note": "",
   "soft": false
@@ -1378,7 +1293,6 @@
    ],
    "IMI"
   ],
-  "src": "round8 audit: F-J-M = index/middle/index ('ney')",
   "family": "R8_FJM",
   "note": "",
   "soft": false
@@ -1405,7 +1319,6 @@
    "forbid": [],
    "margin": 0.05
   },
-  "src": "round8: M-J-I first two strokes index (ruled trigram beats the direct M-J bigram)",
   "family": "r8_MJI",
   "note": "",
   "soft": false
@@ -1428,7 +1341,6 @@
    ],
    "margin": 0.05
   },
-  "src": "round8: H-T-J ('exp') blocks J middle",
   "family": "r8_HTJ",
   "note": "",
   "soft": false
@@ -1451,7 +1363,6 @@
    ],
    "margin": 0.05
   },
-  "src": "round8: I-U-J ('age') blocks J middle",
   "family": "r8_IUJ",
   "note": "",
   "soft": false
@@ -1478,7 +1389,6 @@
    "forbid": [],
    "margin": 0.05
   },
-  "src": "round8: V-G-J ('ble') forces V and G index",
   "family": "r8_VGJ",
   "note": "",
   "soft": false
@@ -1505,7 +1415,6 @@
    "forbid": [],
    "margin": 0.05
   },
-  "src": "round8: C-O-R ('vid') endpoints index",
   "family": "r8_COR",
   "note": "",
   "soft": false
@@ -1532,7 +1441,6 @@
    "forbid": [],
    "margin": 0.05
   },
-  "src": "round8: R-O-C ('div') endpoints index",
   "family": "r8_ROC",
   "note": "",
   "soft": false
@@ -1554,7 +1462,6 @@
    "forbid": [],
    "margin": -0.2
   },
-  "src": "round8: L->O keeps L on index within 0.2 of the best",
   "family": "r8_LO",
   "note": "",
   "soft": false
@@ -1572,7 +1479,6 @@
    3.0,
    7.0
   ],
-  "src": "round8 W_CR_REVERSE=3.6: index/middle FULL-SPAN reverse scissor is 'barely possible, very uncomfortable'",
   "family": "R8_CRREV",
   "note": "",
   "soft": false
@@ -1590,7 +1496,6 @@
    3.0,
    7.0
   ],
-  "src": "round8 W_CR_REVERSE=3.6 (other direction)",
   "family": "R8_CRREV",
   "note": "",
   "soft": false
@@ -1606,7 +1511,6 @@
    ],
    "RM"
   ],
-  "src": "user 2026-10-27: no strain felt on W->D with ring on W / middle on D (th)",
   "family": "R9_WD",
   "note": "",
   "soft": false
@@ -1622,7 +1526,6 @@
    ],
    "MR"
   ],
-  "src": "user 2026-10-27: middle->ring (D->W) is the more comfortable direction on W-D",
   "family": "R9_WD",
   "note": "",
   "soft": false
@@ -1644,7 +1547,6 @@
     "M"
    ]
   ],
-  "src": "user 2026-10-27: middle->ring on W-D is more comfortable than ring->middle",
   "family": "R9_WD",
   "note": "",
   "soft": false
@@ -1658,7 +1560,6 @@
    "A",
    "P"
   ],
-  "src": "user 2026-10-27: ring on X + pinky on A is practically impossible",
   "family": "R9_XA",
   "note": "",
   "soft": false
@@ -1672,7 +1573,6 @@
    "X",
    "R"
   ],
-  "src": "user 2026-10-27: ring on X + pinky on A is practically impossible",
   "family": "R9_XA",
   "note": "",
   "soft": false
@@ -1688,7 +1588,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
   "family": "R9_U",
   "note": "",
   "soft": false
@@ -1704,7 +1603,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
   "family": "R9_U",
   "note": "",
   "soft": false
@@ -1720,7 +1618,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
   "family": "R9_U",
   "note": "",
   "soft": false
@@ -1736,7 +1633,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-27: UJ/UH: middle on U, index on the closer key (no index on U)",
   "family": "R9_U",
   "note": "",
   "soft": false
@@ -1752,7 +1648,6 @@
    ],
    "IR"
   ],
-  "src": "user 2026-10-27: X->A: index->ring is preferred over any other combination",
   "family": "R9_XA2",
   "note": "",
   "soft": false
@@ -1768,7 +1663,6 @@
    ],
    "RI"
   ],
-  "src": "user 2026-10-27: X-A: index+ring most preferred (A->X ring->index)",
   "family": "R9_XA2",
   "note": "",
   "soft": false
@@ -1790,7 +1684,6 @@
     "R"
    ]
   ],
-  "src": "user 2026-10-27: X->A: index+ring first, middle+ring second",
   "family": "R9_XA3",
   "note": "",
   "soft": false
@@ -1806,7 +1699,6 @@
    ],
    "RM"
   ],
-  "src": "user 2026-10-27: O->K ring->middle",
   "family": "R9_OK",
   "note": "",
   "soft": false
@@ -1822,7 +1714,6 @@
    ],
    "MR"
   ],
-  "src": "user 2026-10-27: K->O middle->ring (mirror of O->K)",
   "family": "R9_OK",
   "note": "",
   "soft": true
@@ -1838,7 +1729,6 @@
    ],
    "MP"
   ],
-  "src": "user 2026-10-27: K->; middle->pinky",
   "family": "R9_KS",
   "note": "",
   "soft": false
@@ -1854,7 +1744,6 @@
    ],
    "PM"
   ],
-  "src": "user 2026-10-27: ;->K pinky->middle",
   "family": "R9_KS",
   "note": "",
   "soft": false
@@ -1870,7 +1759,6 @@
    ],
    "PM"
   ],
-  "src": "user 2026-10-27: A->E pinky->middle",
   "family": "R9_AE",
   "note": "",
   "soft": false
@@ -1886,7 +1774,6 @@
    ],
    "MP"
   ],
-  "src": "user 2026-10-27: E->A middle->pinky (mirror)",
   "family": "R9_AE",
   "note": "",
   "soft": true
@@ -1902,7 +1789,6 @@
    ],
    "PR"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_AW",
   "note": "",
   "soft": false
@@ -1918,7 +1804,6 @@
    ],
    "PM"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_AE",
   "note": "",
   "soft": false
@@ -1934,7 +1819,6 @@
    ],
    "PI"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_AF",
   "note": "",
   "soft": false
@@ -1950,7 +1834,6 @@
    ],
    "RP"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_AW",
   "note": "",
   "soft": false
@@ -1966,7 +1849,6 @@
    ],
    "RM"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_EW",
   "note": "",
   "soft": false
@@ -1982,7 +1864,6 @@
    ],
    "RI"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_FW",
   "note": "",
   "soft": false
@@ -1998,7 +1879,6 @@
    ],
    "MP"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_AE",
   "note": "",
   "soft": false
@@ -2014,7 +1894,6 @@
    ],
    "MR"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_EW",
   "note": "",
   "soft": false
@@ -2030,7 +1909,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_EF",
   "note": "",
   "soft": false
@@ -2046,7 +1924,6 @@
    ],
    "IP"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_AF",
   "note": "",
   "soft": false
@@ -2062,7 +1939,6 @@
    ],
    "IR"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_FW",
   "note": "",
   "soft": false
@@ -2078,7 +1954,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_EF",
   "note": "",
   "soft": false
@@ -2094,7 +1969,6 @@
    ],
    "PR"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_;O",
   "note": "",
   "soft": false
@@ -2110,7 +1984,6 @@
    ],
    "PM"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_;I",
   "note": "",
   "soft": false
@@ -2126,7 +1999,6 @@
    ],
    "PI"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_;J",
   "note": "",
   "soft": false
@@ -2142,7 +2014,6 @@
    ],
    "RP"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_;O",
   "note": "",
   "soft": false
@@ -2158,7 +2029,6 @@
    ],
    "RM"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_IO",
   "note": "",
   "soft": false
@@ -2174,7 +2044,6 @@
    ],
    "RI"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_JO",
   "note": "",
   "soft": false
@@ -2190,7 +2059,6 @@
    ],
    "MP"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_;I",
   "note": "",
   "soft": false
@@ -2206,7 +2074,6 @@
    ],
    "MR"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_IO",
   "note": "",
   "soft": false
@@ -2222,7 +2089,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_IJ",
   "note": "",
   "soft": false
@@ -2238,7 +2104,6 @@
    ],
    "IP"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_;J",
   "note": "",
   "soft": false
@@ -2254,7 +2119,6 @@
    ],
    "IR"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_JO",
   "note": "",
   "soft": false
@@ -2270,7 +2134,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-27: both keys at rest -> the rest fingers (zero travel); defaults first",
   "family": "REST_IJ",
   "note": "",
   "soft": false
@@ -2284,7 +2147,6 @@
    "A",
    "P"
   ],
-  "src": "user 2026-10-28: index + pinky with only one column of space is madness (X index, A pinky)",
   "family": "R10_XA",
   "note": "",
   "soft": false
@@ -2298,7 +2160,6 @@
    "X",
    "I"
   ],
-  "src": "user 2026-10-28: index + pinky with only one column of space is madness (A pinky, X index)",
   "family": "R10_XA",
   "note": "",
   "soft": false
@@ -2320,7 +2181,6 @@
     "M"
    ]
   ],
-  "src": "user 2026-10-28: X->A index->middle is wanted (rolls easily with index on X); index->ring stays the favourite",
   "family": "R10_XA2",
   "note": "",
   "soft": false
@@ -2342,7 +2202,6 @@
     "P"
    ]
   ],
-  "src": "user 2026-10-28 pm: X->A middle + pinky on A is out (middle on bottom row is bad; pinky on A = reverse scissor)",
   "family": "R10_XA2",
   "note": "",
   "soft": false
@@ -2364,7 +2223,6 @@
     "P"
    ]
   ],
-  "src": "user 2026-10-28 pm: X->A middle + pinky on A is out (middle on bottom row is bad; pinky on A = reverse scissor)",
   "family": "R10_XA2",
   "note": "",
   "soft": false
@@ -2380,7 +2238,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-28: TG = left middle / left index (T is a middle-finger key)",
   "family": "R10_TG",
   "note": "",
   "soft": false
@@ -2396,7 +2253,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-28: GT mirror of TG",
   "family": "R10_TG",
   "note": "",
   "soft": false
@@ -2418,7 +2274,6 @@
     "M"
    ]
   ],
-  "src": "user 2026-10-28 pm: X->A prefers middle->ring over index->middle",
   "family": "R11_XA",
   "note": "",
   "soft": false
@@ -2434,7 +2289,6 @@
    ],
    "MP"
   ],
-  "src": "user 2026-10-28 pm: D->A middle->pinky (middle travels one key)",
   "family": "R11_DA",
   "note": "",
   "soft": false
@@ -2450,7 +2304,6 @@
    ],
    "PM"
   ],
-  "src": "user 2026-10-28 pm: A->D pinky->middle",
   "family": "R11_DA",
   "note": "",
   "soft": false
@@ -2472,7 +2325,6 @@
     "P"
    ]
   ],
-  "src": "user 2026-10-28 pm: D-A index instead of middle is awkward",
   "family": "R11_DA",
   "note": "",
   "soft": false
@@ -2488,7 +2340,6 @@
    ],
    "IR"
   ],
-  "src": "user 2026-10-28 pm: F->S index->ring (rest-key rule)",
   "family": "R11_FS",
   "note": "",
   "soft": false
@@ -2504,7 +2355,6 @@
    ],
    "RI"
   ],
-  "src": "user 2026-10-28 pm: S->F ring->index",
   "family": "R11_FS",
   "note": "",
   "soft": false
@@ -2520,7 +2370,6 @@
    ],
    "RI"
   ],
-  "src": "user 2026-10-28: O->J ring->index (both at rest)",
   "family": "R11_OJ",
   "note": "",
   "soft": false
@@ -2536,7 +2385,6 @@
    ],
    "IR"
   ],
-  "src": "user 2026-10-28: J->O index->ring (both at rest)",
   "family": "R11_OJ",
   "note": "",
   "soft": false
@@ -2552,7 +2400,6 @@
    ],
    "RM"
   ],
-  "src": "user 2026-10-28 pm: RT = ring on R, middle on T",
   "family": "R11_RT",
   "note": "",
   "soft": false
@@ -2568,7 +2415,6 @@
    ],
    "MR"
   ],
-  "src": "user 2026-10-28 pm: TR = middle on T, ring on R",
   "family": "R11_RT",
   "note": "",
   "soft": false
@@ -2584,7 +2430,6 @@
    ],
    "MR"
   ],
-  "src": "user 2026-10-28 late: YU and RT/TR both ring-middle / middle-ring (Y middle, U ring)",
   "family": "R12_YU",
   "note": "",
   "soft": false
@@ -2600,7 +2445,6 @@
    ],
    "RM"
   ],
-  "src": "user 2026-10-28 late: UY mirror (U ring, Y middle)",
   "family": "R12_YU",
   "note": "",
   "soft": false
@@ -2616,7 +2460,6 @@
    ],
    "PR"
   ],
-  "src": "user 2026-10-29 (corrected): A-S pinky->ring (supersedes the 2026-10-27 ring/middle answer)",
   "family": "R13_AS",
   "note": "",
   "soft": false
@@ -2632,7 +2475,6 @@
    ],
    "RP"
   ],
-  "src": "user 2026-10-29 (corrected): S-A mirror of A-S (ring->pinky)",
   "family": "R13_AS",
   "note": "",
   "soft": true
@@ -2648,7 +2490,6 @@
    ],
    "PM"
   ],
-  "src": "user 2026-10-29: ;-U pinky->middle",
   "family": "R13_SU",
   "note": "",
   "soft": false
@@ -2664,7 +2505,6 @@
    ],
    "MP"
   ],
-  "src": "user 2026-10-29: U-; mirror (middle->pinky)",
   "family": "R13_SU",
   "note": "",
   "soft": true
@@ -2682,7 +2522,6 @@
    5.0,
    12.0
   ],
-  "src": "user 2026-10-29: ring-middle on ;-U 'makes absolutely no sense and is borderline impossible'",
   "family": "R13_SU2",
   "note": "",
   "soft": false
@@ -2700,7 +2539,6 @@
    5.0,
    12.0
   ],
-  "src": "user 2026-10-29: ring-middle on ;-U (reverse order) borderline impossible",
   "family": "R13_SU2",
   "note": "",
   "soft": false
@@ -2716,7 +2554,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-29: J-Y index on J, middle on Y (both default fingers)",
   "family": "R13_JY",
   "note": "",
   "soft": false
@@ -2732,7 +2569,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-29: Y-J middle on Y, index on J",
   "family": "R13_JY",
   "note": "",
   "soft": false
@@ -2748,7 +2584,6 @@
    ],
    "IM"
   ],
-  "src": "user 2026-10-29: T-F index on T, middle on F",
   "family": "R13_TF",
   "note": "",
   "soft": false
@@ -2764,7 +2599,6 @@
    ],
    "MI"
   ],
-  "src": "user 2026-10-29: F-T middle on F, index on T",
   "family": "R13_TF",
   "note": "",
   "soft": false
@@ -2780,7 +2614,6 @@
    ],
    "PR"
   ],
-  "src": "user 2026-10-29: ;-L pinky->ring",
   "family": "R13_SL",
   "note": "",
   "soft": false
@@ -2796,7 +2629,6 @@
    ],
    "RP"
   ],
-  "src": "user 2026-10-29: L-; mirror (ring->pinky)",
   "family": "R13_SL",
   "note": "",
   "soft": true

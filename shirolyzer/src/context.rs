@@ -25,11 +25,32 @@ pub struct Context {
 impl Context {
     pub fn load(config_path: Option<&Path>) -> Result<Self> {
         let cfg = config::load(config_path)?;
-        let geom = Geometry::new();
+        let geom = Geometry::from_file(&cfg.geometry)?;
         let model = config::build_model(&cfg)?;
         let gates = Gates::from_config(&cfg);
         let conditions = Conditions::from_config(&cfg, &geom);
-        let tables = Tables::build(&model, &geom, &cfg, &gates, &conditions);
+        let tables = Tables::build(&model, &geom, &cfg, &gates, &conditions)?;
+        Ok(Self {
+            cfg,
+            geom,
+            model,
+            gates,
+            conditions,
+            tables,
+        })
+    }
+
+    /// Model context with the calibrated (unscaled) objective weights.  The
+    /// audit checks the fitted model itself, independently of the user's
+    /// priority list.
+    pub fn calibration(&self) -> Result<Self> {
+        let cfg = self.cfg.clone();
+        let geom = self.geom.clone();
+        let mut model = config::build_model(&cfg)?;
+        model.scales = crate::model::Scales::default();
+        let gates = Gates::from_config(&cfg);
+        let conditions = Conditions::from_config(&cfg, &geom);
+        let tables = Tables::build(&model, &geom, &cfg, &gates, &conditions)?;
         Ok(Self {
             cfg,
             geom,

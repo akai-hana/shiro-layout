@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_yaml::{Mapping, Value};
 
-use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NK};
+use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NF, NK};
 use crate::model::{missing_parameters, Scales};
 use crate::paths;
 
@@ -45,31 +45,54 @@ impl CorpusEntry {
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum GateMode {
-    Only,
+pub enum AltMode {
+    Allow,
     Block,
-    Never,
 }
 
 #[derive(Clone, Debug)]
-pub struct AltGate {
-    pub key: char,
-    pub finger: char,
-    pub mode: GateMode,
-    pub context: Option<HashSet<char>>,
-    pub explicit: bool,
+pub struct AltRule {
+    pub keys: Vec<char>,
+    pub fingers: Vec<usize>,
+    pub mode: AltMode,
 }
 
-#[derive(Clone, Debug)]
-pub struct AltSequence {
-    pub sequence: Vec<char>,
-    pub fingers: Vec<char>,
+#[derive(Clone, Debug, Default)]
+pub struct Sacrifice {
+    pub score: Option<f64>,
+    pub sfb_sft: Option<f64>,
+    pub scissors: Option<f64>,
+    pub redirects: Option<f64>,
+    pub rolls: Option<f64>,
+    pub alternation: Option<f64>,
+    pub finger_balance: Option<f64>,
 }
 
-#[derive(Clone, Debug)]
-pub enum AltEntry {
-    Gate(AltGate),
-    Sequence(AltSequence),
+impl Sacrifice {
+    pub fn score_only(percent: f64) -> Self {
+        Self {
+            score: Some(percent),
+            ..Self::default()
+        }
+    }
+
+    pub fn has_metrics(&self) -> bool {
+        self.sfb_sft.is_some()
+            || self.scissors.is_some()
+            || self.redirects.is_some()
+            || self.rolls.is_some()
+            || self.alternation.is_some()
+            || self.finger_balance.is_some()
+    }
+
+    pub fn all_metrics(&self) -> bool {
+        self.sfb_sft.is_some()
+            && self.scissors.is_some()
+            && self.redirects.is_some()
+            && self.rolls.is_some()
+            && self.alternation.is_some()
+            && self.finger_balance.is_some()
+    }
 }
 
 pub type FingerSet = HashSet<(usize, usize)>;
@@ -90,17 +113,17 @@ pub struct Condition {
 pub struct Config {
     pub path: PathBuf,
     pub raw: Value,
-    pub physical_layout: String,
-    pub current_layout: String,
+    pub geometry: PathBuf,
+    pub punctuation: Vec<char>,
     pub primary_corpus: Vec<CorpusEntry>,
     pub secondary_corpus: Vec<CorpusEntry>,
-    pub primary_sacrifice: f64,
-    pub model_variant: String,
+    pub primary_sacrifice: Sacrifice,
+    pub disallow_reverse_scissors: [[bool; NF]; NF],
     pub parameters_file: String,
     pub parameters_path: PathBuf,
     pub fingermap: [char; NK],
     pub finger_tokens: Vec<char>,
-    pub alt_fingers: Vec<AltEntry>,
+    pub alt_fingers: Vec<AltRule>,
     pub conditions: Vec<Condition>,
     pub conditions_are_default: bool,
     pub priority_list: Vec<Vec<String>>,
@@ -110,26 +133,6 @@ pub struct Config {
 }
 
 impl Config {
-    pub fn gate_entries(&self) -> Vec<&AltGate> {
-        self.alt_fingers
-            .iter()
-            .filter_map(|e| match e {
-                AltEntry::Gate(g) => Some(g),
-                _ => None,
-            })
-            .collect()
-    }
-
-    pub fn sequence_entries(&self) -> Vec<&AltSequence> {
-        self.alt_fingers
-            .iter()
-            .filter_map(|e| match e {
-                AltEntry::Sequence(s) => Some(s),
-                _ => None,
-            })
-            .collect()
-    }
-
     pub fn scales(&self) -> Scales {
         let m = self.priority_multipliers();
         Scales {
@@ -149,7 +152,7 @@ impl Config {
     pub fn priority_multipliers(&self) -> HashMap<String, f64> {
         let mut out: HashMap<String, f64> = PRIORITY_NAMES
             .iter()
-            .map(|n| (n.to_string(), 1.0))
+            .map(|n| (n.to_string(), 0.0))
             .collect();
         let is_default = self.priority_list.len() == DEFAULT_PRIORITY.len()
             && self
@@ -158,6 +161,9 @@ impl Config {
                 .zip(DEFAULT_PRIORITY)
                 .all(|(a, b)| a.len() == b.len() && a.iter().zip(*b).all(|(x, y)| x == y));
         if is_default {
+            for value in out.values_mut() {
+                *value = 1.0;
+            }
             return out;
         }
         let len = self.priority_list.len();
@@ -317,6 +323,76 @@ fn parse_hand_finger(path: &Path, where_: &str, key: char, value: &Value) -> Res
     Ok(finger)
 }
 
+fn parse_percent(path: &Path, where_: &str, value: &Value) -> Result<f64> {
+    let number = if let Some(text) = value.as_str() {
+        let text = text.trim();
+        let raw = text.strip_suffix('%').ok_or_else(|| {
+            fail(
+                path,
+                where_,
+                &format!("expected a percentage ending in %, got {text:?}"),
+            )
+        })?;
+        raw.trim()
+            .parse::<f64>()
+            .map_err(|_| fail(path, where_, &format!("invalid percentage {text:?}")))?
+    } else {
+        as_number(path, where_, value, Some(0.0), None)?
+    };
+    if !number.is_finite() || number < 0.0 {
+        return Err(fail(path, where_, "expected a non-negative percentage"));
+    }
+    Ok(number)
+}
+
+fn parse_sacrifice(path: &Path, value: Option<&Value>) -> Result<Sacrifice> {
+    let Some(value) = value else {
+        return Ok(Sacrifice::score_only(0.00023));
+    };
+    if !value.is_mapping() {
+        return Ok(Sacrifice::score_only(as_number(
+            path,
+            "general.primary_sacrifice",
+            value,
+            Some(0.0),
+            None,
+        )?));
+    }
+    let map = as_mapping(path, "general.primary_sacrifice", value)?;
+    let mut out = Sacrifice::default();
+    for (key, item) in map {
+        let key = key.as_str().unwrap_or_default();
+        let where_ = format!("general.primary_sacrifice.{key}");
+        let parsed = parse_percent(path, &where_, item)?;
+        match key {
+            "score" => out.score = Some(parsed),
+            "sfb" | "sfbs" | "sft" | "sfts" | "sfb_sft" => out.sfb_sft = Some(parsed),
+            "scissors" => out.scissors = Some(parsed),
+            "redirects" => out.redirects = Some(parsed),
+            "rolls" => out.rolls = Some(parsed),
+            "alternation" => out.alternation = Some(parsed),
+            "finger_balance" | "balance" => out.finger_balance = Some(parsed),
+            _ => {
+                return Err(fail(
+                    path,
+                    "general.primary_sacrifice",
+                    &format!(
+                        "unknown metric {key:?}; expected score, sfb/sfts, scissors, redirects, rolls, alternation, or finger_balance"
+                    ),
+                ))
+            }
+        }
+    }
+    if out.score.is_none() && !out.all_metrics() {
+        return Err(fail(
+            path,
+            "general.primary_sacrifice",
+            "omit score only when every metric (sfbs/sfts, scissors, redirects, rolls, alternation, finger_balance) is present",
+        ));
+    }
+    Ok(out)
+}
+
 fn normalise_corpora(path: &Path, where_: &str, value: Option<&Value>) -> Result<Vec<CorpusEntry>> {
     let value = value.ok_or_else(|| fail(path, where_, "missing corpus list"))?;
     let items: Vec<&Value> = if value.is_sequence() {
@@ -401,35 +477,34 @@ fn parse_fingermap(path: &Path, value: Option<&Value>) -> Result<([char; NK], Ve
     let mut mapping = ['P'; NK];
     let mut order = Vec::with_capacity(NK);
     for (i, token) in tokens.iter().enumerate() {
-        let chars: Vec<char> = token.chars().collect();
-        if chars.len() != 2 {
+        let chars: Vec<char> = token.to_uppercase().chars().collect();
+        if chars.len() != 2 || !matches!(chars[0], 'L' | 'R') || !FINGERS.contains(&chars[1]) {
             return Err(fail(
                 path,
                 &format!("fingermap[{}]", i),
-                "expected a two-character key/finger token",
+                &format!("expected a hand/finger token (LP/LR/LM/LI/RI/RM/RR/RP), got {token:?}"),
             ));
         }
-        let key = chars[0];
+        let hand = chars[0];
         let finger = chars[1];
-        if key_index(&key.to_string()).is_none() {
+        let expected_hand = if hand_of_key(KEYS[i].chars().next().unwrap()) == 'L' {
+            'L'
+        } else {
+            'R'
+        };
+        if hand != expected_hand {
             return Err(fail(
                 path,
                 &format!("fingermap[{}]", i),
-                &format!("unknown QWERTY key {key:?}"),
-            ));
-        }
-        if !FINGERS.contains(&finger) {
-            return Err(fail(
-                path,
-                &format!("fingermap[{}]", i),
-                &format!("unknown finger {finger:?}; expected one of PRMI"),
-            ));
-        }
-        if key.to_string() != KEYS[i] {
-            return Err(fail(
-                path,
-                &format!("fingermap[{}]", i),
-                &format!("expected key {:?} at this position, got {key:?}", KEYS[i]),
+                &format!(
+                    "finger {token:?} does not match the {:?} hand of key {:?}",
+                    if expected_hand == 'L' {
+                        "left"
+                    } else {
+                        "right"
+                    },
+                    KEYS[i]
+                ),
             ));
         }
         mapping[i] = finger;
@@ -438,8 +513,10 @@ fn parse_fingermap(path: &Path, value: Option<&Value>) -> Result<([char; NK], Ve
     Ok((mapping, order))
 }
 
-fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>> {
-    let value = value.ok_or_else(|| fail(path, "alt_fingers", "missing alt_fingers"))?;
+fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltRule>> {
+    let Some(value) = value else {
+        return Ok(Vec::new());
+    };
     let seq = value
         .as_sequence()
         .ok_or_else(|| fail(path, "alt_fingers", "expected a list"))?;
@@ -447,145 +524,92 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>
     for (i, item) in seq.iter().enumerate() {
         let where_i = format!("alt_fingers[{}]", i);
         let map = as_mapping(path, &where_i, item)?;
-        let has_sequence = get(map, "sequence").is_some();
-        let has_key = get(map, "key").is_some();
-        if has_sequence == has_key {
+        let keys = parse_alt_ngram(
+            path,
+            &format!("{}.ngram", where_i),
+            get(map, "ngram").ok_or_else(|| fail(path, &where_i, "missing ngram"))?,
+        )?;
+        let finger_values: Vec<&Value> = match get(map, "fingers") {
+            Some(Value::Sequence(items)) => items.iter().collect(),
+            Some(value) => vec![value],
+            None => return Err(fail(path, &where_i, "missing fingers")),
+        };
+        if finger_values.len() != keys.len() {
             return Err(fail(
                 path,
-                &where_i,
-                "needs exactly one of 'sequence' (explicit override) or 'key' (context gate)",
+                &format!("{}.fingers", where_i),
+                &format!(
+                    "expected one finger token per ngram key ({}), got {}",
+                    keys.len(),
+                    finger_values.len()
+                ),
             ));
         }
-        if has_key {
-            let key_text = as_string(path, &format!("{}.key", where_i), get(map, "key").unwrap())?;
-            let chars: Vec<char> = key_text.to_uppercase().chars().collect();
-            if chars.len() != 1 || key_index(&chars[0].to_string()).is_none() {
-                return Err(fail(
-                    path,
-                    &format!("{}.key", where_i),
-                    &format!("unknown QWERTY key {key_text:?}"),
-                ));
-            }
-            let key = chars[0];
-            let finger = parse_hand_finger(
-                path,
-                &format!("{}.finger", where_i),
-                key,
-                get(map, "finger")
-                    .ok_or_else(|| fail(path, &where_i, "context gate needs a finger"))?,
-            )?;
-            let mode_text = as_string(
-                path,
-                &format!("{}.mode", where_i),
-                get(map, "mode").unwrap_or(&Value::String("".into())),
-            )?;
-            let mode = match mode_text.as_str() {
-                "only" => GateMode::Only,
-                "block" => GateMode::Block,
-                "never" => GateMode::Never,
-                _ => {
-                    return Err(fail(
-                        path,
-                        &format!("{}.mode", where_i),
-                        "expected only, block, or never",
-                    ))
-                }
-            };
-            let mut context = HashSet::new();
-            if let Some(ctx) = get(map, "context") {
-                let ctx_seq = ctx.as_sequence().ok_or_else(|| {
-                    fail(
-                        path,
-                        &format!("{}.context", where_i),
-                        "expected a list of QWERTY keys",
-                    )
-                })?;
-                for (j, c) in ctx_seq.iter().enumerate() {
-                    let text = as_string(path, &format!("{}.context[{}]", where_i, j), c)?;
-                    let ch = text.to_uppercase().chars().next().unwrap_or('?');
-                    if key_index(&ch.to_string()).is_none() {
-                        return Err(fail(
-                            path,
-                            &format!("{}.context[{}]", where_i, j),
-                            &format!("unknown QWERTY key {text:?}"),
-                        ));
-                    }
-                    context.insert(ch);
-                }
-            }
-            if mode == GateMode::Never && !context.is_empty() {
-                return Err(fail(
-                    path,
-                    &format!("{}.context", where_i),
-                    "mode 'never' does not take a context",
-                ));
-            }
-            let explicit = get(map, "explicit")
-                .map(|v| v.as_bool().unwrap_or(false))
-                .unwrap_or(false);
-            out.push(AltEntry::Gate(AltGate {
-                key,
-                finger,
-                mode,
-                context: if context.is_empty() {
-                    None
-                } else {
-                    Some(context)
-                },
-                explicit,
-            }));
-        } else {
-            let sequence_text = as_string(
-                path,
-                &format!("{}.sequence", where_i),
-                get(map, "sequence").unwrap(),
-            )?
-            .to_uppercase();
-            if sequence_text.is_empty() || sequence_text.chars().count() > 30 {
-                return Err(fail(
-                    path,
-                    &format!("{}.sequence", where_i),
-                    "expected 1-30 QWERTY position letters",
-                ));
-            }
-            let sequence: Vec<char> = sequence_text.chars().collect();
-            for (j, key) in sequence.iter().enumerate() {
-                if key_index(&key.to_string()).is_none() {
-                    return Err(fail(
-                        path,
-                        &format!("{}.sequence[{}]", where_i, j),
-                        &format!("unknown QWERTY key {key:?}"),
-                    ));
-                }
-            }
-            let fingers = get(map, "fingers")
-                .and_then(Value::as_sequence)
-                .ok_or_else(|| {
-                    fail(
-                        path,
-                        &format!("{}.fingers", where_i),
-                        "expected a finger list",
-                    )
-                })?;
-            if fingers.len() != sequence.len() {
-                return Err(fail(
-                    path,
-                    &format!("{}.fingers", where_i),
-                    "expected one finger token per sequence position",
-                ));
-            }
-            let mut parsed = Vec::new();
-            for (j, (key, finger)) in sequence.iter().zip(fingers.iter()).enumerate() {
-                parse_hand_finger(path, &format!("{}.fingers[{}]", where_i, j), *key, finger)?;
-                parsed.push(parse_finger_token(path, &where_i, finger)?);
-            }
-            out.push(AltEntry::Sequence(AltSequence {
-                sequence,
-                fingers: parsed,
-            }));
+        let mut fingers = Vec::with_capacity(keys.len());
+        for (j, (key, finger)) in keys.iter().zip(finger_values.iter()).enumerate() {
+            let where_f = format!("{}.fingers[{}]", where_i, j);
+            parse_hand_finger(path, &where_f, *key, finger)?;
+            let token = parse_finger_token(path, &where_f, finger)?;
+            let index =
+                finger_index(token).ok_or_else(|| fail(path, &where_f, "invalid finger token"))?;
+            fingers.push(index);
         }
+        let mode_text = as_string(
+            path,
+            &format!("{}.mode", where_i),
+            get(map, "mode").unwrap_or(&Value::String("".into())),
+        )?;
+        let mode = match mode_text.as_str() {
+            "allow" => AltMode::Allow,
+            "block" => AltMode::Block,
+            _ => {
+                return Err(fail(
+                    path,
+                    &format!("{}.mode", where_i),
+                    "expected allow or block",
+                ))
+            }
+        };
+        out.push(AltRule {
+            keys,
+            fingers,
+            mode,
+        });
     }
     Ok(out)
+}
+
+fn parse_alt_ngram(path: &Path, where_: &str, value: &Value) -> Result<Vec<char>> {
+    let texts: Vec<String> = if let Some(items) = value.as_sequence() {
+        items
+            .iter()
+            .enumerate()
+            .map(|(i, item)| as_string(path, &format!("{}[{}]", where_, i), item))
+            .collect::<Result<_>>()?
+    } else {
+        vec![as_string(path, where_, value)?]
+    };
+    if texts.is_empty() || texts.len() > 3 {
+        return Err(fail(
+            path,
+            where_,
+            "expected a unigram, bigram, or trigram of QWERTY key labels",
+        ));
+    }
+    let mut keys = Vec::with_capacity(texts.len());
+    for (i, text) in texts.iter().enumerate() {
+        let upper = text.to_uppercase();
+        let chars: Vec<char> = upper.chars().collect();
+        if chars.len() != 1 || key_index(&upper).is_none() {
+            return Err(fail(
+                path,
+                &format!("{}[{}]", where_, i),
+                &format!("unknown QWERTY key {text:?}"),
+            ));
+        }
+        keys.push(chars[0]);
+    }
+    Ok(keys)
 }
 
 fn finger_set(path: &Path, where_: &str, value: Option<&Value>) -> Result<Option<FingerSet>> {
@@ -750,15 +774,6 @@ fn parse_priority(path: &Path, value: Option<&Value>) -> Result<Vec<Vec<String>>
             tier.push(name.clone());
         }
         out.push(tier);
-    }
-    for name in PRIORITY_NAMES {
-        if !seen.contains(name) {
-            return Err(fail(
-                path,
-                "priority_list",
-                &format!("missing priority {name:?}"),
-            ));
-        }
     }
     Ok(out)
 }
@@ -931,34 +946,59 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     }
 
     let general = as_mapping(&path, "general", get(root, "general").unwrap())?;
-    let physical_layout = as_string(
+    let geometry_value = as_string(
         &path,
-        "general.physical_layout",
-        get(general, "physical_layout").unwrap_or(&Value::String("".into())),
+        "general.geometry",
+        get(general, "geometry").unwrap_or(&Value::String("".into())),
     )?;
-    if physical_layout != "ansi" {
+    let geometry = {
+        let p = PathBuf::from(shellexpand_home(&geometry_value));
+        if p.is_absolute() {
+            p
+        } else {
+            paths::repo_root().join("shirolyzer").join(p)
+        }
+    };
+    if !geometry.is_file() {
         return Err(fail(
             &path,
-            "general.physical_layout",
-            &format!("unknown physical layout {physical_layout:?}; expected ansi"),
+            "general.geometry",
+            &format!("geometry file not found: {}", geometry.display()),
         ));
     }
-    let current_layout = as_string(
+    let punctuation_text = as_string(
         &path,
-        "general.current_layout",
-        get(general, "current_layout").ok_or_else(|| {
-            fail(
-                &path,
-                "general.current_layout",
-                "missing required 30-character layout",
-            )
-        })?,
+        "general.punctuation",
+        get(general, "punctuation").unwrap_or(&Value::String("".into())),
     )?;
-    if current_layout.chars().count() != 30 {
+    let punctuation: Vec<char> = punctuation_text
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect();
+    if punctuation.len() != NK - 26 {
         return Err(fail(
             &path,
-            "general.current_layout",
-            "expected a 30-character layout",
+            "general.punctuation",
+            &format!(
+                "expected {} punctuation characters, got {}",
+                NK - 26,
+                punctuation.len()
+            ),
+        ));
+    }
+    if punctuation.iter().any(|c| c.is_ascii_alphabetic()) {
+        return Err(fail(
+            &path,
+            "general.punctuation",
+            "punctuation must not contain letters",
+        ));
+    }
+    let mut unique = std::collections::HashSet::new();
+    if !punctuation.iter().all(|c| unique.insert(*c)) {
+        return Err(fail(
+            &path,
+            "general.punctuation",
+            "punctuation characters must be distinct",
         ));
     }
     let primary_corpus = normalise_corpora(
@@ -971,31 +1011,42 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         "general.secondary_corpus",
         get(general, "secondary_corpus"),
     )?;
-    let primary_sacrifice = match get(general, "primary_sacrifice") {
-        Some(v) => as_number(&path, "general.primary_sacrifice", v, Some(0.0), None)?,
-        None => 0.00023,
-    };
+    let primary_sacrifice = parse_sacrifice(&path, get(general, "primary_sacrifice"))?;
 
     let model = as_mapping(&path, "model", get(root, "model").unwrap())?;
-    let model_type = as_string(
-        &path,
-        "model.type",
-        get(model, "type").unwrap_or(&Value::String("".into())),
-    )?;
-    if model_type != "pattern" {
-        return Err(fail(
-            &path,
-            "model.type",
-            "only the 'pattern' model is implemented",
-        ));
-    }
-    let variant = as_string(
-        &path,
-        "model.variant",
-        get(model, "variant").unwrap_or(&Value::String("A".into())),
-    )?;
-    if variant != "A" && variant != "B" {
-        return Err(fail(&path, "model.variant", "expected A or B"));
+    let mut disallow_reverse_scissors = [[false; NF]; NF];
+    if let Some(value) = get(model, "disallow_reverse_scissors") {
+        let tokens: Vec<&Value> = if let Some(seq) = value.as_sequence() {
+            seq.iter().collect()
+        } else {
+            vec![value]
+        };
+        for (i, token) in tokens.iter().enumerate() {
+            let text = as_string(
+                &path,
+                &format!("model.disallow_reverse_scissors[{}]", i),
+                token,
+            )?
+            .to_uppercase();
+            let chars: Vec<char> = text.chars().collect();
+            if chars.len() != 2
+                || chars[0] == chars[1]
+                || !FINGERS.contains(&chars[0])
+                || !FINGERS.contains(&chars[1])
+            {
+                return Err(fail(
+                    &path,
+                    &format!("model.disallow_reverse_scissors[{}]", i),
+                    "expected two distinct finger letters from P/R/M/I (for example MR)",
+                ));
+            }
+            let mut pair = [
+                finger_index(chars[0]).unwrap(),
+                finger_index(chars[1]).unwrap(),
+            ];
+            pair.sort_unstable();
+            disallow_reverse_scissors[pair[0]][pair[1]] = true;
+        }
     }
     let parameters_file = as_string(
         &path,
@@ -1045,12 +1096,12 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     Ok(Config {
         path,
         raw,
-        physical_layout,
-        current_layout,
+        geometry,
+        punctuation,
         primary_corpus,
         secondary_corpus,
         primary_sacrifice,
-        model_variant: variant,
+        disallow_reverse_scissors,
         parameters_file,
         parameters_path,
         fingermap,
@@ -1069,7 +1120,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
 pub fn build_model(cfg: &Config) -> Result<crate::model::Model> {
     let mut model = crate::model::Model::from_file(
         &cfg.parameters_path,
-        cfg.model_variant == "A",
+        cfg.disallow_reverse_scissors,
         cfg.fingermap,
     )?;
     model.scales = cfg.scales();

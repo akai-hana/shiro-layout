@@ -12,7 +12,7 @@ use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
 use rayon::prelude::*;
 
-use crate::evaluate::Evaluator;
+use crate::evaluate::{Evaluator, N_ITEMS};
 use crate::scorer::tri_idx_u8;
 
 pub trait ScoreFn {
@@ -41,9 +41,9 @@ struct Moves {
 fn moves() -> &'static Moves {
     static MOVES: OnceLock<Moves> = OnceLock::new();
     MOVES.get_or_init(|| {
-        let mut pairs = Vec::with_capacity(325);
-        for i in 0..26 {
-            for j in i + 1..26 {
+        let mut pairs = Vec::with_capacity(N_ITEMS * (N_ITEMS - 1) / 2);
+        for i in 0..N_ITEMS {
+            for j in i + 1..N_ITEMS {
                 pairs.push([i, j]);
             }
         }
@@ -59,10 +59,10 @@ fn moves() -> &'static Moves {
                 }
             }
         }
-        let mut three = Vec::with_capacity(2600);
-        for i in 0..26 {
-            for j in i + 1..26 {
-                for k in j + 1..26 {
+        let mut three = Vec::with_capacity(4060);
+        for i in 0..N_ITEMS {
+            for j in i + 1..N_ITEMS {
+                for k in j + 1..N_ITEMS {
                     three.push([i, j, k]);
                 }
             }
@@ -167,7 +167,7 @@ impl DeltaTables {
 struct Local<'a> {
     ev: &'a Evaluator<'a>,
     perm: Vec<usize>,
-    kid: [u8; 26],
+    kid: [u8; N_ITEMS],
     weighted: f64,
     pen: f64,
     seen: Vec<u32>,
@@ -176,7 +176,7 @@ struct Local<'a> {
 
 impl<'a> Local<'a> {
     fn new(ev: &'a Evaluator<'a>, perm: &[usize]) -> Self {
-        let mut kid = [0u8; 26];
+        let mut kid = [0u8; N_ITEMS];
         for (li, &slot) in perm.iter().enumerate() {
             kid[li] = ev.slot_key[slot];
         }
@@ -205,7 +205,7 @@ impl<'a> Local<'a> {
         self.weighted / self.ev.n_tri + self.pen
     }
 
-    fn delta(&mut self, kid2: &[u8; 26], changed: &[usize]) -> f64 {
+    fn delta(&mut self, kid2: &[u8; N_ITEMS], changed: &[usize]) -> f64 {
         self.stamp = self.stamp.wrapping_add(1);
         if self.stamp == 0 {
             self.seen.fill(0);
@@ -280,7 +280,7 @@ impl<'a> Local<'a> {
         self.score()
     }
 
-    fn undo_swap(&mut self, i: usize, j: usize, w: f64, kid: [u8; 26]) {
+    fn undo_swap(&mut self, i: usize, j: usize, w: f64, kid: [u8; N_ITEMS]) {
         self.perm.swap(i, j);
         self.weighted = w;
         self.kid = kid;
@@ -301,7 +301,15 @@ impl<'a> Local<'a> {
         self.score()
     }
 
-    fn undo_cycle3(&mut self, i: usize, j: usize, k: usize, w: f64, kid: [u8; 26], p: [usize; 3]) {
+    fn undo_cycle3(
+        &mut self,
+        i: usize,
+        j: usize,
+        k: usize,
+        w: f64,
+        kid: [u8; N_ITEMS],
+        p: [usize; 3],
+    ) {
         self.perm[i] = p[0];
         self.perm[j] = p[1];
         self.perm[k] = p[2];
@@ -322,7 +330,7 @@ pub fn anneal(
     let perm = match seed_perm {
         Some(p) => p.to_vec(),
         None => ev.constrained_shuffle(&mut rng).unwrap_or_else(|_| {
-            let mut p: Vec<usize> = (0..26).collect();
+            let mut p: Vec<usize> = (0..N_ITEMS).collect();
             p.shuffle(&mut rng);
             p
         }),
@@ -336,8 +344,8 @@ pub fn anneal(
         let t = t0 * (t1 / t0).powf(it as f64 / iters as f64);
         let mut pair = None;
         for _ in 0..100 {
-            let i = rng.gen_range(0..26);
-            let mut j = rng.gen_range(0..25);
+            let i = rng.gen_range(0..N_ITEMS);
+            let mut j = rng.gen_range(0..N_ITEMS - 1);
             if j >= i {
                 j += 1;
             }
@@ -472,13 +480,13 @@ pub fn delta_swap_cost(ev: &Evaluator, perm: &[usize], reps: usize) -> (f64, usi
     let mut st = Local::new(ev, perm);
     let mut sum = 0.0;
     for _ in 0..reps {
-        for i in 0..26 {
-            for j in i + 1..26 {
+        for i in 0..N_ITEMS {
+            for j in i + 1..N_ITEMS {
                 sum += st.delta_swap(i, j);
             }
         }
     }
-    (sum, reps * 325)
+    (sum, reps * N_ITEMS * (N_ITEMS - 1) / 2)
 }
 
 fn improve<F, U>(
@@ -522,11 +530,32 @@ pub fn quench_generic(
     let mut cur_s = cur_s;
 
     let mut pairs: Vec<Vec<usize>> = Vec::new();
-    for i in 0..26 {
-        for j in i + 1..26 {
+    for i in 0..N_ITEMS {
+        for j in i + 1..N_ITEMS {
             pairs.push(vec![i, j]);
         }
     }
+
+    let mut two: Vec<Vec<usize>> = Vec::new();
+    for x in 0..pairs.len() {
+        let (i1, j1) = (pairs[x][0], pairs[x][1]);
+        for y in x + 1..pairs.len() {
+            let (i2, j2) = (pairs[y][0], pairs[y][1]);
+            if i1 != i2 && i1 != j2 && j1 != i2 && j1 != j2 {
+                two.push(vec![i1, j1, i2, j2]);
+            }
+        }
+    }
+
+    let mut three: Vec<Vec<usize>> = Vec::new();
+    for i in 0..N_ITEMS {
+        for j in i + 1..N_ITEMS {
+            for k in j + 1..N_ITEMS {
+                three.push(vec![i, j, k]);
+            }
+        }
+    }
+
     improve(
         ev,
         &mut perm,
@@ -540,16 +569,6 @@ pub fn quench_generic(
         |p, m, _| p.swap(m[0], m[1]),
     );
 
-    let mut two: Vec<Vec<usize>> = Vec::new();
-    for x in 0..pairs.len() {
-        let (i1, j1) = (pairs[x][0], pairs[x][1]);
-        for y in x + 1..pairs.len() {
-            let (i2, j2) = (pairs[y][0], pairs[y][1]);
-            if i1 != i2 && i1 != j2 && j1 != i2 && j1 != j2 {
-                two.push(vec![i1, j1, i2, j2]);
-            }
-        }
-    }
     improve(
         ev,
         &mut perm,
@@ -567,14 +586,6 @@ pub fn quench_generic(
         },
     );
 
-    let mut three: Vec<Vec<usize>> = Vec::new();
-    for i in 0..26 {
-        for j in i + 1..26 {
-            for k in j + 1..26 {
-                three.push(vec![i, j, k]);
-            }
-        }
-    }
     improve(
         ev,
         &mut perm,
@@ -711,7 +722,7 @@ pub fn quench_constrained(
 
 pub fn perturb(perm: &[usize], rng: &mut impl Rng, k: usize) -> Vec<usize> {
     let mut cand = perm.to_vec();
-    let mut idx: Vec<usize> = (0..26).collect();
+    let mut idx: Vec<usize> = (0..N_ITEMS).collect();
     idx.shuffle(rng);
     let moved = &idx[..(2 * k).min(idx.len())];
     let mut a = 0;
@@ -735,21 +746,21 @@ mod tests {
         let model = crate::config::build_model(&cfg).expect("model");
         let gates = crate::gates::Gates::from_config(&cfg);
         let conds = crate::conditions::Conditions::from_config(&cfg, &geom);
-        let tables = crate::scorer::Tables::build(&model, &geom, &cfg, &gates, &conds);
+        let tables =
+            crate::scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
         let paths: Vec<std::path::PathBuf> = cfg
             .primary_corpus
             .iter()
             .map(|e| cfg.corpus_path(e))
             .collect();
         let corpus = crate::corpus::load_many(&paths).expect("corpus");
-        let dead = crate::evaluate::dead_of(&cfg.current_layout);
         let flat = flat_share_from_config(&cfg);
         let (w_balance, w_hand) = cfg.balance_weights();
         let ev = crate::evaluate::Evaluator::new(
             Box::leak(Box::new(corpus)),
             Box::leak(Box::new(tables)),
             Box::leak(Box::new(model)),
-            &dead,
+            &cfg.punctuation,
             flat,
             w_balance,
             w_hand,
@@ -757,6 +768,8 @@ mod tests {
         .expect("evaluator");
         (cfg, ev)
     }
+
+    const TEST_LAYOUT: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
 
     #[test]
     fn hand_restrictions_are_preserved_by_search() {
@@ -770,8 +783,8 @@ mod tests {
         let perm = ev.constrained_shuffle(&mut rng).expect("shuffle");
         assert!(ev.perm_allowed(&perm));
 
-        for i in 0..26 {
-            for j in i + 1..26 {
+        for i in 0..N_ITEMS {
+            for j in i + 1..N_ITEMS {
                 let mut swapped = perm.clone();
                 swapped.swap(i, j);
                 if !ev.swap_allowed(&perm, i, j) {
@@ -808,20 +821,19 @@ mod tests {
             .map(|e| cfg.corpus_path(e))
             .collect();
         let corpus = crate::corpus::load_many(&paths).expect("secondary corpus");
-        let dead = crate::evaluate::dead_of(&cfg.current_layout);
         let flat = flat_share_from_config(&cfg);
         let (w_balance, w_hand) = cfg.balance_weights();
         let secondary = crate::evaluate::Evaluator::new(
             Box::leak(Box::new(corpus)),
             primary.tables,
             primary.model,
-            &dead,
+            &cfg.punctuation,
             flat,
             w_balance,
             w_hand,
         )
         .expect("secondary evaluator");
-        let perm = crate::evaluate::perm_of(&cfg.current_layout, &dead).expect("perm");
+        let perm = crate::evaluate::perm_of(TEST_LAYOUT, &cfg.punctuation).expect("perm");
         let limit = primary.score(&perm) + 0.001;
         let constrained = |p: &[usize]| -> f64 {
             if primary.score(p) > limit {
@@ -849,16 +861,15 @@ mod tests {
     #[test]
     fn incremental_scores_match_full_score() {
         let (cfg, ev) = setup();
-        let dead = crate::evaluate::dead_of(&cfg.current_layout);
-        let perm = crate::evaluate::perm_of(&cfg.current_layout, &dead).expect("perm");
+        let perm = crate::evaluate::perm_of(TEST_LAYOUT, &cfg.punctuation).expect("perm");
         let tables = DeltaTables::build(&ev);
         let mut rng = rand::rngs::StdRng::seed_from_u64(7);
 
         let mut st = Local::new(&ev, &perm);
         assert!((st.score() - ev.score(&perm)).abs() < 1e-12);
         for _ in 0..40 {
-            let i = rng.gen_range(0..26);
-            let mut j = rng.gen_range(0..25);
+            let i = rng.gen_range(0..N_ITEMS);
+            let mut j = rng.gen_range(0..N_ITEMS - 1);
             if j >= i {
                 j += 1;
             }
@@ -878,7 +889,7 @@ mod tests {
         for _ in 0..40 {
             let mut idx = [0usize; 4];
             for x in idx.iter_mut() {
-                *x = rng.gen_range(0..26);
+                *x = rng.gen_range(0..N_ITEMS);
             }
             idx.sort_unstable();
             if idx.windows(2).any(|w| w[0] == w[1]) {
@@ -897,12 +908,12 @@ mod tests {
 
         let mut st = Local::new(&ev, &perm);
         for _ in 0..40 {
-            let i = rng.gen_range(0..26);
-            let mut j = rng.gen_range(0..25);
+            let i = rng.gen_range(0..N_ITEMS);
+            let mut j = rng.gen_range(0..N_ITEMS - 1);
             if j >= i {
                 j += 1;
             }
-            let mut k = rng.gen_range(0..24);
+            let mut k = rng.gen_range(0..N_ITEMS - 2);
             if k >= i {
                 k += 1;
             }
@@ -929,8 +940,7 @@ mod tests {
     #[test]
     fn delta_quench_matches_full_quench() {
         let (cfg, ev) = setup();
-        let dead = crate::evaluate::dead_of(&cfg.current_layout);
-        let perm = crate::evaluate::perm_of(&cfg.current_layout, &dead).expect("perm");
+        let perm = crate::evaluate::perm_of(TEST_LAYOUT, &cfg.punctuation).expect("perm");
         let tables = DeltaTables::build(&ev);
         let mut delta_rng = rand::rngs::StdRng::seed_from_u64(99);
         let (delta_perm, delta_score) =

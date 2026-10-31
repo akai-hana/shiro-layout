@@ -3,7 +3,7 @@
 //! Port of `shirolyzer/utils/conditions.py`.
 
 use crate::config::{Condition, Config};
-use crate::geometry::{finger_index, Geometry, NF, NK};
+use crate::geometry::{Geometry, NF, NK};
 use crate::model::{pair_feature, pt_idx};
 
 pub const PENALTY: f64 = 12.0;
@@ -13,7 +13,6 @@ pub struct Conditions {
     pub enabled: bool,
     pub rules: Vec<Condition>,
     pub pair_denied: Option<Vec<bool>>,
-    pub explicit_fingers: Vec<Vec<std::collections::HashSet<char>>>,
 }
 
 impl Conditions {
@@ -39,23 +38,10 @@ impl Conditions {
             }
             pair_denied = Some(denied);
         }
-        let mut explicit_fingers = vec![vec![std::collections::HashSet::new(); NF]; NK];
-        for gate in cfg.gate_entries() {
-            if !gate.explicit {
-                continue;
-            }
-            if let (Some(k), Some(f)) = (
-                crate::geometry::key_index(&gate.key.to_string()),
-                finger_index(gate.finger),
-            ) {
-                explicit_fingers[k][f] = gate.context.clone().unwrap_or_default();
-            }
-        }
         Self {
             enabled,
             rules,
             pair_denied,
-            explicit_fingers,
         }
     }
 
@@ -164,7 +150,6 @@ pub fn allowed_pair(
         enabled: true,
         rules: rules.to_vec(),
         pair_denied: None,
-        explicit_fingers: Vec::new(),
     };
     for cond in rules {
         if conditions.condition_matches(cond, geom.hand[a], fa, geom.hand[b], fb, &pf) {

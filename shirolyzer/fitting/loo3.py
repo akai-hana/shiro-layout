@@ -13,8 +13,8 @@ act = [r for r in RL.RULINGS if FL.active(r, cfg)]
 fams = sorted({r.family for r in act})
 SKIP = lambda x: x.startswith("DEFAULT_")
 res = {}
-part = int(sys.argv[4]); todo = [x for x in fams if not SKIP(x)]; todo = todo[part::2]
-for fam in todo:
+part = int(sys.argv[4]); partition = [x for x in fams if not SKIP(x)][part::2]
+for fam in partition:
     keep = set(fams) - {fam}
     f = lambda x: FL.total_loss(np.clip(x, lo, hi), cfg, subset=keep, reg=0.02)
     r = minimize(f, th_full, method="Powell", bounds=list(zip(lo, hi)), options=dict(maxiter=250, maxfev=1500, xtol=1e-3, ftol=1e-6))
