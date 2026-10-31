@@ -13,7 +13,7 @@ pub fn keymap(layout: &str) -> Vec<(char, usize)> {
     let mut out = Vec::new();
     for (i, ch) in chars.iter().enumerate() {
         if ch.is_ascii_alphabetic() && i < NK {
-            if let Some(k) = key_index(&KEYS[i]) {
+            if let Some(k) = key_index(KEYS[i]) {
                 out.push((*ch, k));
             }
         }
@@ -151,7 +151,7 @@ impl<'a> Evaluator<'a> {
         if slots.len() != 26 {
             return Err(format!("need 26 letter slots, got {}", slots.len()));
         }
-        let slot_key: Vec<usize> = slots.iter().map(|&i| i).collect();
+        let slot_key: Vec<usize> = slots.to_vec();
         let default_finger: Vec<usize> = slots
             .iter()
             .map(|&i| finger_index(model.default_finger[i]).unwrap())
@@ -280,7 +280,10 @@ pub fn perm_of(layout: &str, _dead: &[(char, usize)]) -> Result<Vec<usize>, Stri
         .filter(|c| c.is_ascii_lowercase())
         .collect();
     if letters.len() != 26 {
-        return Err(format!("layout must contain 26 letters, got {}", letters.len()));
+        return Err(format!(
+            "layout must contain 26 letters, got {}",
+            letters.len()
+        ));
     }
     let distinct: std::collections::HashSet<char> = letters.iter().copied().collect();
     if distinct.len() != 26 {

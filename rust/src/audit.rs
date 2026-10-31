@@ -13,7 +13,6 @@ use crate::model::{pair_feature, pt_idx};
 use crate::paths;
 use crate::scorer::PRESS;
 
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct Ruling {
     pub id: String,
@@ -60,7 +59,9 @@ fn fp(fs: &[usize]) -> String {
 }
 
 pub fn load_rulings(path: Option<&Path>) -> Result<Vec<Ruling>> {
-    let path = path.map(Path::to_path_buf).unwrap_or_else(paths::rulings_file);
+    let path = path
+        .map(Path::to_path_buf)
+        .unwrap_or_else(paths::rulings_file);
     let text = paths::read_to_string(&path)?;
     let mut rulings: Vec<Ruling> = serde_json::from_str(&text)?;
     // The shipped JSON contains 168 entries; the two unresolved J/Y twins are
@@ -84,8 +85,13 @@ fn block(ctx: &Context, keys: &[usize]) -> Vec<f64> {
         }
         out
     } else {
-        ctx.model
-            .tri_many(&ctx.geom, &ctx.tables.model, &[keys[0]], &[keys[1]], &[keys[2]])
+        ctx.model.tri_many(
+            &ctx.geom,
+            &ctx.tables.model,
+            &[keys[0]],
+            &[keys[1]],
+            &[keys[2]],
+        )
     }
 }
 
@@ -127,7 +133,11 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 });
                 let tgt = cand.iter().find(|(_, f)| f == want).map(|(c, _)| *c);
                 let Some(ct) = tgt else {
-                    return (5.0 * w, false, format!("{} want {}: not reachable", keys.join("->"), want));
+                    return (
+                        5.0 * w,
+                        false,
+                        format!("{} want {}: not reachable", keys.join("->"), want),
+                    );
                 };
                 let others: Vec<f64> = cand
                     .iter()
@@ -174,7 +184,11 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 });
                 let tgt = cand.iter().find(|(_, f)| f == want).map(|(c, _)| *c);
                 let Some(ct) = tgt else {
-                    return (5.0 * w, false, format!("{} want {}: not reachable", keys.join("->"), want));
+                    return (
+                        5.0 * w,
+                        false,
+                        format!("{} want {}: not reachable", keys.join("->"), want),
+                    );
                 };
                 let others: Vec<f64> = cand
                     .iter()
@@ -221,7 +235,14 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
             (
                 loss,
                 all[0].1 == fing,
-                format!("{}: want {} got {} ({:.2}; default {:.2})", r.data[0].as_str().unwrap(), fing, all[0].1, all[0].0, ct),
+                format!(
+                    "{}: want {} got {} ({:.2}; default {:.2})",
+                    r.data[0].as_str().unwrap(),
+                    fing,
+                    all[0].1,
+                    all[0].0,
+                    ct
+                ),
             )
         }
         "order" => {
@@ -230,7 +251,13 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 .iter()
                 .map(|it| {
                     let a = it.as_array().unwrap();
-                    t2(ctx, key(a[0].as_str().unwrap()), finger(a[1].as_str().unwrap()), key(a[2].as_str().unwrap()), finger(a[3].as_str().unwrap()))
+                    t2(
+                        ctx,
+                        key(a[0].as_str().unwrap()),
+                        finger(a[1].as_str().unwrap()),
+                        key(a[2].as_str().unwrap()),
+                        finger(a[3].as_str().unwrap()),
+                    )
                 })
                 .collect();
             let m = if r.family == "RPDIR" { 0.15 } else { 0.02 };
@@ -239,7 +266,14 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
             (
                 w * loss,
                 ok,
-                format!("order {}", costs.iter().map(|c| format!("{:.2}", c)).collect::<Vec<_>>().join(" < ")),
+                format!(
+                    "order {}",
+                    costs
+                        .iter()
+                        .map(|c| format!("{:.2}", c))
+                        .collect::<Vec<_>>()
+                        .join(" < ")
+                ),
             )
         }
         "tie" => {
@@ -248,21 +282,51 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 .iter()
                 .map(|it| {
                     let a = it.as_array().unwrap();
-                    t2(ctx, key(a[0].as_str().unwrap()), finger(a[1].as_str().unwrap()), key(a[2].as_str().unwrap()), finger(a[3].as_str().unwrap()))
+                    t2(
+                        ctx,
+                        key(a[0].as_str().unwrap()),
+                        finger(a[1].as_str().unwrap()),
+                        key(a[2].as_str().unwrap()),
+                        finger(a[3].as_str().unwrap()),
+                    )
                 })
                 .collect();
             let d = (c[0] - c[1]).abs();
-            (w * (d - 0.08).max(0.0), d <= 0.08, format!("tie {:.2} vs {:.2}", c[0], c[1]))
+            (
+                w * (d - 0.08).max(0.0),
+                d <= 0.08,
+                format!("tie {:.2} vs {:.2}", c[0], c[1]),
+            )
         }
         "infeas" => {
             let a = r.data.as_array().unwrap();
-            let c = pt(ctx, key(a[0].as_str().unwrap()), finger(a[1].as_str().unwrap()), key(a[2].as_str().unwrap()), finger(a[3].as_str().unwrap()));
-            (w * (8.0 - c).max(0.0), c >= 8.0 - 0.01, format!("pair cost {:.2} (need >= 8)", c))
+            let c = pt(
+                ctx,
+                key(a[0].as_str().unwrap()),
+                finger(a[1].as_str().unwrap()),
+                key(a[2].as_str().unwrap()),
+                finger(a[3].as_str().unwrap()),
+            );
+            (
+                w * (8.0 - c).max(0.0),
+                c >= 8.0 - 0.01,
+                format!("pair cost {:.2} (need >= 8)", c),
+            )
         }
         "feasible" => {
             let a = r.data.as_array().unwrap();
-            let c = pt(ctx, key(a[0].as_str().unwrap()), finger(a[1].as_str().unwrap()), key(a[2].as_str().unwrap()), finger(a[3].as_str().unwrap()));
-            (w * (c - 5.0).max(0.0), c < 7.0, format!("pair cost {:.2} (need < 7)", c))
+            let c = pt(
+                ctx,
+                key(a[0].as_str().unwrap()),
+                finger(a[1].as_str().unwrap()),
+                key(a[2].as_str().unwrap()),
+                finger(a[3].as_str().unwrap()),
+            );
+            (
+                w * (c - 5.0).max(0.0),
+                c < 7.0,
+                format!("pair cost {:.2} (need < 7)", c),
+            )
         }
         "tiers" => {
             let tiers = r.data.as_array().unwrap();
@@ -271,7 +335,13 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 let mut row = Vec::new();
                 for it in tier.as_array().unwrap() {
                     let a = it.as_array().unwrap();
-                    row.push(t2(ctx, key(a[0].as_str().unwrap()), finger(a[1].as_str().unwrap()), key(a[2].as_str().unwrap()), finger(a[3].as_str().unwrap())));
+                    row.push(t2(
+                        ctx,
+                        key(a[0].as_str().unwrap()),
+                        finger(a[1].as_str().unwrap()),
+                        key(a[2].as_str().unwrap()),
+                        finger(a[3].as_str().unwrap()),
+                    ));
                 }
                 tc.push(row);
             }
@@ -328,7 +398,10 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                     arr.iter()
                         .map(|it| {
                             let a = it.as_array().unwrap();
-                            (a[0].as_u64().unwrap() as usize, finger(a[1].as_str().unwrap()))
+                            (
+                                a[0].as_u64().unwrap() as usize,
+                                finger(a[1].as_str().unwrap()),
+                            )
                         })
                         .collect()
                 })
@@ -367,14 +440,22 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 }
             }
             if a_vals.is_empty() {
-                return (5.0 * w, false, format!("{}: required fingering unreachable", keys.join("-")));
+                return (
+                    5.0 * w,
+                    false,
+                    format!("{}: required fingering unreachable", keys.join("-")),
+                );
             }
             let ca = a_vals.iter().cloned().fold(f64::INFINITY, f64::min);
             if b_vals.is_empty() {
                 return (0.0, true, "no alternative".to_string());
             }
             b_vals.sort_by(|a, b| a.partial_cmp(b).unwrap_or(std::cmp::Ordering::Equal));
-            let loss: f64 = b_vals.iter().take(6).map(|b| (ca - b + margin).max(0.0)).sum();
+            let loss: f64 = b_vals
+                .iter()
+                .take(6)
+                .map(|b| (ca - b + margin).max(0.0))
+                .sum();
             let ok = if margin >= 0.0 {
                 ca - b_vals[0] <= -margin + 1e-9
             } else {
@@ -383,14 +464,25 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
             (
                 w * loss,
                 ok,
-                format!("{} legal {:.2} vs best-other {:.2}", keys.join("-"), ca, b_vals[0]),
+                format!(
+                    "{} legal {:.2} vs best-other {:.2}",
+                    keys.join("-"),
+                    ca,
+                    b_vals[0]
+                ),
             )
         }
         "band" => {
             let item = r.data[0].as_array().unwrap();
             let lo = r.data[1].as_f64().unwrap();
             let hi = r.data[2].as_f64().unwrap();
-            let c = pt(ctx, key(item[0].as_str().unwrap()), finger(item[1].as_str().unwrap()), key(item[2].as_str().unwrap()), finger(item[3].as_str().unwrap()));
+            let c = pt(
+                ctx,
+                key(item[0].as_str().unwrap()),
+                finger(item[1].as_str().unwrap()),
+                key(item[2].as_str().unwrap()),
+                finger(item[3].as_str().unwrap()),
+            );
             (
                 w * ((lo - c).max(0.0) + (c - hi).max(0.0)),
                 lo - 0.02 <= c && c <= hi,
@@ -406,8 +498,13 @@ fn probe_rows(ctx: &Context, names: &[&str]) -> Vec<(f64, String)> {
     let mut t: Vec<f64> = if ids.len() == 2 {
         ctx.model.bi_many(&ctx.tables.model, &[ids[0]], &[ids[1]])
     } else {
-        ctx.model
-            .tri_many(&ctx.geom, &ctx.tables.model, &[ids[0]], &[ids[1]], &[ids[2]])
+        ctx.model.tri_many(
+            &ctx.geom,
+            &ctx.tables.model,
+            &[ids[0]],
+            &[ids[1]],
+            &[ids[2]],
+        )
     };
     let pm = penalty(ctx, names);
     for (i, v) in t.iter_mut().enumerate() {
@@ -466,25 +563,62 @@ pub fn collect(
     ));
     out!("=== questionnaire hard probes (physical keys; * = non-default finger) ===".to_string());
     let probes: Vec<(&str, &str)> = vec![
-        ("O-L", "OL"), ("L-O", "LO"), ("K-J-M hey", "KJM"), ("F-J-M ney", "FJM"),
-        ("M-J yea", "MJ"), ("M-J-I yea", "MJI"), ("H-T-J exp", "HTJ"), ("H-W-J ext", "HWJ"),
-        ("I-U-J age", "IUJ"), ("N-L-J equ", "NLJ"), ("V-G-J ble", "VGJ"), ("C-O-R vid", "COR"),
-        ("R-O-C div", "ROC"), ("K-I", "KI"), ("th W-D", "WD"), ("ht D-W", "DW"),
-        ("as A-S", "AS"), ("sa S-A", "SA"), ("X-A", "XA"), ("A-X", "AX"), ("U-J", "UJ"),
-        ("U-H", "UH"), ("X-W", "XW"), ("S-W", "SW"), ("W-X-F wxf", "WXF"), ("F-X-W fxw", "FXW"),
-        ("Q-S", "QS"), ("S-Q", "SQ"), ("O-K", "OK"), ("K-O", "KO"), ("K-;", "K;"),
-        (";-K", ";K"), ("A-E", "AE"), ("E-A", "EA"), ("T-G", "TG"), ("G-T", "GT"),
-        ("Y-U", "YU"), ("U-Y", "UY"), ("D-A", "DA"), ("A-D", "AD"), ("F-S", "FS"),
-        ("S-F", "SF"), ("O-J", "OJ"), ("J-O", "JO"),
+        ("O-L", "OL"),
+        ("L-O", "LO"),
+        ("K-J-M hey", "KJM"),
+        ("F-J-M ney", "FJM"),
+        ("M-J yea", "MJ"),
+        ("M-J-I yea", "MJI"),
+        ("H-T-J exp", "HTJ"),
+        ("H-W-J ext", "HWJ"),
+        ("I-U-J age", "IUJ"),
+        ("N-L-J equ", "NLJ"),
+        ("V-G-J ble", "VGJ"),
+        ("C-O-R vid", "COR"),
+        ("R-O-C div", "ROC"),
+        ("K-I", "KI"),
+        ("th W-D", "WD"),
+        ("ht D-W", "DW"),
+        ("as A-S", "AS"),
+        ("sa S-A", "SA"),
+        ("X-A", "XA"),
+        ("A-X", "AX"),
+        ("U-J", "UJ"),
+        ("U-H", "UH"),
+        ("X-W", "XW"),
+        ("S-W", "SW"),
+        ("W-X-F wxf", "WXF"),
+        ("F-X-W fxw", "FXW"),
+        ("Q-S", "QS"),
+        ("S-Q", "SQ"),
+        ("O-K", "OK"),
+        ("K-O", "KO"),
+        ("K-;", "K;"),
+        (";-K", ";K"),
+        ("A-E", "AE"),
+        ("E-A", "EA"),
+        ("T-G", "TG"),
+        ("G-T", "GT"),
+        ("Y-U", "YU"),
+        ("U-Y", "UY"),
+        ("D-A", "DA"),
+        ("A-D", "AD"),
+        ("F-S", "FS"),
+        ("S-F", "SF"),
+        ("O-J", "OJ"),
+        ("J-O", "JO"),
     ];
     let mut top: HashMap<String, String> = HashMap::new();
     for (_name, seq) in &probes {
-        let chars: Vec<&str> = seq.chars().map(|c| {
-            // each character is a physical key label
-            let mut buf = [0u8; 4];
-            let s: &str = c.encode_utf8(&mut buf);
-            Box::leak(s.to_string().into_boxed_str()) as &str
-        }).collect();
+        let chars: Vec<&str> = seq
+            .chars()
+            .map(|c| {
+                // each character is a physical key label
+                let mut buf = [0u8; 4];
+                let s: &str = c.encode_utf8(&mut buf);
+                Box::leak(s.to_string().into_boxed_str()) as &str
+            })
+            .collect();
         let rows = probe_rows(ctx, &chars);
         out!(format!("  {}:", seq));
         for (c, fs) in rows.iter().take(5) {
@@ -513,7 +647,12 @@ pub fn collect(
             let ok: bool = $ok;
             let detail: String = $detail;
             checks.push((name.to_string(), ok, detail.clone()));
-            let s = format!("  [{}] {}  {}", if ok { "PASS" } else { "FAIL" }, name, detail);
+            let s = format!(
+                "  [{}] {}  {}",
+                if ok { "PASS" } else { "FAIL" },
+                name,
+                detail
+            );
             if !quiet {
                 println!("{}", s);
             }
@@ -525,38 +664,142 @@ pub fn collect(
         .filter(|c| {
             let s = c.to_string();
             let rows = probe_rows(ctx, &[&s, &s]);
-            rows[0].1.chars().nth(0) != rows[0].1.chars().nth(1)
+            rows[0].1.chars().next() != rows[0].1.chars().nth(1)
         })
         .collect();
-    chk!("repeated keys use one finger", repeated.is_empty(), if repeated.is_empty() { "26/26".into() } else { format!("bad: {:?}", repeated) });
+    chk!(
+        "repeated keys use one finger",
+        repeated.is_empty(),
+        if repeated.is_empty() {
+            "26/26".into()
+        } else {
+            format!("bad: {:?}", repeated)
+        }
+    );
     chk!("O->L has L index", top["OL"] == "MI", top["OL"].clone());
-    chk!("K-J-M = ring/middle/index", top["KJM"] == "RMI", top["KJM"].clone());
-    chk!("F-J-M = index/middle/index", top["FJM"] == "IMI", top["FJM"].clone());
+    chk!(
+        "K-J-M = ring/middle/index",
+        top["KJM"] == "RMI",
+        top["KJM"].clone()
+    );
+    chk!(
+        "F-J-M = index/middle/index",
+        top["FJM"] == "IMI",
+        top["FJM"].clone()
+    );
     let lo = probe_rows(ctx, &["L", "O"]);
-    let best_i = lo.iter().filter(|(_, f)| f.starts_with('I')).map(|(c, _)| *c).fold(f64::INFINITY, f64::min);
-    chk!("L->O keeps L index within 0.2", best_i < lo[0].0 + 0.2, format!("top {} / best L-index {:.3} vs {:.3}", lo[0].1, best_i, lo[0].0));
-    chk!("M-J-I first two strokes index", top["MJI"][..2] == *"II", top["MJI"].clone());
-    chk!("H-T-J blocks J middle", top["HTJ"].chars().nth(2) != Some('M'), top["HTJ"].clone());
-    chk!("I-U-J blocks J middle", top["IUJ"].chars().nth(2) != Some('M'), top["IUJ"].clone());
-    chk!("V-G-J forces V/G index", top["VGJ"][..2] == *"II", top["VGJ"].clone());
-    chk!("C-O-R endpoints index", top["COR"].chars().next() == Some('I') && top["COR"].chars().nth(2) == Some('I'), top["COR"].clone());
-    chk!("R-O-C endpoints index", top["ROC"].chars().next() == Some('I') && top["ROC"].chars().nth(2) == Some('I'), top["ROC"].clone());
-    let lg: Vec<&str> = KEYS.iter().filter(|&&k| k != "L" && k != "O").filter(|&&k| best(ctx, &["L", k]).starts_with('I')).cloned().collect();
-    chk!("L index only with O key (bigram)", lg.is_empty(), if lg.is_empty() { "all non-O neighbours".into() } else { format!("bad: {:?}", lg) });
+    let best_i = lo
+        .iter()
+        .filter(|(_, f)| f.starts_with('I'))
+        .map(|(c, _)| *c)
+        .fold(f64::INFINITY, f64::min);
+    chk!(
+        "L->O keeps L index within 0.2",
+        best_i < lo[0].0 + 0.2,
+        format!(
+            "top {} / best L-index {:.3} vs {:.3}",
+            lo[0].1, best_i, lo[0].0
+        )
+    );
+    chk!(
+        "M-J-I first two strokes index",
+        top["MJI"][..2] == *"II",
+        top["MJI"].clone()
+    );
+    chk!(
+        "H-T-J blocks J middle",
+        top["HTJ"].chars().nth(2) != Some('M'),
+        top["HTJ"].clone()
+    );
+    chk!(
+        "I-U-J blocks J middle",
+        top["IUJ"].chars().nth(2) != Some('M'),
+        top["IUJ"].clone()
+    );
+    chk!(
+        "V-G-J forces V/G index",
+        top["VGJ"][..2] == *"II",
+        top["VGJ"].clone()
+    );
+    chk!(
+        "C-O-R endpoints index",
+        top["COR"].starts_with('I') && top["COR"].chars().nth(2) == Some('I'),
+        top["COR"].clone()
+    );
+    chk!(
+        "R-O-C endpoints index",
+        top["ROC"].starts_with('I') && top["ROC"].chars().nth(2) == Some('I'),
+        top["ROC"].clone()
+    );
+    let lg: Vec<&str> = KEYS
+        .iter()
+        .filter(|&&k| k != "L" && k != "O")
+        .filter(|&&k| best(ctx, &["L", k]).starts_with('I'))
+        .cloned()
+        .collect();
+    chk!(
+        "L index only with O key (bigram)",
+        lg.is_empty(),
+        if lg.is_empty() {
+            "all non-O neighbours".into()
+        } else {
+            format!("bad: {:?}", lg)
+        }
+    );
     out!(String::new());
     out!("=== 2026-10-27 answers ===".to_string());
-    chk!("W->D ring/middle (th)", top["WD"] == "RM", top["WD"].clone());
+    chk!(
+        "W->D ring/middle (th)",
+        top["WD"] == "RM",
+        top["WD"].clone()
+    );
     let dw = probe_rows(ctx, &["D", "W"]);
-    chk!("D->W middle/ring is cheaper than W->D", dw[0].0 < probe_rows(ctx, &["W", "D"])[0].0 && top["DW"] == "MR", top["DW"].clone());
-    chk!("A->S pinky/ring (2026-10-29 correction)", top["AS"] == "PR", top["AS"].clone());
+    chk!(
+        "D->W middle/ring is cheaper than W->D",
+        dw[0].0 < probe_rows(ctx, &["W", "D"])[0].0 && top["DW"] == "MR",
+        top["DW"].clone()
+    );
+    chk!(
+        "A->S pinky/ring (2026-10-29 correction)",
+        top["AS"] == "PR",
+        top["AS"].clone()
+    );
     chk!("S->A ring/pinky", top["SA"] == "RP", top["SA"].clone());
     let xa = probe_rows(ctx, &["X", "A"]);
     let xa_map: HashMap<String, f64> = xa.iter().map(|(c, f)| (f.clone(), *c)).collect();
-    chk!("X->A index/ring first and cheaper than middle/ring; ring X + pinky A impossible", top["XA"] == "IR" && top["AX"] == "RI" && xa_map["IR"] < xa_map["MR"] && xa.iter().filter(|(_, f)| f == "RP").map(|(c, _)| *c).fold(f64::INFINITY, f64::min) >= 8.0, format!("{} {}", top["XA"], top["AX"]));
-    chk!("Q-S = middle/index, S-Q = index/middle", top["QS"] == "MI" && top["SQ"] == "IM", format!("{} {}", top["QS"], top["SQ"]));
-    chk!("O->K ring/middle, K->O middle/ring", top["OK"] == "RM" && top["KO"] == "MR", format!("{} {}", top["OK"], top["KO"]));
-    chk!("K->; middle/pinky, ;->K pinky/middle", top["K;"] == "MP" && top[";K"] == "PM", format!("{} {}", top["K;"], top[";K"]));
-    chk!("A->E pinky/middle, E->A middle/pinky", top["AE"] == "PM" && top["EA"] == "MP", format!("{} {}", top["AE"], top["EA"]));
+    chk!(
+        "X->A index/ring first and cheaper than middle/ring; ring X + pinky A impossible",
+        top["XA"] == "IR"
+            && top["AX"] == "RI"
+            && xa_map["IR"] < xa_map["MR"]
+            && xa
+                .iter()
+                .filter(|(_, f)| f == "RP")
+                .map(|(c, _)| *c)
+                .fold(f64::INFINITY, f64::min)
+                >= 8.0,
+        format!("{} {}", top["XA"], top["AX"])
+    );
+    chk!(
+        "Q-S = middle/index, S-Q = index/middle",
+        top["QS"] == "MI" && top["SQ"] == "IM",
+        format!("{} {}", top["QS"], top["SQ"])
+    );
+    chk!(
+        "O->K ring/middle, K->O middle/ring",
+        top["OK"] == "RM" && top["KO"] == "MR",
+        format!("{} {}", top["OK"], top["KO"])
+    );
+    chk!(
+        "K->; middle/pinky, ;->K pinky/middle",
+        top["K;"] == "MP" && top[";K"] == "PM",
+        format!("{} {}", top["K;"], top[";K"])
+    );
+    chk!(
+        "A->E pinky/middle, E->A middle/pinky",
+        top["AE"] == "PM" && top["EA"] == "MP",
+        format!("{} {}", top["AE"], top["EA"])
+    );
     let rest = [
         [("A", "P"), ("W", "R"), ("E", "M"), ("F", "I")],
         [(";", "P"), ("O", "R"), ("I", "M"), ("J", "I")],
@@ -574,15 +817,64 @@ pub fn collect(
             }
         }
     }
-    chk!("defaults first: both keys at rest -> rest fingers (24 pairs)", bad_rest.is_empty(), if bad_rest.is_empty() { "24/24".into() } else { format!("bad: {:?}", bad_rest) });
-    chk!("U->J, U->H middle on U", top["UJ"] == "MI" && top["UH"] == "MI", format!("{} {}", top["UJ"], top["UH"]));
-    chk!("X->W and S->W index/middle", top["XW"] == "IM" && top["SW"] == "IM", format!("{} {}", top["XW"], top["SW"]));
+    chk!(
+        "defaults first: both keys at rest -> rest fingers (24 pairs)",
+        bad_rest.is_empty(),
+        if bad_rest.is_empty() {
+            "24/24".into()
+        } else {
+            format!("bad: {:?}", bad_rest)
+        }
+    );
+    chk!(
+        "U->J, U->H middle on U",
+        top["UJ"] == "MI" && top["UH"] == "MI",
+        format!("{} {}", top["UJ"], top["UH"])
+    );
+    chk!(
+        "X->W and S->W index/middle",
+        top["XW"] == "IM" && top["SW"] == "IM",
+        format!("{} {}", top["XW"], top["SW"])
+    );
     chk!("wxf = MII", top["WXF"] == "MII", top["WXF"].clone());
-    chk!("fxw does not use the M/R full-span scissor", top["FXW"] != "IMR", top["FXW"].clone());
-    chk!("T->G middle/index, G->T index/middle", top["TG"] == "MI" && top["GT"] == "IM", format!("{} {}", top["TG"], top["GT"]));
-    chk!("YU and RT/TR ring-middle / middle-ring on both hands", top["YU"] == "MR" && top["UY"] == "RM" && best(ctx, &["R", "T"]) == "RM" && best(ctx, &["T", "R"]) == "MR", format!("{} {} {} {}", top["YU"], top["UY"], best(ctx, &["R", "T"]), best(ctx, &["T", "R"])));
-    chk!("D->A middle/pinky, A->D pinky/middle", top["DA"] == "MP" && top["AD"] == "PM", format!("{} {}", top["DA"], top["AD"]));
-    chk!("F->S index/ring, S->F ring/index; O->J ring/index, J->O index/ring", top["FS"] == "IR" && top["SF"] == "RI" && top["OJ"] == "RI" && top["JO"] == "IR", ["FS", "SF", "OJ", "JO"].iter().map(|k| top[*k].clone()).collect::<Vec<_>>().join(" "));
+    chk!(
+        "fxw does not use the M/R full-span scissor",
+        top["FXW"] != "IMR",
+        top["FXW"].clone()
+    );
+    chk!(
+        "T->G middle/index, G->T index/middle",
+        top["TG"] == "MI" && top["GT"] == "IM",
+        format!("{} {}", top["TG"], top["GT"])
+    );
+    chk!(
+        "YU and RT/TR ring-middle / middle-ring on both hands",
+        top["YU"] == "MR"
+            && top["UY"] == "RM"
+            && best(ctx, &["R", "T"]) == "RM"
+            && best(ctx, &["T", "R"]) == "MR",
+        format!(
+            "{} {} {} {}",
+            top["YU"],
+            top["UY"],
+            best(ctx, &["R", "T"]),
+            best(ctx, &["T", "R"])
+        )
+    );
+    chk!(
+        "D->A middle/pinky, A->D pinky/middle",
+        top["DA"] == "MP" && top["AD"] == "PM",
+        format!("{} {}", top["DA"], top["AD"])
+    );
+    chk!(
+        "F->S index/ring, S->F ring/index; O->J ring/index, J->O index/ring",
+        top["FS"] == "IR" && top["SF"] == "RI" && top["OJ"] == "RI" && top["JO"] == "IR",
+        ["FS", "SF", "OJ", "JO"]
+            .iter()
+            .map(|k| top[*k].clone())
+            .collect::<Vec<_>>()
+            .join(" ")
+    );
     chk!("X->A order: index/ring < middle/ring < index/middle < any pinky fingering; index/pinky never", xa_map.get("IP").copied().unwrap_or(99.0) >= 8.0 && xa_map["IR"] < xa_map["MR"] && xa_map["MR"] < xa_map["IM"] && xa_map["IM"] < xa_map["MP"], format!("IR {:.2} MR {:.2} IM {:.2} MP {:.2} IP {:.2}", xa_map["IR"], xa_map["MR"], xa_map["IM"], xa_map["MP"], xa_map.get("IP").copied().unwrap_or(99.0)));
     let mut ipbad = Vec::new();
     for a in KEYS {
@@ -603,14 +895,50 @@ pub fn collect(
             }
         }
     }
-    chk!("index + pinky needs >= 1.9 key widths between the keys (pattern)", ipbad.is_empty(), if ipbad.is_empty() { "all such pairs impossible".into() } else { format!("bad: {:?}", &ipbad[..ipbad.len().min(5)]) });
-    chk!("2026-10-29: ;->U PM, U->; MP; T->F IM, F->T MI; ;->L PR, L->; RP", best(ctx, &[";", "U"]) == "PM" && best(ctx, &["U", ";"]) == "MP" && best(ctx, &["T", "F"]) == "IM" && best(ctx, &["F", "T"]) == "MI" && best(ctx, &[";", "L"]) == "PR" && best(ctx, &["L", ";"]) == "RP", [(";", "U"), ("U", ";"), ("T", "F"), ("F", "T"), (";", "L"), ("L", ";")].iter().map(|(a, b)| best(ctx, &[a, b])).collect::<Vec<_>>().join(" "));
+    chk!(
+        "index + pinky needs >= 1.9 key widths between the keys (pattern)",
+        ipbad.is_empty(),
+        if ipbad.is_empty() {
+            "all such pairs impossible".into()
+        } else {
+            format!("bad: {:?}", &ipbad[..ipbad.len().min(5)])
+        }
+    );
+    chk!(
+        "2026-10-29: ;->U PM, U->; MP; T->F IM, F->T MI; ;->L PR, L->; RP",
+        best(ctx, &[";", "U"]) == "PM"
+            && best(ctx, &["U", ";"]) == "MP"
+            && best(ctx, &["T", "F"]) == "IM"
+            && best(ctx, &["F", "T"]) == "MI"
+            && best(ctx, &[";", "L"]) == "PR"
+            && best(ctx, &["L", ";"]) == "RP",
+        [
+            (";", "U"),
+            ("U", ";"),
+            ("T", "F"),
+            ("F", "T"),
+            (";", "L"),
+            ("L", ";")
+        ]
+        .iter()
+        .map(|(a, b)| best(ctx, &[a, b]))
+        .collect::<Vec<_>>()
+        .join(" ")
+    );
     let cu = probe_rows(ctx, &[";", "U"]);
     let cu2 = probe_rows(ctx, &["U", ";"]);
     let cu_map: HashMap<String, f64> = cu.iter().map(|(c, f)| (f.clone(), *c)).collect();
     let cu2_map: HashMap<String, f64> = cu2.iter().map(|(c, f)| (f.clone(), *c)).collect();
-    chk!(";-U with ring + middle is borderline impossible (>= 5)", cu_map["RM"] >= 5.0 && cu2_map["MR"] >= 5.0, format!("{:.2} {:.2}", cu_map["RM"], cu2_map["MR"]));
-    chk!("A->S PR and the ring/pinky pair is not scissor-penalised away (S->A RP)", best(ctx, &["A", "S"]) == "PR" && best(ctx, &["S", "A"]) == "RP", format!("{} {}", best(ctx, &["A", "S"]), best(ctx, &["S", "A"])));
+    chk!(
+        ";-U with ring + middle is borderline impossible (>= 5)",
+        cu_map["RM"] >= 5.0 && cu2_map["MR"] >= 5.0,
+        format!("{:.2} {:.2}", cu_map["RM"], cu2_map["MR"])
+    );
+    chk!(
+        "A->S PR and the ring/pinky pair is not scissor-penalised away (S->A RP)",
+        best(ctx, &["A", "S"]) == "PR" && best(ctx, &["S", "A"]) == "RP",
+        format!("{} {}", best(ctx, &["A", "S"]), best(ctx, &["S", "A"]))
+    );
     let mut ke_bad = Vec::new();
     for (i, k) in KEYS.iter().enumerate() {
         let e = &ctx.tables.model.e[i * NF..(i + 1) * NF];
@@ -626,7 +954,15 @@ pub fn collect(
             ke_bad.push(*k);
         }
     }
-    chk!("isolated key -> your default fingermap (all 30 keys + ;)", ke_bad.is_empty(), if ke_bad.is_empty() { "all keys".into() } else { format!("bad: {:?}", ke_bad) });
+    chk!(
+        "isolated key -> your default fingermap (all 30 keys + ;)",
+        ke_bad.is_empty(),
+        if ke_bad.is_empty() {
+            "all keys".into()
+        } else {
+            format!("bad: {:?}", ke_bad)
+        }
+    );
     let mut asym = Vec::new();
     for a in KEYS {
         for b in KEYS {
@@ -652,8 +988,24 @@ pub fn collect(
             }
         }
     }
-    chk!("A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)", asym.is_empty(), if asym.is_empty() { "symmetric".into() } else { format!("{} asymmetric, e.g. {:?}", asym.len(), &asym[..asym.len().min(3)]) });
-    out!(format!("probes+checks: {}/{}", checks.iter().filter(|(_, ok, _)| *ok).count(), checks.len()));
+    chk!(
+        "A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)",
+        asym.is_empty(),
+        if asym.is_empty() {
+            "symmetric".into()
+        } else {
+            format!(
+                "{} asymmetric, e.g. {:?}",
+                asym.len(),
+                &asym[..asym.len().min(3)]
+            )
+        }
+    );
+    out!(format!(
+        "probes+checks: {}/{}",
+        checks.iter().filter(|(_, ok, _)| *ok).count(),
+        checks.len()
+    ));
 
     let primary_entries: Vec<(String, String)> = if primary_corpus.is_empty() {
         ctx.cfg
@@ -686,16 +1038,19 @@ pub fn collect(
             .collect()
     };
     let mut corpus_info = serde_json::Map::new();
-    for (label, entries) in [("primary", &primary_entries), ("secondary", &secondary_entries)] {
+    for (label, entries) in [
+        ("primary", &primary_entries),
+        ("secondary", &secondary_entries),
+    ] {
         for (name, path) in entries {
             let corpus = crate::corpus::load_many(&[std::path::PathBuf::from(path)])?;
             corpus_info.insert(
                 path.clone(),
                 json!({
                     "role": label,
-                    "letters": corpus.total_letters,
-                    "bigrams": corpus.total_bigrams,
-                    "trigrams": corpus.total_trigrams,
+                    "letters": corpus.total_letters.round_ties_even() as i64,
+                    "bigrams": corpus.total_bigrams.round_ties_even() as i64,
+                    "trigrams": corpus.total_trigrams.round_ties_even() as i64,
                 }),
             );
             out!(format!(
@@ -719,7 +1074,12 @@ pub fn collect(
         if ok {
             passed += 1;
         }
-        out!(format!("  [{}] {:<16} {}", if ok { "PASS" } else { "FAIL" }, r.id, text));
+        out!(format!(
+            "  [{}] {:<16} {}",
+            if ok { "PASS" } else { "FAIL" },
+            r.id,
+            text
+        ));
     }
     out!(format!("rulings: {}/{}", passed, rulings.len()));
     let mut anchors = Vec::new();
@@ -746,7 +1106,7 @@ fn fmt_thousands(n: u64) -> String {
     let s = n.to_string();
     let mut out = String::new();
     for (i, c) in s.chars().enumerate() {
-        if i > 0 && (s.len() - i) % 3 == 0 {
+        if i > 0 && (s.len() - i).is_multiple_of(3) {
             out.push(',');
         }
         out.push(c);
@@ -781,7 +1141,13 @@ fn anchor_loss(ctx: &Context) -> Result<Option<(usize, usize)>> {
             continue;
         }
         total += 1;
-        let c = pt(ctx, key(&a.to_string()), finger(&fa.to_string()), key(&b.to_string()), finger(&fb.to_string()));
+        let c = pt(
+            ctx,
+            key(&a.to_string()),
+            finger(&fa.to_string()),
+            key(&b.to_string()),
+            finger(&fb.to_string()),
+        );
         let expected = row[4].as_f64().unwrap_or(0.0);
         let d = if c.is_finite() { c - expected } else { 10.0 };
         if (d.abs() - 0.25).max(0.0) > 0.0 {
@@ -803,10 +1169,18 @@ pub struct AuditArgs<'a> {
 
 pub fn run(args: AuditArgs) -> Result<()> {
     let ctx = Context::load(args.config_file)?;
-    let cfg_name = args.config_name.unwrap_or("A:all");
+    let cfg_label = match args.config_name {
+        Some(name) => name.to_string(),
+        None => args
+            .config_file
+            .map(Path::to_path_buf)
+            .unwrap_or_else(paths::config_file)
+            .display()
+            .to_string(),
+    };
     let outcome = collect(
         &ctx,
-        cfg_name,
+        &cfg_label,
         args.primary_corpus,
         args.secondary_corpus,
         args.rulings,
@@ -815,10 +1189,11 @@ pub fn run(args: AuditArgs) -> Result<()> {
     let out_path = args
         .out
         .map(Path::to_path_buf)
-        .unwrap_or_else(|| paths::result_path("audit", Some(cfg_name), ""));
-    let out_json = args.out_json.map(Path::to_path_buf).unwrap_or_else(|| {
-        paths::result_path("audit", Some(cfg_name), ".json")
-    });
+        .unwrap_or_else(|| paths::result_path("audit", args.config_name, ".txt"));
+    let out_json = args
+        .out_json
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| paths::result_path("audit", args.config_name, ".json"));
     if let Some(parent) = out_path.parent() {
         std::fs::create_dir_all(parent)?;
     }
@@ -827,7 +1202,7 @@ pub fn run(args: AuditArgs) -> Result<()> {
         std::fs::create_dir_all(parent)?;
     }
     let payload = json!({
-        "config": cfg_name,
+        "config": args.config_name,
         "probe_checks": {"passed": outcome.probes_passed, "total": outcome.probes_total},
         "rulings": {"passed": outcome.rulings_passed, "total": outcome.rulings_total},
         "corpora": outcome.corpora,

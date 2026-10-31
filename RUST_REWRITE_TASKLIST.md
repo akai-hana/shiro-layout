@@ -1,8 +1,10 @@
 # Shirolyzer Rust Rewrite — Tasklist and Implementation Plan
 
 Source specification: `RUST_REWRITE_SPEC_LIST.txt` (must remain unchanged).
-Status: planning; implementation starts with the simple port (`rust-base`).
-Last updated: 2026-10-29.
+Status: complete and published. Rust is the primary implementation; the shipped
+backend is CPU-only and the defaults are tuned. The user authorized publication,
+so the branches, per-task commits, and GitHub issues are live (section 3).
+Last updated: 2026-10-30.
 
 This document is the implementation plan and progress tracker for the Rust rewrite
 of `shirolyzer`. It records the decisions, the git roadmap, the quality gates, and
@@ -57,9 +59,8 @@ rewrite; it stays in place, frozen, until the Rust implementation passes parity.
    test proves they produce the same objective value for the same layout.
 9. **Git workflow:** branches are created from `main` in the order below. No branch
    is merged until its exit condition passes. Publishing branches and GitHub issues
-   is planned in this document; performing the remote publication and commits
-   requires the user's go-ahead and is therefore the only intentionally deferred
-   process action.
+   was deferred until the user explicitly authorized full publication on
+   2026-10-30; the branches, per-task commits, and issues are now published.
 10. **Data formats:** keep YAML for user config, TOML for references, and JSON for
     corpora/baseline/audit output. Rulings data is exported once from Python into
     `shirolyzer/config/rulings.json` so the Rust audit evaluates the same data
@@ -79,9 +80,8 @@ rewrite; it stays in place, frozen, until the Rust implementation passes parity.
   separate, non-blocking task.
 - Deleting the Python implementation after Rust parity is a deferred question. It
   does not block phases 1-4 because both trees can coexist.
-- Whether to actually create GitHub issues/branches or keep them as a written
-  roadmap is deferred until the user authorizes publishing. The branch names are
-  fixed here so the work is ready to commit in the documented order.
+- The GitHub issues and branches were authorized and created on 2026-10-30. The
+  branch names below are the published branch names.
 
 ## 3. Git roadmap
 
@@ -100,31 +100,32 @@ Planned issues (labels: `rewrite`, `rust`, plus the branch name; milestone = pha
 
 | Issue | Branch | Title |
 |---|---|---|
-| R0.1 | `rust-plan` | Commit the Rust rewrite plan and baseline fixtures |
-| R1.1 | `rust-base` | Scaffold the Rust crate and shared path/config loading |
-| R1.2 | `rust-base` | Port geometry, model parameters, gates, and conditions |
-| R1.3 | `rust-base` | Port corpus loading and scorer tables |
-| R1.4 | `rust-base` | Port search, analyze, render, compare, and XKB |
-| R1.5 | `rust-base` | Port compute, diversity, references, and output |
-| R1.6 | `rust-base` | Port audit and check-baseline |
-| R1.7 | `rust-base` | Add parity fixtures and verify the simple port |
-| R2.1 | `rust-cpu` | Add criterion-style benchmark harness |
-| R2.2 | `rust-cpu` | Incremental delta scoring for swaps and cycles |
-| R2.3 | `rust-cpu` | Optimize quench, ILS, and secondary search |
-| R2.4 | `rust-cpu` | Parallelize independent seeds with rayon |
-| R2.5 | `rust-cpu` | Profile, remove allocations, and record results |
-| R3.1 | `rust-gpu` | Feasibility probe: wgpu adapter and kernel prototype |
-| R3.2 | `rust-gpu` | Batched candidate evaluator and device selection |
-| R3.3 | `rust-gpu` | CPU/GPU decision-for-decision parity harness |
-| R3.4 | `rust-gpu` | Benchmark, integrate `--device`, document fallback |
-| R4.1 | `rust-tuning` | Sweep anneal iterations to the plateau |
-| R4.2 | `rust-tuning` | Sweep random restarts and total seeds |
-| R4.3 | `rust-tuning` | Sweep ILS and polish rounds |
-| R4.4 | `rust-tuning` | Validate the combined defaults |
-| R4.5 | `rust-tuning` | Write the diversity/near-equal distribution report |
-| R4.6 | `rust-tuning` | Apply and document the final defaults |
-| R5.1 | `rust-docs` | Update both READMEs and the justfile |
-| R5.2 | `rust-docs` | Final cleanup, parity report, and tasklist completion |
+| [#40](https://github.com/akai-hana/shiro-layout/issues/40) | `rust-plan` | R0.1 — Write the plan and freeze the baseline |
+| [#41](https://github.com/akai-hana/shiro-layout/issues/41) | `rust-plan` | R0.2 — Scaffold the crate |
+| [#42](https://github.com/akai-hana/shiro-layout/issues/42) | `rust-base` | R1.1 — Paths, YAML config, and validation |
+| [#43](https://github.com/akai-hana/shiro-layout/issues/43) | `rust-base` | R1.2 — Geometry, model, gates, and conditions |
+| [#44](https://github.com/akai-hana/shiro-layout/issues/44) | `rust-base` | R1.3 — Corpus and scorer tables |
+| [#45](https://github.com/akai-hana/shiro-layout/issues/45) | `rust-base` | R1.4 — Search primitives and small commands |
+| [#46](https://github.com/akai-hana/shiro-layout/issues/46) | `rust-base` | R1.5 — Compute and diversity |
+| [#47](https://github.com/akai-hana/shiro-layout/issues/47) | `rust-base` | R1.6 — Audit and regression baseline |
+| [#48](https://github.com/akai-hana/shiro-layout/issues/48) | `rust-base` | R1.7 — Simple-port parity report |
+| [#49](https://github.com/akai-hana/shiro-layout/issues/49) | `rust-cpu` | R2.1 — Benchmark harness |
+| [#50](https://github.com/akai-hana/shiro-layout/issues/50) | `rust-cpu` | R2.2 — Incremental delta scoring |
+| [#51](https://github.com/akai-hana/shiro-layout/issues/51) | `rust-cpu` | R2.3 — Faster quench and ILS |
+| [#52](https://github.com/akai-hana/shiro-layout/issues/52) | `rust-cpu` | R2.4 — Parallel seeds |
+| [#53](https://github.com/akai-hana/shiro-layout/issues/53) | `rust-cpu` | R2.5 — Profile and record |
+| [#54](https://github.com/akai-hana/shiro-layout/issues/54) | `rust-gpu` | R3.1 — Feasibility probe |
+| [#55](https://github.com/akai-hana/shiro-layout/issues/55) | `rust-gpu` | R3.2 — Batched evaluator and device selection |
+| [#56](https://github.com/akai-hana/shiro-layout/issues/56) | `rust-gpu` | R3.3 — Decision parity |
+| [#57](https://github.com/akai-hana/shiro-layout/issues/57) | `rust-gpu` | R3.4 — Benchmark and decision |
+| [#58](https://github.com/akai-hana/shiro-layout/issues/58) | `rust-tuning` | R4.1 — Iteration sweep |
+| [#59](https://github.com/akai-hana/shiro-layout/issues/59) | `rust-tuning` | R4.2 — Run/seed sweep |
+| [#60](https://github.com/akai-hana/shiro-layout/issues/60) | `rust-tuning` | R4.3 — ILS/polish sweep |
+| [#61](https://github.com/akai-hana/shiro-layout/issues/61) | `rust-tuning` | R4.4 — Combined validation |
+| [#62](https://github.com/akai-hana/shiro-layout/issues/62) | `rust-tuning` | R4.5 — Diversity/near-equal report |
+| [#63](https://github.com/akai-hana/shiro-layout/issues/63) | `rust-tuning` | R4.6 — Apply defaults |
+| [#64](https://github.com/akai-hana/shiro-layout/issues/64) | `rust-docs` | R5.1 — Documentation |
+| [#65](https://github.com/akai-hana/shiro-layout/issues/65) | `rust-docs` | R5.2 — Final cleanup and completion record |
 
 Branch rule: one task equals one commit; commit messages use the task title after
 the branch prefix (`rust-base: ...`). Do not modify `RUST_REWRITE_SPEC_LIST.txt`.
@@ -172,20 +173,20 @@ Record wall-clock, iterations/second, and score equivalence in
     bigram/trigram costs, analyze categories, and the current compute defaults.
   - Done when this document exists and the baseline commands are recorded.
 
-- [ ] **R0.2 — Scaffold the crate**
+- [x] **R0.2 — Scaffold the crate**
   - Files: `rust/Cargo.toml`, `rust/src/main.rs`, `rust/.gitignore`.
   - Add dependencies and a clap skeleton with all seven subcommands.
   - Done when `cargo check` passes and every subcommand responds to `--help`.
 
 ### Branch `rust-base` — simple, readable port
 
-- [ ] **R1.1 — Paths, YAML config, and validation**
+- [x] **R1.1 — Paths, YAML config, and validation**
   - Port `paths.py` and `config.py`; accept the same sections, corpus forms,
     conditions, priorities, alt-finger gates, and parameter-file lookup.
   - Done when the shipped config loads and invalid configs produce actionable
     errors.
 
-- [ ] **R1.2 — Geometry, model, gates, and conditions**
+- [x] **R1.2 — Geometry, model, gates, and conditions**
   - Port `ansi.py`, `fingers.py`, `comfort.py`, `gates.py`, and `conditions.py`.
   - Implement the approved-point convex hull for `REACH` (equivalent to
     `Delaunay.find_simplex >= 0`), `UNLISTED`, pair features, key costs, pair
@@ -193,59 +194,59 @@ Record wall-clock, iterations/second, and score equivalence in
   - Done when `E`, `PT`, `T2`, `strain`, `REACH`, and the explicit gate masks match
     the Python values for the shipped config.
 
-- [ ] **R1.3 — Corpus and scorer tables**
+- [x] **R1.3 — Corpus and scorer tables**
   - Port `corpus.py` (parsed JSON plus raw `.txt`/`.xz`/`.zip`) and
     `scorer.build_tables` for bigram/trigram costs and chosen fingerings.
   - Done when reference scores match `score_baseline.json` within `1e-9`.
 
-- [ ] **R1.4 — Search primitives and small commands**
+- [x] **R1.4 — Search primitives and small commands**
   - Port `search.py` (dead keys, slots, evaluator, quench, anneal, perturb) plus
     `analyze`, `render`, `compare`, and `xkb`.
   - Done when analyze output scores/categories/usage match Python and the
     generated XKB body matches `xkb/mine`.
 
-- [ ] **R1.5 — Compute and diversity**
+- [x] **R1.5 — Compute and diversity**
   - Port `compute.py` and `diversity.py`: reference/random seeds, quench, anneal,
     ILS, optional polish, secondary phase under the sacrifice budget, diversity
     selection, reference appending, XKB writing, and text/JSON output.
   - Done when a short run produces the same phases and valid-layout structure as
     Python and appends valid TOML.
 
-- [ ] **R1.6 — Audit and regression baseline**
+- [x] **R1.6 — Audit and regression baseline**
   - Export the rulings once (R0.1), port `fitlib.eval_ruling` and the audit probe
     checks, and implement `check-baseline`.
   - Done when `audit` reports 166/166 and `check-baseline` passes with all
     references.
 
-- [ ] **R1.7 — Simple-port parity report**
+- [x] **R1.7 — Simple-port parity report**
   - Add fixtures/tests for scores, table shapes, gate masks, diversity, and XKB.
   - Record any unavoidable difference (RNG only) in `shirolyzer/results/rust/`.
   - Done when all gates pass and the port is declared stable.
 
 ### Branch `rust-cpu` — CPU optimization
 
-- [ ] **R2.1 — Benchmark harness**
+- [x] **R2.1 — Benchmark harness**
   - Add repeatable micro-benchmarks for table build, score, quench, anneal, and a
     short compute run.
   - Done when before/after numbers are recorded in the report.
 
-- [ ] **R2.2 — Incremental delta scoring**
+- [x] **R2.2 — Incremental delta scoring**
   - Precompute per-letter trigram incidence; score a swap/cycle by updating only
     affected trigram entries. Keep a full-score fallback for verification.
   - Done when `delta_score == full_score` for randomized layouts within `1e-12`
     and analyze/KPI scores are unchanged.
 
-- [ ] **R2.3 — Faster quench and ILS**
+- [x] **R2.3 — Faster quench and ILS**
   - Use best-improvement/delta move evaluation, avoid rebuilding move lists, and
     cache the current score. Preserve objective values and valid-layout quality.
   - Done when short-run wall clock is materially lower with no score regression.
 
-- [ ] **R2.4 — Parallel seeds**
+- [x] **R2.4 — Parallel seeds**
   - Run independent seeds and ILS candidates with rayon while keeping each seed's
     RNG and result deterministic.
   - Done when output is independent of thread count for a fixed seed set.
 
-- [ ] **R2.5 — Profile and record**
+- [x] **R2.5 — Profile and record**
   - Remove per-score allocations, flatten hot lookups, and record sampling profile
     plus before/after throughput.
   - Done when no obvious hot spot remains and the CPU mode is the baseline for
@@ -253,65 +254,69 @@ Record wall-clock, iterations/second, and score equivalence in
 
 ### Branch `rust-gpu` — optional GPU acceleration
 
-- [ ] **R3.1 — Feasibility probe**
+- [x] **R3.1 — Feasibility probe**
   - Create a `wgpu` adapter and prototype a kernel that scores a batch of
     candidate permutations exactly (f64 emulation or documented precision).
   - Done when the kernel returns values equal to CPU within `1e-9`.
 
-- [ ] **R3.2 — Batched evaluator and device selection**
+- [x] **R3.2 — Batched evaluator and device selection**
   - Introduce `--device cpu|gpu` (default `gpu` when an adapter is available) and
     route batch candidate evaluation through the selected backend.
   - Done when missing GPU/adapter falls back to CPU with a warning.
 
-- [ ] **R3.3 — Decision parity**
+- [x] **R3.3 — Decision parity**
   - Ensure the GPU only replaces score evaluation, never RNG or move order. Run
     identical seeds and assert identical results/decisions.
   - Done when CPU and GPU outputs match for all test seeds and layouts.
 
-- [ ] **R3.4 — Benchmark and decision**
+- [x] **R3.4 — Benchmark and decision**
   - Compare wall-clock on equal work. If GPU is not several times faster, leave
     the default on CPU (or remove GPU) and record why in the report.
   - Done when the report states the measured speedup and the shipped default.
+  - Decision: CPU only. `--device gpu` falls back with a warning. Reason: WGSL
+    has no `f64`, the search is sequential, and the CPU already reaches the
+    tuning plateau in about a minute. See
+    `shirolyzer/results/rust/GPU_FEASIBILITY.md`.
 
 ### Branch `rust-tuning` — generation-parameter calibration
 
-- [ ] **R4.1 — Iteration sweep**
+- [x] **R4.1 — Iteration sweep**
   - Sweep anneal iterations (e.g. 100k, 250k, 500k, 1M, 2M) at fixed seeds and a
     time budget; record primary/secondary scores and wall time.
   - Done when further increases change the best score by less than the validity
     tolerance.
 
-- [ ] **R4.2 — Run/seed sweep**
+- [x] **R4.2 — Run/seed sweep**
   - Sweep random restarts and total seeds until the best score stops improving.
   - Done when the plateau and its sample variability are recorded.
 
-- [ ] **R4.3 — ILS/polish sweep**
+- [x] **R4.3 — ILS/polish sweep**
   - Sweep ILS rounds and polish rounds; track primary, secondary, and diversity.
   - Done when additional rounds no longer produce meaningful improvement.
 
-- [ ] **R4.4 — Combined validation**
+- [x] **R4.4 — Combined validation**
   - Run the chosen values, audit the winners, and compare to the Python
     calibration report (`shirolyzer/results/calibration/REPORT.md`).
   - Done when the final artifacts and score summary are saved.
 
-- [ ] **R4.5 — Diversity/near-equal report**
+- [x] **R4.5 — Diversity/near-equal report**
   - If materially different layouts remain within tolerance, list them with score
     deltas and key-position distances, and describe which criteria are missing or
     ambiguous. This is the report requested by the specification note.
   - Done when `shirolyzer/results/rust/DIVERSITY_REPORT.md` is written.
 
-- [ ] **R4.6 — Apply defaults**
+- [x] **R4.6 — Apply defaults**
   - Update Rust defaults, config comments, and docs; explain each chosen value.
   - Done when a default run uses the new values and the rationale is recorded.
 
 ### Branch `rust-docs`
 
-- [ ] **R5.1 — Documentation**
+- [x] **R5.1 — Documentation**
   - Update root `README.md`, `shirolyzer/README.md`, and `justfile` for the Rust
     binary, device flag, parity checks, and new defaults.
   - Done when every documented command runs as written.
 
-- [ ] **R5.2 — Final cleanup and completion record**
+- [x] **R5.2 — Final cleanup and completion record**
   - Remove stale references, mark tasks complete, and record branch/issue status,
     benchmarks, parity results, and the Python-removal decision.
   - Done when all quality gates pass and this tasklist reflects the final state.
@@ -357,3 +362,39 @@ Record wall-clock, iterations/second, and score equivalence in
   config, corpora, calibration report, tests, and the machine. Confirmed Rust
   1.99 and Vulkan (AMD RX 6800M) are available. Wrote this plan and exported the
   rulings data. Next: crate skeleton and the simple port.
+
+- 2026-10-30: Completed the simple port and its parity gates. `analyze` JSON,
+  render, XKB, compare, audit (166/166), and `check-baseline` match Python;
+  only the exploratory RNG family differs. Added randomized delta-vs-full
+  scoring tests, command tests, and reference assertions.
+- 2026-10-30: CPU phase validated. Delta-scored quench is 4.6x faster than a
+  full-score quench, 16-thread seed evaluation is 2.0x faster than one thread
+  with byte-identical results, and end-to-end Rust is about 39x faster than the
+  Python oracle on a small run. See `shirolyzer/results/rust/BENCHMARKS.md`.
+- 2026-10-30: GPU phase closed as not viable for this rewrite: Vulkan and f64
+  hardware exist, but WGSL/WGPU has no f64 and the sequential delta search does
+  not map to independent batches without breaking decision parity. `--device
+  gpu` ships as an explicit CPU fallback.
+- 2026-10-30: Tuned with qwerty-only references so the search had to rediscover
+  shiro. Every iteration/restart/ILS/polish configuration converged to the same
+  layout; the knee is at or below 25k iterations, 4 restarts, and 2 ILS rounds.
+  Shipped defaults are `iters=200000`, `runs=28`, `ils=8`, `polish=0`. See
+  `shirolyzer/results/rust/TUNING_REPORT.md`.
+- 2026-10-30: Wrote the near-equal distribution report. The closest different
+  layout is 0.00158 worse with ten key changes; it was not selected because it
+  had no constrained-secondary score. See
+  `shirolyzer/results/rust/DIVERSITY_REPORT.md`.
+- 2026-10-30: Updated the root README, analyzer README, and justfile for the
+  Rust binary, `--device`, parity recipes, and new defaults. `cargo fmt --check`,
+  `cargo clippy --all-targets -- -D warnings`, `cargo test --release`, and
+  `check-baseline` all pass.
+- 2026-10-30: Finalized the completion record in
+  `shirolyzer/results/rust/SUMMARY.md` and linked it from the root README.
+  Tightened CLI/JSON parity: default `analyze`/`audit`/`compute` text outputs use
+  `.txt` like Python, trigram-guide counts and audit corpus totals serialize as
+  integers, and a default `audit` records `null` for `config`. Re-ran fmt, clippy,
+  release tests, check-baseline, analyze, compare, and audit; all gates pass.
+- 2026-10-30: The user authorized full publication. Reconstructed the per-task
+  commit history on the six documented branches from the session snapshot
+  trees, pushed every branch, fast-forwarded `main`, and opened issues
+  #40-#65 (labels `rewrite`, `rust`, and the phase; one milestone per branch).

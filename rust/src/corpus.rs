@@ -10,11 +10,7 @@ use unicode_normalization::char::is_combining_mark;
 use unicode_normalization::UnicodeNormalization;
 
 pub const SPACE_INDEX: usize = 26;
-const PARSED_FILES: [&str; 3] = [
-    "letter_freq.json",
-    "bigram_freq.json",
-    "trigram_freq.json",
-];
+const PARSED_FILES: [&str; 3] = ["letter_freq.json", "bigram_freq.json", "trigram_freq.json"];
 
 #[derive(Clone, Debug, Default)]
 pub struct Corpus {
@@ -90,7 +86,10 @@ impl Corpus {
         Self::new(
             self.letters.iter().map(|(k, v)| (*k, v * factor)).collect(),
             self.bigrams.iter().map(|(k, v)| (*k, v * factor)).collect(),
-            self.trigrams.iter().map(|(k, v)| (*k, v * factor)).collect(),
+            self.trigrams
+                .iter()
+                .map(|(k, v)| (*k, v * factor))
+                .collect(),
         )
     }
 
@@ -291,8 +290,8 @@ fn read_source(path: &Path) -> Result<String> {
             Ok(String::from_utf8_lossy(&output).into_owned())
         }
         "zip" => {
-            let file = File::open(path)
-                .with_context(|| format!("failed to open {}", path.display()))?;
+            let file =
+                File::open(path).with_context(|| format!("failed to open {}", path.display()))?;
             let mut archive = zip::ZipArchive::new(file)
                 .with_context(|| format!("invalid zip {}", path.display()))?;
             let name = (0..archive.len())

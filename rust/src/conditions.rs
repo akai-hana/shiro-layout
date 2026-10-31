@@ -19,7 +19,11 @@ pub struct Conditions {
 impl Conditions {
     pub fn from_config(cfg: &Config, geom: &Geometry) -> Self {
         let enabled = !cfg.conditions_are_default;
-        let rules = if enabled { cfg.conditions.clone() } else { Vec::new() };
+        let rules = if enabled {
+            cfg.conditions.clone()
+        } else {
+            Vec::new()
+        };
         let mut pair_denied = None;
         if enabled {
             let mut denied = vec![false; NK * NF * NK * NF];
@@ -55,7 +59,14 @@ impl Conditions {
         }
     }
 
-    pub fn matches_fingers(&self, cond: &Condition, hand_a: usize, fa: usize, hand_b: usize, fb: usize) -> bool {
+    pub fn matches_fingers(
+        &self,
+        cond: &Condition,
+        hand_a: usize,
+        fa: usize,
+        hand_b: usize,
+        fb: usize,
+    ) -> bool {
         let Some(fingers) = &cond.fingers else {
             return true;
         };
@@ -130,7 +141,14 @@ impl Conditions {
     }
 }
 
-pub fn allowed_pair(geom: &Geometry, rules: &[Condition], a: usize, fa: usize, b: usize, fb: usize) -> bool {
+pub fn allowed_pair(
+    geom: &Geometry,
+    rules: &[Condition],
+    a: usize,
+    fa: usize,
+    b: usize,
+    fb: usize,
+) -> bool {
     if geom.hand[a] != geom.hand[b] || fa == fb {
         return true;
     }

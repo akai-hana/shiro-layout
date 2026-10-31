@@ -13,7 +13,12 @@ pub struct Row {
 }
 
 impl Row {
-    pub fn new(start: impl Into<String>, primary: f64, secondary: Option<f64>, layout: impl Into<String>) -> Self {
+    pub fn new(
+        start: impl Into<String>,
+        primary: f64,
+        secondary: Option<f64>,
+        layout: impl Into<String>,
+    ) -> Self {
         Self {
             start: start.into(),
             final_score: secondary.unwrap_or(primary),
@@ -116,9 +121,7 @@ pub fn select_valid_layouts(
     all.push(ref_row.clone());
     all.extend(rest);
     for (idx, row) in all.into_iter().enumerate() {
-        if idx != 0
-            && !comparable(&row, &ref_row, primary_tolerance, secondary_tolerance)
-        {
+        if idx != 0 && !comparable(&row, &ref_row, primary_tolerance, secondary_tolerance) {
             continue;
         }
         if selected
@@ -137,11 +140,7 @@ pub fn select_valid_layouts(
 }
 
 pub fn format_valid_layouts(rows: &[Row], status: &str, truncated: bool) -> Vec<String> {
-    let mut lines = vec![format!(
-        "valid_layouts={} status={}",
-        rows.len(),
-        status
-    )];
+    let mut lines = vec![format!("valid_layouts={} status={}", rows.len(), status)];
     for (i, row) in rows.iter().enumerate() {
         let sec_text = match row.secondary {
             Some(sec) => format!("{:.9}", sec),

@@ -4,7 +4,7 @@ use std::time::Instant;
 
 use rand::SeedableRng;
 use shirolyzer::evaluate::{dead_of, flat_share_from_config, perm_of, Evaluator};
-use shirolyzer::search::{anneal, quench, DeltaTables};
+use shirolyzer::search::{anneal, delta_swap_cost, quench, quench_generic, DeltaTables};
 use shirolyzer::{conditions, config, corpus, gates, geometry, scorer};
 
 fn main() {
@@ -51,10 +51,29 @@ fn main() {
         n as f64 / elapsed
     );
 
+    let reps = 200;
+    let start = Instant::now();
+    black_box(delta_swap_cost(&ev, &perm, reps));
+    let elapsed = start.elapsed().as_secs_f64();
+    let ops = reps * 325;
+    println!(
+        "delta swap: {:.0} ns/op, {:.0} ops/s",
+        elapsed / ops as f64 * 1e9,
+        ops as f64 / elapsed
+    );
+
     let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(1);
     let start = Instant::now();
     let (_, _) = quench(&ev, &delta_tables, &perm, ev.score(&perm), &mut rng);
     println!("quench: {:.3} ms", start.elapsed().as_secs_f64() * 1e3);
+
+    let mut rng = rand_chacha::ChaCha8Rng::seed_from_u64(1);
+    let start = Instant::now();
+    let (_, _) = quench_generic(&ev, &perm, ev.score(&perm), &mut rng);
+    println!(
+        "full-score quench: {:.3} ms",
+        start.elapsed().as_secs_f64() * 1e3
+    );
 
     let iters = 10_000;
     let start = Instant::now();

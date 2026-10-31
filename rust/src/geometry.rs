@@ -13,8 +13,8 @@ pub const NK: usize = 30;
 pub const NF: usize = 4;
 
 pub const KEYS: [&str; NK] = [
-    "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "A", "S", "D", "F", "G", "H", "J", "K",
-    "L", ";", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/",
+    "Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P", "A", "S", "D", "F", "G", "H", "J", "K", "L",
+    ";", "Z", "X", "C", "V", "B", "N", "M", ",", ".", "/",
 ];
 
 /// Finger length rank.  Python: `np.array([0, 1, 3, 2])` for P/R/M/I.
@@ -31,7 +31,7 @@ pub fn finger_index(finger: char) -> Option<usize> {
 
 pub fn hand_of(key: &str) -> usize {
     match key_index(key) {
-        Some(i) => Hand::new()[i],
+        Some(i) => Hand::default_hand()[i],
         None => 0,
     }
 }
@@ -50,6 +50,12 @@ pub struct Geometry {
     pub dv: [[f64; NK]; NF],
     pub reach: [[bool; NF]; NK],
     pub unlisted: [[bool; NF]; NK],
+}
+
+impl Default for Geometry {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl Geometry {
@@ -151,7 +157,7 @@ impl Geometry {
 /// Convenience for code that only needs the hand array.
 pub struct Hand;
 impl Hand {
-    pub fn new() -> [usize; NK] {
+    pub fn default_hand() -> [usize; NK] {
         let mut hand = [0usize; NK];
         let mut idx = 0;
         for (r, row_name) in ROWS.iter().enumerate() {
@@ -269,7 +275,7 @@ fn listed_keys() -> [[bool; NF]; NK] {
     let mut out = [[false; NF]; NK];
     for k in 0..NK {
         for f in 0..NF {
-            let listed = match (Hand::new()[k], FINGERS[f]) {
+            let listed = match (Hand::default_hand()[k], FINGERS[f]) {
                 (0, 'P') => "QAZ",
                 (1, 'P') => ";./",
                 (0, 'R') => "QWERSXA",

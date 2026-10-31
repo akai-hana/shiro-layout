@@ -61,10 +61,10 @@ pub const PARAM_NAMES: [&str; 47] = [
 ];
 
 pub const PARAM_DEFAULTS: [f64; 47] = [
-    0.14, 0.15, 1.0, 0.20, 0.10, 0.60, 0.20, 0.30, 2.0, 0.15, 1.50, 1.50, 1.00, 0.50, 0.50,
-    0.20, 3.00, 0.50, 0.25, 0.25, 0.75, 0.40, 0.00, 0.35, 0.30, 0.50, 1.00, 1.00, -0.275,
-    -0.35, -0.20, -0.14, 0.06, 0.15, 0.35, 0.15, 0.50, 0.30, 1.00, 0.60, 0.30, 0.50, 0.30,
-    0.50, 0.30, 0.30, 0.80,
+    0.14, 0.15, 1.0, 0.20, 0.10, 0.60, 0.20, 0.30, 2.0, 0.15, 1.50, 1.50, 1.00, 0.50, 0.50, 0.20,
+    3.00, 0.50, 0.25, 0.25, 0.75, 0.40, 0.00, 0.35, 0.30, 0.50, 1.00, 1.00, -0.275, -0.35, -0.20,
+    -0.14, 0.06, 0.15, 0.35, 0.15, 0.50, 0.30, 1.00, 0.60, 0.30, 0.50, 0.30, 0.50, 0.30, 0.30,
+    0.80,
 ];
 
 // Declared constants (not fitted).
@@ -237,9 +237,9 @@ impl Model {
         let mut values = PARAM_DEFAULTS.to_vec();
         for (i, name) in PARAM_NAMES.iter().enumerate() {
             if let Some(v) = obj.get(*name) {
-                values[i] = v
-                    .as_f64()
-                    .ok_or_else(|| anyhow!("{}: parameter {name} is not a number", path.display()))?;
+                values[i] = v.as_f64().ok_or_else(|| {
+                    anyhow!("{}: parameter {name} is not a number", path.display())
+                })?;
             }
         }
         Ok(Self::new(values, disallow_full_mr, default_finger))
@@ -274,7 +274,9 @@ impl Model {
                 let dv = geom.dv[f][k];
                 let du = geom.du[f][k];
                 let colup = if f == 3 {
-                    self.p("e_upcol") * (1.0 - du.abs() / 0.5).max(0.0) * if dv < 0.0 { 1.0 } else { 0.0 }
+                    self.p("e_upcol")
+                        * (1.0 - du.abs() / 0.5).max(0.0)
+                        * if dv < 0.0 { 1.0 } else { 0.0 }
                 } else {
                     0.0
                 };
@@ -384,9 +386,7 @@ impl Model {
                             beta * g.abs().powf(p)
                         };
                         let thr = if lo == 0 { G_IMP_RP } else { G_IMP };
-                        let step = if self.disallow_full_mr {
-                            B_IMP * sig((g - thr) / TAU)
-                        } else if lo == 0 {
+                        let step = if self.disallow_full_mr || lo == 0 {
                             B_IMP * sig((g - thr) / TAU)
                         } else {
                             5.85 * sig((g - thr) / TAU)
@@ -530,8 +530,7 @@ impl Model {
                             out = sfb_cost(geom, a, b) * self.scales.sfb;
                         }
                         if a == b {
-                            out = W_REPEAT
-                                + if fa != fb { W_REPEAT_SWAP } else { 0.0 };
+                            out = W_REPEAT + if fa != fb { W_REPEAT_SWAP } else { 0.0 };
                         }
                         let reach = geom.reach[a][fa] && geom.reach[b][fb];
                         if !reach {
@@ -604,7 +603,11 @@ impl Model {
                         let same = geom.same_hand(ka, kb) && geom.same_hand(kb, kc);
                         if same {
                             let add = (if turn {
-                                if has_p { W_REDIRECT_WEAK } else { W_REDIRECT }
+                                if has_p {
+                                    W_REDIRECT_WEAK
+                                } else {
+                                    W_REDIRECT
+                                }
                             } else {
                                 0.0
                             } + if cont { W_CONTINUE } else { 0.0 })
@@ -618,7 +621,8 @@ impl Model {
                         } else {
                             let s13 = tabs.strain[pt_idx(ka, f1, kc, f3)];
                             let s13 = if s13.is_finite() { s13 } else { 0.0 };
-                            let alt13 = geom.same_hand(ka, kc) && !geom.same_hand(ka, kb) && ka != kc;
+                            let alt13 =
+                                geom.same_hand(ka, kc) && !geom.same_hand(ka, kb) && ka != kc;
                             if alt13 && f1 != f3 {
                                 cost += gamma13_alt * self.scales.scissor * s13;
                             }

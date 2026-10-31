@@ -2,8 +2,8 @@
 //!
 //! Port of `shirolyzer/utils/scorer.py`.
 
-use crate::config::Config;
 use crate::conditions::Conditions;
+use crate::config::Config;
 use crate::gates::Gates;
 use crate::geometry::{Geometry, KEYS, NF, NK};
 use crate::model::{Model, ModelTables, W_ALT};
@@ -38,7 +38,13 @@ fn key_char(k: usize) -> char {
 }
 
 impl Tables {
-    pub fn build(model: &Model, geom: &Geometry, _cfg: &Config, gates: &Gates, conditions: &Conditions) -> Self {
+    pub fn build(
+        model: &Model,
+        geom: &Geometry,
+        _cfg: &Config,
+        gates: &Gates,
+        conditions: &Conditions,
+    ) -> Self {
         let mt = model.tables(geom);
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
 
@@ -51,7 +57,8 @@ impl Tables {
                 let mut best_f = 0usize;
                 for fa in 0..NF {
                     for fb in 0..NF {
-                        let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)] + 2.0 * PRESS
+                        let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)]
+                            + 2.0 * PRESS
                             + pm[fa * NF + fb];
                         if a == b && fa != fb {
                             c = f64::INFINITY;
@@ -72,10 +79,8 @@ impl Tables {
         for a in 0..NK {
             for b in 0..NK {
                 for c in 0..NK {
-                    let pm = gates.penalty_mask(
-                        &[key_char(a), key_char(b), key_char(c)],
-                        conditions,
-                    );
+                    let pm =
+                        gates.penalty_mask(&[key_char(a), key_char(b), key_char(c)], conditions);
                     let costs = model.tri_many(geom, &mt, &[a], &[b], &[c]);
                     let mut best = f64::INFINITY;
                     let mut best_f = [0u8; 3];
@@ -152,9 +157,8 @@ impl Tables {
                                     if ids[p] == SPACE_ID || ids[q] == SPACE_ID {
                                         cost += W_ALT;
                                     } else {
-                                        cost += mt.pt[crate::model::pt_idx(
-                                            ids[p], fs[p], ids[q], fs[q],
-                                        )];
+                                        cost += mt.pt
+                                            [crate::model::pt_idx(ids[p], fs[p], ids[q], fs[q])];
                                     }
                                 }
                                 if cost < best {

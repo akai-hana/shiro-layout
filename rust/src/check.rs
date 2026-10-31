@@ -56,7 +56,7 @@ pub fn reference_costs(layout: &str, corpus: &Corpus, tables: &Tables) -> Result
 
 fn collect(ctx: &Context, corpus_path: &Path) -> Result<Value> {
     let corpus = Corpus::load(corpus_path)?;
-    let audit_outcome = audit::collect(&ctx, "A:all", &[], &[], None, true)?;
+    let audit_outcome = audit::collect(ctx, "A:all", &[], &[], None, true)?;
     let model = ctx
         .cfg
         .parameters_path
@@ -97,8 +97,14 @@ fn compare(expected: &Value, actual: &Value, tolerance: f64) -> Vec<String> {
             expected["model"], actual["model"]
         ));
     }
-    let expected_refs = expected["references"].as_object().cloned().unwrap_or_default();
-    let actual_refs = actual["references"].as_object().cloned().unwrap_or_default();
+    let expected_refs = expected["references"]
+        .as_object()
+        .cloned()
+        .unwrap_or_default();
+    let actual_refs = actual["references"]
+        .as_object()
+        .cloned()
+        .unwrap_or_default();
     for name in expected_refs.keys() {
         if !actual_refs.contains_key(name) {
             errors.push(format!("missing references: [\"{}\"]", name));
@@ -155,7 +161,10 @@ pub fn run(args: CheckArgs) -> Result<()> {
         "baseline OK: audit {}/{}, {} references",
         actual["audit"]["passed"],
         actual["audit"]["total"],
-        actual["references"].as_object().map(|m| m.len()).unwrap_or(0)
+        actual["references"]
+            .as_object()
+            .map(|m| m.len())
+            .unwrap_or(0)
     );
     Ok(())
 }

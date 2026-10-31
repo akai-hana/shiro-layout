@@ -18,10 +18,7 @@ pub fn run(
         Some(path) => crate::corpus::Corpus::load(Path::new(path))?,
         None => context::load_role(&ctx.cfg, "primary")?.0,
     };
-    eprintln!(
-        "loaded model {}",
-        ctx.cfg.parameters_path.display()
-    );
+    eprintln!("loaded model {}", ctx.cfg.parameters_path.display());
     let refs = references::load_references(refs_path)?;
     let mut rows: Vec<(f64, String, String)> = refs
         .iter()

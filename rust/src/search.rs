@@ -10,8 +10,8 @@ use std::collections::HashMap;
 use std::sync::OnceLock;
 
 use rand::seq::SliceRandom;
-use rayon::prelude::*;
 use rand::{Rng, SeedableRng};
+use rayon::prelude::*;
 
 use crate::evaluate::Evaluator;
 use crate::scorer::tri_idx;
@@ -88,7 +88,11 @@ pub struct DeltaTables {
 }
 
 fn pair_key(a: usize, b: usize, c: usize, d: usize) -> [u8; 4] {
-    let (p, q) = if (a, b) <= (c, d) { ((a, b), (c, d)) } else { ((c, d), (a, b)) };
+    let (p, q) = if (a, b) <= (c, d) {
+        ((a, b), (c, d))
+    } else {
+        ((c, d), (a, b))
+    };
     [p.0 as u8, p.1 as u8, q.0 as u8, q.1 as u8]
 }
 
@@ -143,9 +147,12 @@ impl DeltaTables {
         let n = ev.tri_idx_slot.len();
         let cross: HashMap<[u8; 4], Vec<u16>> = jobs
             .into_par_iter()
-            .map_with((vec![0u32; n], 0u32), |(seen, stamp), (key, (w, x, y, z))| {
-                (key, intersection(&ev.inc, w, x, y, z, seen, stamp))
-            })
+            .map_with(
+                (vec![0u32; n], 0u32),
+                |(seen, stamp), (key, (w, x, y, z))| {
+                    (key, intersection(&ev.inc, w, x, y, z, seen, stamp))
+                },
+            )
             .collect();
         Self { cross }
     }
@@ -215,8 +222,7 @@ impl<'a> Local<'a> {
                 let ids = self.ev.tri_idx_slot[t];
                 let old = self.ev.tables.tri
                     [tri_idx(self.kid[ids[0]], self.kid[ids[1]], self.kid[ids[2]])];
-                let new = self.ev.tables.tri
-                    [tri_idx(kid2[ids[0]], kid2[ids[1]], kid2[ids[2]])];
+                let new = self.ev.tables.tri[tri_idx(kid2[ids[0]], kid2[ids[1]], kid2[ids[2]])];
                 dw += (new - old) * self.ev.tri_counts[t];
             }
         }
@@ -230,14 +236,7 @@ impl<'a> Local<'a> {
         self.delta(&kid2, &[i, j])
     }
 
-    fn delta_cross(
-        &mut self,
-        i1: usize,
-        j1: usize,
-        i2: usize,
-        j2: usize,
-        list: &[u16],
-    ) -> f64 {
+    fn delta_cross(&mut self, i1: usize, j1: usize, i2: usize, j2: usize, list: &[u16]) -> f64 {
         let mut kid1 = self.kid;
         kid1[i1] = self.kid[j1];
         kid1[j1] = self.kid[i1];
@@ -251,14 +250,11 @@ impl<'a> Local<'a> {
         for &t in list {
             let t = t as usize;
             let ids = self.ev.tri_idx_slot[t];
-            let old = self.ev.tables.tri
-                [tri_idx(self.kid[ids[0]], self.kid[ids[1]], self.kid[ids[2]])];
-            let only1 = self.ev.tables.tri
-                [tri_idx(kid1[ids[0]], kid1[ids[1]], kid1[ids[2]])];
-            let only2 = self.ev.tables.tri
-                [tri_idx(kid2[ids[0]], kid2[ids[1]], kid2[ids[2]])];
-            let both = self.ev.tables.tri
-                [tri_idx(kid12[ids[0]], kid12[ids[1]], kid12[ids[2]])];
+            let old =
+                self.ev.tables.tri[tri_idx(self.kid[ids[0]], self.kid[ids[1]], self.kid[ids[2]])];
+            let only1 = self.ev.tables.tri[tri_idx(kid1[ids[0]], kid1[ids[1]], kid1[ids[2]])];
+            let only2 = self.ev.tables.tri[tri_idx(kid2[ids[0]], kid2[ids[1]], kid2[ids[2]])];
+            let both = self.ev.tables.tri[tri_idx(kid12[ids[0]], kid12[ids[1]], kid12[ids[2]])];
             dw += (both - only1 - only2 + old) * self.ev.tri_counts[t];
         }
         dw
@@ -452,12 +448,25 @@ pub fn quench(
     (st.perm, cur)
 }
 
+pub fn delta_swap_cost(ev: &Evaluator, perm: &[usize], reps: usize) -> (f64, usize) {
+    let mut st = Local::new(ev, perm);
+    let mut sum = 0.0;
+    for _ in 0..reps {
+        for i in 0..26 {
+            for j in i + 1..26 {
+                sum += st.delta_swap(i, j);
+            }
+        }
+    }
+    (sum, reps * 325)
+}
+
 fn improve<F, U>(
     ev: &impl ScoreFn,
     perm: &mut Vec<usize>,
     cur_s: &mut f64,
     rng: &mut impl Rng,
-    moves: &mut Vec<Vec<usize>>,
+    moves: &mut [Vec<usize>],
     mut apply: F,
     mut undo: U,
 ) where
@@ -596,8 +605,11 @@ mod tests {
         let gates = crate::gates::Gates::from_config(&cfg);
         let conds = crate::conditions::Conditions::from_config(&cfg, &geom);
         let tables = crate::scorer::Tables::build(&model, &geom, &cfg, &gates, &conds);
-        let paths: Vec<std::path::PathBuf> =
-            cfg.primary_corpus.iter().map(|e| cfg.corpus_path(e)).collect();
+        let paths: Vec<std::path::PathBuf> = cfg
+            .primary_corpus
+            .iter()
+            .map(|e| cfg.corpus_path(e))
+            .collect();
         let corpus = crate::corpus::load_many(&paths).expect("corpus");
         let dead = crate::evaluate::dead_of(&cfg.current_layout);
         let flat = flat_share_from_config(&cfg);
