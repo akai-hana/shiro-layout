@@ -14,12 +14,13 @@ Normalization: lowercase; Unicode NFKD then strip combining marks, so á→a,
 é→e, ü→u and ñ→n (NFKD decomposes ñ to n + tilde). Only [a-z] is kept;
 everything else is a word boundary. Bigrams/trigrams are within-word only
 (same convention as the English corpora). Counts are stored as raw integers,
-matching corpora/shai/parsed/*_freq.json.
+matching corpora/shai/parsed/*_freq.json, ordered from most to least frequent
+(ties by key).
 
 Usage:
-    python3 corpora/spanish/parse_spanish.py            # download, parse, write parsed/
-    python3 corpora/spanish/parse_spanish.py --check    # download, parse, compare only
-    python3 corpora/spanish/parse_spanish.py --source FILE.zip [--keep-source]
+    python3 corpora/douglas/parse_douglas.py            # download, parse, write parsed/
+    python3 corpora/douglas/parse_douglas.py --check    # download, parse, compare only
+    python3 corpora/douglas/parse_douglas.py --source FILE.zip [--keep-source]
 """
 import argparse
 import hashlib
@@ -129,10 +130,17 @@ def compare(name, new, old):
     return diffs
 
 
+def render_json(data):
+    items = sorted(data.items(), key=lambda item: (-item[1], item[0]))
+    return json.dumps(dict(items), indent=0) + "\n"
+
+
 def write_json(path, data):
-    with open(path, "w") as f:
-        json.dump(dict(sorted(data.items())), f, indent=0)
-        f.write("\n")
+    text = render_json(data)
+    if path.exists() and path.read_text() == text:
+        return False
+    path.write_text(text)
+    return True
 
 
 def main():
@@ -154,7 +162,7 @@ def main():
     if args.check and args.write:
         parser.error("--check and --write are mutually exclusive")
 
-    work_dir = Path(tempfile.mkdtemp(prefix="spanish-corpus-"))
+    work_dir = Path(tempfile.mkdtemp(prefix="douglas-corpus-"))
     temp_zip = None
     try:
         if args.source:
@@ -199,16 +207,38 @@ def main():
             ):
                 all_diffs.extend(compare(name, new, previous))
 
+        outputs = (
+            ("letter", letters),
+            ("bigram", bigrams),
+            ("trigram", trigrams),
+        )
+        changed_files = [
+            name
+            for name, data in outputs
+            if not (OUTDIR / f"{name}_freq.json").exists()
+            or (OUTDIR / f"{name}_freq.json").read_text() != render_json(data)
+        ]
+
         if args.check:
-            if all_diffs:
-                raise SystemExit("check failed: parsed data differs")
+            if changed_files:
+                raise SystemExit(
+                    "check failed: parsed data differs for "
+                    + ", ".join(f"{name}_freq.json" for name in changed_files)
+                )
             print("check OK: parsed data matches")
             return
 
         OUTDIR.mkdir(parents=True, exist_ok=True)
-        for name, data in (("letter", letters), ("bigram", bigrams), ("trigram", trigrams)):
-            write_json(OUTDIR / f"{name}_freq.json", data)
-        print(f"wrote {OUTDIR}")
+        written = [
+            name
+            for name, data in outputs
+            if write_json(OUTDIR / f"{name}_freq.json", data)
+        ]
+        if written:
+            print(f"updated {OUTDIR}: "
+                  + ", ".join(f"{name}_freq.json" for name in written))
+        else:
+            print(f"parsed data unchanged; no JSON files modified in {OUTDIR}")
     finally:
         if args.keep_source:
             print(f"kept working files: {work_dir}")

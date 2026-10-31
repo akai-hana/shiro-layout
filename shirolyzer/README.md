@@ -43,7 +43,7 @@ symbols file:
 cargo build --manifest-path shirolyzer/Cargo.toml --release
 
 python3 corpora/shai/parse_shai.py
-python3 corpora/spanish/parse_spanish.py
+python3 corpora/douglas/parse_douglas.py
 
 shirolyzer/target/release/shirolyzer analyze ";ntgfjoehkrpmscuaydilbqvwxz,./" --name shiro
 shirolyzer/target/release/shirolyzer compute --name shiro --xkb --xkb-name shiro
@@ -86,7 +86,7 @@ for the way valid layouts are reported.
 | `shirolyzer/fitting/` | Model-refitting development tools |
 | `shirolyzer/utils/` | Python support modules for the development tools |
 | `corpora/shai/` | Shai English corpus parser and parsed frequency files |
-| `corpora/spanish/` | Spanish corpus parser and parsed frequency files |
+| `corpora/douglas/` | Spanish corpus parser and parsed frequency files |
 | `xkb/` | Generated symbols and the installer |
 
 `shirolyzer/results/` is gitignored except for explicitly added reports and
@@ -115,7 +115,7 @@ general:
   primary_corpus:
     - {name: shai, weight: 100}
   secondary_corpus:
-    - {name: spanish, weight: 100}
+    - {name: douglas, weight: 100}
   primary_sacrifice: 0.00023   # percent of the best primary score
 
 model:
@@ -198,20 +198,23 @@ python3 corpora/shai/parse_shai.py --source FILE.txt.xz --keep-source
 ```
 
 Output: `corpora/shai/parsed/{letter,bigram,trigram}_freq.json`.  The parser
-lowercases and counts maximal `[a-z]+` runs; non-letters break runs.  See
-`corpora/shai/README.md` for source details and totals.
+lowercases and counts maximal `[a-z]+` runs; non-letters break runs.  Entries
+are ordered from most to least frequent, and the parser reports whether it
+changed any files.  See `corpora/shai/README.md` for source details and totals.
 
-### Spanish
+### Douglas (Spanish)
 
 ```bash
-python3 corpora/spanish/parse_spanish.py
-python3 corpora/spanish/parse_spanish.py --check
-python3 corpora/spanish/parse_spanish.py --source FILE.zip --keep-source
+python3 corpora/douglas/parse_douglas.py
+python3 corpora/douglas/parse_douglas.py --check
+python3 corpora/douglas/parse_douglas.py --source FILE.zip --keep-source
 ```
 
-Output: `corpora/spanish/parsed/{letter,bigram,trigram}_freq.json`.  The parser
+Output: `corpora/douglas/parsed/{letter,bigram,trigram}_freq.json`.  The parser
 normalises with NFKD, strips combining marks, lowercases, and counts maximal
-`[a-z]+` runs.  See `corpora/spanish/README.md` for source details and totals.
+`[a-z]+` runs.  Entries are ordered from most to least frequent, and the parser
+reports whether it changed any files.  See `corpora/douglas/README.md` for
+source details and totals.
 
 `--check` parses and compares against the existing `parsed/` files without
 writing.  `--source` uses a local archive instead of downloading.  `--url`

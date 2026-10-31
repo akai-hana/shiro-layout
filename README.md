@@ -46,7 +46,7 @@ Build the parsed corpora (network access is required):
 
 ```bash
 python3 corpora/shai/parse_shai.py
-python3 corpora/spanish/parse_spanish.py
+python3 corpora/douglas/parse_douglas.py
 ```
 
 Analyze a layout:
@@ -114,7 +114,7 @@ Reference layouts live in
 
 ```text
 corpora/shai/             English corpus parser and parsed frequencies
-corpora/spanish/          Spanish corpus parser and parsed frequencies
+corpora/douglas/          Spanish corpus parser and parsed frequencies
 shirolyzer/               Rust crate, configuration, data, and dev tools
 shirolyzer/src/           Rust CLI, model, scorer, search, and outputs
 shirolyzer/tests/         Rust unit, parity, and command tests

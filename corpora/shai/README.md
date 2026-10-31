@@ -18,7 +18,9 @@ downloaded archive for debugging.
 
 Output: `corpora/shai/parsed/letter_freq.json`,
 `corpora/shai/parsed/bigram_freq.json`, and
-`corpora/shai/parsed/trigram_freq.json`.
+`corpora/shai/parsed/trigram_freq.json`.  Entries are ordered from most to
+least frequent (ties by key), and the parser reports which files it changed
+or that the parsed data was already unchanged.
 
 ## Totals
 

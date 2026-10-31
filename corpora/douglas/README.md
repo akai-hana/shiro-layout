@@ -14,14 +14,12 @@ Corpus somewhat equivalent to Shai, but for Spanish.
 The parser extracts `clean-spanish-book-extracts.txt` from the archive.
 This is the cleaned book corpus that matches the scale of the previous local Gutenberg sample.
 
-<!-- TODO: make the parser auto-pull the direct download link, parse it, then erase the main source to save on space, leaving the lightweight .json data behind, and getting rid of the now useless source file. -->
-
 ## Build
 
 ```sh
-python3 corpora/spanish/parse_spanish.py            # download, parse, write parsed/
-python3 corpora/spanish/parse_spanish.py --check    # download, parse, compare only
-python3 corpora/spanish/parse_spanish.py --source FILE.zip [--keep-source]
+python3 corpora/douglas/parse_douglas.py            # download, parse, write parsed/
+python3 corpora/douglas/parse_douglas.py --check    # download, parse, compare only
+python3 corpora/douglas/parse_douglas.py --source FILE.zip [--keep-source]
 ```
 
 The parser downloads the zip to a temporary directory, extracts only the
@@ -29,9 +27,11 @@ selected text file, and deletes the archive and extracted files on success.
 `--source` uses an existing local zip instead, and `--keep-source` keeps the
 working files for debugging.
 
-Output: `corpora/spanish/parsed/letter_freq.json`,
-`corpora/spanish/parsed/bigram_freq.json`, and
-`corpora/spanish/parsed/trigram_freq.json`.
+Output: `corpora/douglas/parsed/letter_freq.json`,
+`corpora/douglas/parsed/bigram_freq.json`, and
+`corpora/douglas/parsed/trigram_freq.json`.  Entries are ordered from most to
+least frequent (ties by key), and the parser reports which files it changed
+or that the parsed data was already unchanged.
 
 ## Totals
 
