@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_yaml::{Mapping, Value};
 
-use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NF, NK};
+use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NFINGER, NK};
 use crate::model::{missing_parameters, Scales};
 use crate::paths;
 
@@ -120,10 +120,10 @@ pub struct Config {
     pub primary_corpus: Vec<CorpusEntry>,
     pub secondary_corpus: Vec<CorpusEntry>,
     pub primary_sacrifice: Sacrifice,
-    pub disallow_reverse_scissors: [[bool; NF]; NF],
+    pub disallow_reverse_scissors: [[bool; NFINGER]; NFINGER],
     pub parameters_file: String,
     pub parameters_path: PathBuf,
-    pub fingermap: [char; NK],
+    pub fingermap: [usize; NK],
     pub finger_tokens: Vec<char>,
     pub alt_fingers: Vec<AltRule>,
     pub conditions: Vec<Condition>,
@@ -263,30 +263,6 @@ fn as_bool(path: &Path, where_: &str, value: &Value) -> Result<bool> {
         .ok_or_else(|| fail(path, where_, "expected true or false"))
 }
 
-fn parse_finger_token(path: &Path, where_: &str, value: &Value) -> Result<char> {
-    let text = as_string(path, where_, value)?.to_uppercase();
-    let finger = text
-        .chars()
-        .last()
-        .filter(|c| FINGERS.contains(c))
-        .ok_or_else(|| {
-            fail(
-                path,
-                where_,
-                &format!(
-                    "invalid finger token {text:?}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI"
-                ),
-            )
-        })?;
-    if text.len() > 1 {
-        let hand = text.chars().next().unwrap();
-        if hand != 'L' && hand != 'R' {
-            return Err(fail(path, where_, "invalid finger token"));
-        }
-    }
-    Ok(finger)
-}
-
 fn hand_of_key(key: char) -> char {
     if "QWERTASDFGZXCVB".contains(key) {
         'L'
@@ -295,34 +271,56 @@ fn hand_of_key(key: char) -> char {
     }
 }
 
-fn parse_hand_finger(path: &Path, where_: &str, key: char, value: &Value) -> Result<char> {
+fn hand_of_key_index(key: char) -> usize {
+    if hand_of_key(key) == 'L' {
+        0
+    } else {
+        1
+    }
+}
+
+/// Parse a finger token to an eight-state index.  A bare `P/R/M/I` uses
+/// `default_hand`; an explicit `LP/LR/LM/LI/RP/RR/RM/RI` always wins, which is
+/// how cross-hand alt rules are requested.
+fn parse_finger_state(
+    path: &Path,
+    where_: &str,
+    value: &Value,
+    default_hand: Option<usize>,
+) -> Result<usize> {
     let text = as_string(path, where_, value)?.to_uppercase();
     let chars: Vec<char> = text.chars().collect();
-    if chars.is_empty() {
-        return Err(fail(path, where_, "expected a finger"));
-    }
-    let finger = *chars.last().unwrap();
-    if !FINGERS.contains(&finger) {
+    if chars.is_empty() || chars.len() > 2 {
         return Err(fail(
             path,
             where_,
-            &format!("invalid finger {text:?}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI"),
+            &format!("invalid finger token {text:?}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI"),
         ));
     }
-    if chars.len() > 1 {
-        let hand = chars[0];
-        if hand != 'L' && hand != 'R' {
-            return Err(fail(path, where_, "invalid finger token"));
-        }
-        if hand != hand_of_key(key) {
-            return Err(fail(
+    let finger = *chars.last().unwrap();
+    let kind = finger_index(finger).ok_or_else(|| {
+        fail(
+            path,
+            where_,
+            &format!("invalid finger token {text:?}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI"),
+        )
+    })?;
+    let hand = if chars.len() == 1 {
+        default_hand.ok_or_else(|| {
+            fail(
                 path,
                 where_,
-                &format!("finger {text:?} does not match the hand of key {key:?}"),
-            ));
+                &format!("finger {text:?} needs an explicit L/R hand in this context"),
+            )
+        })?
+    } else {
+        match chars[0] {
+            'L' => 0,
+            'R' => 1,
+            _ => return Err(fail(path, where_, "invalid finger token")),
         }
-    }
-    Ok(finger)
+    };
+    Ok(hand * NFINGER + kind)
 }
 
 fn parse_percent(path: &Path, where_: &str, value: &Value) -> Result<f64> {
@@ -454,7 +452,7 @@ fn normalise_corpora(path: &Path, where_: &str, value: Option<&Value>) -> Result
     Ok(out)
 }
 
-fn parse_fingermap(path: &Path, value: Option<&Value>) -> Result<([char; NK], Vec<char>)> {
+fn parse_fingermap(path: &Path, value: Option<&Value>) -> Result<([usize; NK], Vec<char>)> {
     let value = value.ok_or_else(|| fail(path, "fingermap", "missing fingermap"))?;
     let tokens: Vec<String> = if let Some(seq) = value.as_sequence() {
         seq.iter()
@@ -476,7 +474,7 @@ fn parse_fingermap(path: &Path, value: Option<&Value>) -> Result<([char; NK], Ve
             &format!("expected {} tokens, got {}", NK, tokens.len()),
         ));
     }
-    let mut mapping = ['P'; NK];
+    let mut mapping = [0usize; NK];
     let mut order = Vec::with_capacity(NK);
     for (i, token) in tokens.iter().enumerate() {
         let chars: Vec<char> = token.to_uppercase().chars().collect();
@@ -509,7 +507,11 @@ fn parse_fingermap(path: &Path, value: Option<&Value>) -> Result<([char; NK], Ve
                 ),
             ));
         }
-        mapping[i] = finger;
+        mapping[i] = if hand == 'L' {
+            finger_index(finger).unwrap()
+        } else {
+            NFINGER + finger_index(finger).unwrap()
+        };
         order.push(finger);
     }
     Ok((mapping, order))
@@ -550,10 +552,7 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltRule>>
         let mut fingers = Vec::with_capacity(keys.len());
         for (j, (key, finger)) in keys.iter().zip(finger_values.iter()).enumerate() {
             let where_f = format!("{}.fingers[{}]", where_i, j);
-            parse_hand_finger(path, &where_f, *key, finger)?;
-            let token = parse_finger_token(path, &where_f, finger)?;
-            let index =
-                finger_index(token).ok_or_else(|| fail(path, &where_f, "invalid finger token"))?;
+            let index = parse_finger_state(path, &where_f, finger, Some(hand_of_key_index(*key)))?;
             fingers.push(index);
         }
         let mode_text = as_string(
@@ -1075,7 +1074,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let primary_sacrifice = parse_sacrifice(&path, get(general, "primary_sacrifice"))?;
 
     let model = as_mapping(&path, "model", get(root, "model").unwrap())?;
-    let mut disallow_reverse_scissors = [[false; NF]; NF];
+    let mut disallow_reverse_scissors = [[false; NFINGER]; NFINGER];
     if let Some(value) = get(model, "disallow_reverse_scissors") {
         let tokens: Vec<&Value> = if let Some(seq) = value.as_sequence() {
             seq.iter().collect()
@@ -1223,5 +1222,67 @@ mod tests {
         assert!(restrictions("left: [z, z]\n").is_err());
         assert!(restrictions("middle: z\n").is_err());
         assert!(restrictions("left: [z, 1]\n").is_err());
+    }
+}
+
+#[cfg(test)]
+mod cross_hand_tests {
+    use super::*;
+    use crate::geometry::{finger_hand, hand_of, parse_finger8};
+
+    #[test]
+    fn alt_fingers_accept_explicit_cross_hand_tokens() {
+        let value: Value = serde_yaml::from_str(
+            r#"
+- {ngram: [H], fingers: [LI], mode: allow}
+- {ngram: [Y], fingers: [LM], mode: allow}
+- {ngram: [H], fingers: [I], mode: allow}
+"#,
+        )
+        .unwrap();
+        let rules = parse_alt_fingers(Path::new("config.yaml"), Some(&value)).unwrap();
+        assert_eq!(rules[0].fingers, vec![parse_finger8("LI").unwrap()]);
+        assert_eq!(rules[1].fingers, vec![parse_finger8("LM").unwrap()]);
+        // A bare token still means the physical key's own hand.
+        assert_eq!(rules[2].fingers, vec![parse_finger8("RI").unwrap()]);
+    }
+
+    #[test]
+    fn alt_fingers_reject_invalid_tokens() {
+        let value: Value =
+            serde_yaml::from_str("- {ngram: [H], fingers: [LX], mode: allow}\n").unwrap();
+        assert!(parse_alt_fingers(Path::new("config.yaml"), Some(&value)).is_err());
+    }
+
+    #[test]
+    fn shipped_fingermap_stays_same_hand() {
+        let cfg = load(None).unwrap();
+        for (key, &finger) in KEYS.iter().zip(cfg.fingermap.iter()) {
+            assert_eq!(
+                finger_hand(finger),
+                hand_of(key),
+                "{key} uses a cross-hand default"
+            );
+        }
+        for rule in &cfg.alt_fingers {
+            for (&key, &finger) in rule.keys.iter().zip(rule.fingers.iter()) {
+                let key = key.to_string();
+                if finger_hand(finger) != hand_of(&key) {
+                    // Cross-hand tokens are legal in alt rules, but the shipped
+                    // configuration must not opt into them by accident.
+                    panic!("shipped alt rule {key} uses cross-hand {finger}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn parse_finger_state_requires_explicit_hand_without_default() {
+        let value = Value::String("I".into());
+        assert!(parse_finger_state(Path::new("config.yaml"), "fingers[0]", &value, None).is_err());
+        assert_eq!(
+            parse_finger_state(Path::new("config.yaml"), "fingers[0]", &value, Some(0)).unwrap(),
+            parse_finger8("LI").unwrap()
+        );
     }
 }
