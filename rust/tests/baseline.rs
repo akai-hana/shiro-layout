@@ -14,7 +14,12 @@ struct References {
     reference: Vec<Reference>,
 }
 
-fn setup() -> (config::Config, geometry::Geometry, scorer::Tables, corpus::Corpus) {
+fn setup() -> (
+    config::Config,
+    geometry::Geometry,
+    scorer::Tables,
+    corpus::Corpus,
+) {
     let cfg = config::load(None).expect("config");
     let geom = geometry::Geometry::new();
     let model = config::build_model(&cfg).expect("model");
@@ -47,8 +52,12 @@ fn reference_trigram_scores() {
     let refs_text = std::fs::read_to_string(shirolyzer::paths::references_file()).unwrap();
     let refs: References = toml::from_str(&refs_text).unwrap();
     let primary = evaluate::score_layout(&cfg.current_layout, &corpus, &tables);
-    println!("config current: {primary:.12} expected 3.394053333047");
+    assert!(
+        (primary - 3.3940533330472595).abs() < 1e-9,
+        "configured current layout score {primary}"
+    );
     let mut worst = 0.0f64;
+    let mut checked = 0usize;
     for reference in &refs.reference {
         let Some((_, exp)) = expected.iter().find(|(n, _)| *n == reference.name) else {
             continue;
@@ -56,7 +65,12 @@ fn reference_trigram_scores() {
         let score = evaluate::score_layout(&reference.layout, &corpus, &tables);
         let diff = (score - exp).abs();
         worst = worst.max(diff);
-        println!("{:14} {score:.12} expected {exp:.12} diff {:.3e}", reference.name, diff);
+        checked += 1;
+        println!(
+            "{:14} {score:.12} expected {exp:.12} diff {:.3e}",
+            reference.name, diff
+        );
     }
-    println!("worst diff {worst:.3e}");
+    assert_eq!(checked, expected.len(), "reference fixture names changed");
+    assert!(worst < 1e-9, "worst reference score diff {worst:.3e}");
 }

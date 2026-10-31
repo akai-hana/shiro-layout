@@ -47,7 +47,11 @@ fn xkb_matches_reference() {
         "--out",
         path.to_str().unwrap(),
     ]);
-    assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let generated = std::fs::read_to_string(&path).unwrap();
     let reference = std::fs::read_to_string(root().join("xkb/mine")).unwrap();
     assert_eq!(generated, reference);
@@ -61,6 +65,16 @@ fn analyze_score_matches_baseline() {
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
     assert!((score - 3.3940533330472595).abs() < 1e-12);
+    for entry in value["guide"].as_object().unwrap().values() {
+        for contexts in entry["alt_contexts"].as_object().unwrap().values() {
+            for item in contexts.as_array().unwrap() {
+                assert!(
+                    item[1].is_i64(),
+                    "trigram count should serialize as an integer"
+                );
+            }
+        }
+    }
 }
 
 #[test]
@@ -88,6 +102,28 @@ fn audit_and_check_baseline_pass() {
     assert!(stdout(&out).contains("rulings: 166/166"));
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&out_json).unwrap()).unwrap();
     assert_eq!(value["config"], "A:all");
+    for corpus in value["corpora"].as_object().unwrap().values() {
+        for key in ["letters", "bigrams", "trigrams"] {
+            assert!(
+                corpus[key].is_i64(),
+                "corpus {key} should serialize as an integer"
+            );
+        }
+    }
+
+    let default_json = tmp("audit-default.json");
+    let default_txt = tmp("audit-default.txt");
+    let out = run(&[
+        "audit",
+        "--out",
+        default_txt.to_str().unwrap(),
+        "--out-json",
+        default_json.to_str().unwrap(),
+    ]);
+    assert!(out.status.success());
+    let value: Value =
+        serde_json::from_str(&std::fs::read_to_string(&default_json).unwrap()).unwrap();
+    assert!(value["config"].is_null());
 
     let out = run(&["check-baseline"]);
     assert!(out.status.success());
@@ -122,7 +158,11 @@ fn compute_smoke() {
         "--out-json",
         out_json.to_str().unwrap(),
     ]);
-    assert!(out.status.success(), "{}", String::from_utf8_lossy(&out.stderr));
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&out_json).unwrap()).unwrap();
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 1);

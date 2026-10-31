@@ -5,7 +5,12 @@ use shirolyzer::{conditions, config, corpus, gates, geometry, scorer};
 
 const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
 
-fn setup() -> (config::Config, geometry::Geometry, scorer::Tables, corpus::Corpus) {
+fn setup() -> (
+    config::Config,
+    geometry::Geometry,
+    scorer::Tables,
+    corpus::Corpus,
+) {
     let cfg = config::load(None).expect("config");
     let geom = geometry::Geometry::new();
     let model = config::build_model(&cfg).expect("model");
@@ -71,7 +76,12 @@ fn diversity_keeps_only_comparable_distinct_layouts() {
         Some(3.7048),
         "abcdefghijklmnopqrstuvwxyz;/,.",
     );
-    let rows = vec![reference.clone(), near.clone(), far.clone(), outside.clone()];
+    let rows = vec![
+        reference.clone(),
+        near.clone(),
+        far.clone(),
+        outside.clone(),
+    ];
     let (selected, truncated) =
         diversity::select_valid_layouts(&rows, &reference, 0.002, 0.005, 4, 8);
     assert!(!truncated);

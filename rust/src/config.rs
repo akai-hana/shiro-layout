@@ -229,12 +229,20 @@ fn as_number(
         .ok_or_else(|| fail(path, where_, "expected a number"))?;
     if let Some(minimum) = minimum {
         if number < minimum {
-            return Err(fail(path, where_, &format!("must be >= {minimum}, got {number}")));
+            return Err(fail(
+                path,
+                where_,
+                &format!("must be >= {minimum}, got {number}"),
+            ));
         }
     }
     if let Some(maximum) = maximum {
         if number > maximum {
-            return Err(fail(path, where_, &format!("must be <= {maximum}, got {number}")));
+            return Err(fail(
+                path,
+                where_,
+                &format!("must be <= {maximum}, got {number}"),
+            ));
         }
     }
     Ok(number)
@@ -256,7 +264,9 @@ fn parse_finger_token(path: &Path, where_: &str, value: &Value) -> Result<char> 
             fail(
                 path,
                 where_,
-                &format!("invalid finger token {text:?}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI"),
+                &format!(
+                    "invalid finger token {text:?}; expected P/R/M/I or LP/LR/LM/LI/RP/RR/RM/RI"
+                ),
             )
         })?;
     if text.len() > 1 {
@@ -326,14 +336,14 @@ fn normalise_corpora(path: &Path, where_: &str, value: Option<&Value>) -> Result
     for (i, item) in items.iter().enumerate() {
         let where_i = format!("{}[{}]", where_, i);
         let (name, path_value, weight_value) = if item.is_string() {
-            (
-                Some(item.as_str().unwrap().to_string()),
-                None,
-                None,
-            )
+            (Some(item.as_str().unwrap().to_string()), None, None)
         } else if let Some(map) = item.as_mapping() {
-            let name = get(map, "name").and_then(Value::as_str).map(ToString::to_string);
-            let path_value = get(map, "path").and_then(Value::as_str).map(ToString::to_string);
+            let name = get(map, "name")
+                .and_then(Value::as_str)
+                .map(ToString::to_string);
+            let path_value = get(map, "path")
+                .and_then(Value::as_str)
+                .map(ToString::to_string);
             (name, path_value, get(map, "weight"))
         } else {
             return Err(fail(
@@ -460,9 +470,14 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>
                 path,
                 &format!("{}.finger", where_i),
                 key,
-                get(map, "finger").ok_or_else(|| fail(path, &where_i, "context gate needs a finger"))?,
+                get(map, "finger")
+                    .ok_or_else(|| fail(path, &where_i, "context gate needs a finger"))?,
             )?;
-            let mode_text = as_string(path, &format!("{}.mode", where_i), get(map, "mode").unwrap_or(&Value::String("".into())))?;
+            let mode_text = as_string(
+                path,
+                &format!("{}.mode", where_i),
+                get(map, "mode").unwrap_or(&Value::String("".into())),
+            )?;
             let mode = match mode_text.as_str() {
                 "only" => GateMode::Only,
                 "block" => GateMode::Block,
@@ -477,9 +492,13 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>
             };
             let mut context = HashSet::new();
             if let Some(ctx) = get(map, "context") {
-                let ctx_seq = ctx
-                    .as_sequence()
-                    .ok_or_else(|| fail(path, &format!("{}.context", where_i), "expected a list of QWERTY keys"))?;
+                let ctx_seq = ctx.as_sequence().ok_or_else(|| {
+                    fail(
+                        path,
+                        &format!("{}.context", where_i),
+                        "expected a list of QWERTY keys",
+                    )
+                })?;
                 for (j, c) in ctx_seq.iter().enumerate() {
                     let text = as_string(path, &format!("{}.context[{}]", where_i, j), c)?;
                     let ch = text.to_uppercase().chars().next().unwrap_or('?');
@@ -507,7 +526,11 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>
                 key,
                 finger,
                 mode,
-                context: if context.is_empty() { None } else { Some(context) },
+                context: if context.is_empty() {
+                    None
+                } else {
+                    Some(context)
+                },
                 explicit,
             }));
         } else {
@@ -536,7 +559,13 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>
             }
             let fingers = get(map, "fingers")
                 .and_then(Value::as_sequence)
-                .ok_or_else(|| fail(path, &format!("{}.fingers", where_i), "expected a finger list"))?;
+                .ok_or_else(|| {
+                    fail(
+                        path,
+                        &format!("{}.fingers", where_i),
+                        "expected a finger list",
+                    )
+                })?;
             if fingers.len() != sequence.len() {
                 return Err(fail(
                     path,
@@ -546,15 +575,13 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltEntry>
             }
             let mut parsed = Vec::new();
             for (j, (key, finger)) in sequence.iter().zip(fingers.iter()).enumerate() {
-                parse_hand_finger(
-                    path,
-                    &format!("{}.fingers[{}]", where_i, j),
-                    *key,
-                    finger,
-                )?;
+                parse_hand_finger(path, &format!("{}.fingers[{}]", where_i, j), *key, finger)?;
                 parsed.push(parse_finger_token(path, &where_i, finger)?);
             }
-            out.push(AltEntry::Sequence(AltSequence { sequence, fingers: parsed }));
+            out.push(AltEntry::Sequence(AltSequence {
+                sequence,
+                fingers: parsed,
+            }));
         }
     }
     Ok(out)
@@ -577,7 +604,9 @@ fn finger_set(path: &Path, where_: &str, value: Option<&Value>) -> Result<Option
     for (i, token) in seq.iter().enumerate() {
         let text = as_string(path, &format!("{}[{}]", where_, i), token)?.to_uppercase();
         let chars: Vec<char> = text.chars().collect();
-        let finger = *chars.last().ok_or_else(|| fail(path, where_, "invalid finger token"))?;
+        let finger = *chars
+            .last()
+            .ok_or_else(|| fail(path, where_, "invalid finger token"))?;
         let fi = finger_index(finger).ok_or_else(|| fail(path, where_, "invalid finger token"))?;
         if chars.len() == 1 {
             out.insert((0, fi));
@@ -602,7 +631,11 @@ fn parse_conditions(path: &Path, value: Option<&Value>) -> Result<Vec<Condition>
     for (i, item) in seq.iter().enumerate() {
         let where_i = format!("conditions[{}]", i);
         let map = as_mapping(path, &where_i, item)?;
-        let kind = as_string(path, &format!("{}.type", where_i), get(map, "type").unwrap_or(&Value::String("".into())))?;
+        let kind = as_string(
+            path,
+            &format!("{}.type", where_i),
+            get(map, "type").unwrap_or(&Value::String("".into())),
+        )?;
         if !["scissors", "spread", "separation", "crossing"].contains(&kind.as_str()) {
             return Err(fail(
                 path,
@@ -729,7 +762,10 @@ fn parse_priority(path: &Path, value: Option<&Value>) -> Result<Vec<Vec<String>>
     Ok(out)
 }
 
-fn parse_balance(path: &Path, value: Option<&Value>) -> Result<(HashMap<char, f64>, HashMap<char, f64>)> {
+fn parse_balance(
+    path: &Path,
+    value: Option<&Value>,
+) -> Result<(HashMap<char, f64>, HashMap<char, f64>)> {
     let value = value.ok_or_else(|| fail(path, "finger_balance", "missing finger_balance"))?;
     let map = as_mapping(path, "finger_balance", value)?;
     let mut vals: HashMap<String, f64> = HashMap::new();
@@ -774,12 +810,13 @@ fn parse_balance(path: &Path, value: Option<&Value>) -> Result<(HashMap<char, f6
     }
     let total: f64 = per_finger.values().sum();
     if total <= 0.0 {
-        return Err(fail(path, "finger_balance", "at least one percentage must be positive"));
+        return Err(fail(
+            path,
+            "finger_balance",
+            "at least one percentage must be positive",
+        ));
     }
-    let flat = per_finger
-        .iter()
-        .map(|(k, v)| (*k, *v / total))
-        .collect();
+    let flat = per_finger.iter().map(|(k, v)| (*k, *v / total)).collect();
     Ok((per_finger, flat))
 }
 
@@ -793,8 +830,8 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         .map(Path::to_path_buf)
         .unwrap_or_else(paths::config_file);
     let text = paths::read_to_string(&path)?;
-    let raw: Value = serde_yaml::from_str(&text)
-        .with_context(|| format!("{}: invalid YAML", path.display()))?;
+    let raw: Value =
+        serde_yaml::from_str(&text).with_context(|| format!("{}: invalid YAML", path.display()))?;
     let root = as_mapping(&path, "root", &raw)?;
     let known = [
         "general",
@@ -837,8 +874,13 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let current_layout = as_string(
         &path,
         "general.current_layout",
-        get(general, "current_layout")
-            .ok_or_else(|| fail(&path, "general.current_layout", "missing required 30-character layout"))?,
+        get(general, "current_layout").ok_or_else(|| {
+            fail(
+                &path,
+                "general.current_layout",
+                "missing required 30-character layout",
+            )
+        })?,
     )?;
     if current_layout.chars().count() != 30 {
         return Err(fail(
@@ -869,7 +911,11 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         get(model, "type").unwrap_or(&Value::String("".into())),
     )?;
     if model_type != "pattern" {
-        return Err(fail(&path, "model.type", "only the 'pattern' model is implemented"));
+        return Err(fail(
+            &path,
+            "model.type",
+            "only the 'pattern' model is implemented",
+        ));
     }
     let variant = as_string(
         &path,
@@ -899,8 +945,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
             &format!("parameter file not found: {}", parameters_path.display()),
         ));
     }
-    let params_json =
-        serde_json::from_str(&paths::read_to_string(&parameters_path)?)?;
+    let params_json = serde_json::from_str(&paths::read_to_string(&parameters_path)?)?;
     let missing = missing_parameters(&params_json);
     if !missing.is_empty() {
         return Err(fail(
@@ -920,9 +965,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let priority_list = parse_priority(&path, get(root, "priority_list"))?;
     let (finger_balance, flat_share) = parse_balance(&path, get(root, "finger_balance"))?;
     let conditions_are_default = match default_raw() {
-        Ok(default) => {
-            get(default.as_mapping().unwrap(), "conditions") == get(root, "conditions")
-        }
+        Ok(default) => get(default.as_mapping().unwrap(), "conditions") == get(root, "conditions"),
         Err(_) => false,
     };
 

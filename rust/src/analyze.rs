@@ -25,7 +25,7 @@ fn keymap(layout: &str) -> HashMap<char, usize> {
         .iter()
         .enumerate()
         .filter(|(_, c)| c.is_ascii_alphabetic())
-        .filter_map(|(i, c)| key_index(&KEYS[i].to_string()).map(|k| (*c, k)))
+        .filter_map(|(i, c)| key_index(KEYS[i]).map(|k| (*c, k)))
         .collect()
 }
 
@@ -232,8 +232,8 @@ pub fn trigram_patterns(
         .into_iter()
         .map(|(k, v)| (k, v / total * 100.0))
         .collect();
-    let rolls = out.get("inroll").copied().unwrap_or(0.0)
-        + out.get("outroll").copied().unwrap_or(0.0);
+    let rolls =
+        out.get("inroll").copied().unwrap_or(0.0) + out.get("outroll").copied().unwrap_or(0.0);
     let redirects = out.get("redirect").copied().unwrap_or(0.0)
         + out.get("redirect_weak").copied().unwrap_or(0.0);
     let alternation = out.get("alternate").copied().unwrap_or(0.0);
@@ -272,14 +272,8 @@ pub fn finger_usage(
             );
         }
     }
-    out.insert(
-        "handL".into(),
-        usage[0].iter().sum::<f64>() / total * 100.0,
-    );
-    out.insert(
-        "handR".into(),
-        usage[1].iter().sum::<f64>() / total * 100.0,
-    );
+    out.insert("handL".into(), usage[0].iter().sum::<f64>() / total * 100.0);
+    out.insert("handR".into(), usage[1].iter().sum::<f64>() / total * 100.0);
     out
 }
 
@@ -308,10 +302,7 @@ pub fn fingering_guide(
         let tg = format!("{}{}{}", a, b, c);
         for (pos, &ch) in [a, b, c].iter().enumerate() {
             let f = decode_finger_at(enc, pos);
-            *agg.entry(ch)
-                .or_default()
-                .entry(f)
-                .or_insert(0.0) += cnt;
+            *agg.entry(ch).or_default().entry(f).or_insert(0.0) += cnt;
             *ctx.entry(ch)
                 .or_default()
                 .entry(f)
@@ -326,10 +317,8 @@ pub fn fingering_guide(
         let default = model.default_finger[key];
         let entry = agg.get(&ch).cloned().unwrap_or_default();
         let total: f64 = entry.values().sum::<f64>().max(1.0);
-        let mut share: Vec<(char, f64)> = entry
-            .iter()
-            .map(|(f, c)| (*f, c / total * 100.0))
-            .collect();
+        let mut share: Vec<(char, f64)> =
+            entry.iter().map(|(f, c)| (*f, c / total * 100.0)).collect();
         share.sort_by(|a, b| {
             b.1.partial_cmp(&a.1)
                 .unwrap_or(std::cmp::Ordering::Equal)
@@ -385,10 +374,11 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
     let out_path = args
         .out
         .map(Path::to_path_buf)
-        .unwrap_or_else(|| paths::result_path("analysis", args.name, ""));
-    let out_json = args.out_json.map(Path::to_path_buf).unwrap_or_else(|| {
-        paths::result_path("analysis", args.name, ".json")
-    });
+        .unwrap_or_else(|| paths::result_path("analysis", args.name, ".txt"));
+    let out_json = args
+        .out_json
+        .map(Path::to_path_buf)
+        .unwrap_or_else(|| paths::result_path("analysis", args.name, ".json"));
 
     let (corpus, primary_paths) = if !args.primary_corpus.is_empty() {
         (
@@ -495,7 +485,11 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "sfb_tri",
         "other",
     ] {
-        out(format!("  {:<16} {:6.2}", k, pats.get(k).copied().unwrap_or(0.0)));
+        out(format!(
+            "  {:<16} {:6.2}",
+            k,
+            pats.get(k).copied().unwrap_or(0.0)
+        ));
     }
     out(String::new());
     out("== finger load (% of all strokes) ==".to_string());
@@ -560,7 +554,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
                         f.to_string(),
                         json!(items
                             .iter()
-                            .map(|(tg, n)| json!([tg, n.round()]))
+                            .map(|(tg, n)| json!([tg, n.round_ties_even() as i64]))
                             .collect::<Vec<_>>()),
                     )
                 })

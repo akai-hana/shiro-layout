@@ -23,10 +23,7 @@ impl Gates {
         let mut all = HashMap::new();
         let mut explicit = HashSet::new();
         for gate in cfg.gate_entries() {
-            all.insert(
-                (gate.key, gate.finger),
-                (gate.mode, gate.context.clone()),
-            );
+            all.insert((gate.key, gate.finger), (gate.mode, gate.context.clone()));
             if gate.explicit {
                 explicit.insert((gate.key, gate.finger));
             }
@@ -37,7 +34,10 @@ impl Gates {
             .map(|s| {
                 (
                     s.sequence.clone(),
-                    s.fingers.iter().map(|f| finger_index(*f).unwrap()).collect(),
+                    s.fingers
+                        .iter()
+                        .map(|f| finger_index(*f).unwrap())
+                        .collect(),
                 )
             })
             .collect();
@@ -99,7 +99,11 @@ impl Gates {
     }
 
     /// Penalty array of shape (NF,)*keys.len(), C-order.
-    pub fn penalty_mask(&self, keys: &[char], conditions: &crate::conditions::Conditions) -> Vec<f64> {
+    pub fn penalty_mask(
+        &self,
+        keys: &[char],
+        conditions: &crate::conditions::Conditions,
+    ) -> Vec<f64> {
         let n = keys.len();
         let mut size = 1usize;
         for _ in 0..n {

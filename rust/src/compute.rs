@@ -8,8 +8,8 @@ use std::time::{Instant, SystemTime, UNIX_EPOCH};
 use anyhow::{anyhow, Result};
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
-use rayon::prelude::*;
 use rand_chacha::ChaCha8Rng;
+use rayon::prelude::*;
 use serde_json::json;
 
 use crate::context::{self, Context};
@@ -131,22 +131,20 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     let device = match args.device {
         Device::Cpu => "cpu",
         Device::Gpu => {
-            eprintln!(
-                "warning: GPU mode is not enabled in this build; falling back to CPU"
-            );
+            eprintln!("warning: GPU mode is not enabled in this build; falling back to CPU");
             "cpu"
         }
     };
     let ctx = Context::load(args.config)?;
-    let out_path = args.out.clone().unwrap_or_else(|| {
-        paths::result_path("compute", args.name.as_deref(), "")
-    });
-    let out_json = args.out_json.clone().unwrap_or_else(|| {
-        paths::result_path("compute", args.name.as_deref(), ".json")
-    });
-    let primary_sacrifice = args
-        .primary_sacrifice
-        .unwrap_or(ctx.cfg.primary_sacrifice);
+    let out_path = args
+        .out
+        .clone()
+        .unwrap_or_else(|| paths::result_path("compute", args.name.as_deref(), ".txt"));
+    let out_json = args
+        .out_json
+        .clone()
+        .unwrap_or_else(|| paths::result_path("compute", args.name.as_deref(), ".json"));
+    let primary_sacrifice = args.primary_sacrifice.unwrap_or(ctx.cfg.primary_sacrifice);
     let started = Instant::now();
     let mut completed_runs = 0usize;
     let mut completed_iterations = 0usize;
@@ -162,7 +160,11 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             .unwrap_or(0);
         (nanos ^ (std::process::id() as u64)) & 0x7fff_ffff
     });
-    println!("seed={}{}", seed, if seed_generated { " (generated)" } else { "" });
+    println!(
+        "seed={}{}",
+        seed,
+        if seed_generated { " (generated)" } else { "" }
+    );
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
 
     let (primary_corpus, primary_paths) = if !args.primary_corpus.is_empty() {
@@ -354,7 +356,13 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             }
             let k = choose3(&mut rng, &[4, 6, 8]);
             let cand = search::perturb(&best, &mut rng, k);
-            let (cand, _cs) = search::quench(&primary_ev, &delta_tables, &cand, primary_ev.score(&cand), &mut rng);
+            let (cand, _cs) = search::quench(
+                &primary_ev,
+                &delta_tables,
+                &cand,
+                primary_ev.score(&cand),
+                &mut rng,
+            );
             let (cand, cs) = search::anneal(
                 &primary_ev,
                 Some(&cand),
@@ -438,7 +446,13 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             for round_idx in 0..args.polish_rounds.max(1) {
                 let k = choose3(&mut rng, &[4, 6, 8]);
                 let mut cand = search::perturb(&best, &mut rng, k);
-                let (p, _cs) = search::quench(&primary_ev, &delta_tables, &cand, primary_ev.score(&cand), &mut rng);
+                let (p, _cs) = search::quench(
+                    &primary_ev,
+                    &delta_tables,
+                    &cand,
+                    primary_ev.score(&cand),
+                    &mut rng,
+                );
                 cand = p;
                 let (p, cs) = search::anneal(
                     &primary_ev,
@@ -521,7 +535,8 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         primary_results.truncate(4);
         println!(
             "\nsecondary phase (sacrifice {}% = {}):",
-            fmt_sig(primary_sacrifice, 6), fmt_sig(budget, 3)
+            fmt_sig(primary_sacrifice, 6),
+            fmt_sig(budget, 3)
         );
         for r in primary_results {
             if let Some(t) = args.time_budget {
@@ -651,7 +666,10 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         .iter()
         .map(|r| (r.layout.clone(), r.name.clone()))
         .collect();
-    let base_name = args.name.clone().unwrap_or_else(|| format!("shiro-{}", seed));
+    let base_name = args
+        .name
+        .clone()
+        .unwrap_or_else(|| format!("shiro-{}", seed));
     let mut added_names = Vec::new();
     for (i, row) in valid_rows.iter_mut().enumerate() {
         let requested = if i == 0 {
@@ -669,7 +687,11 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         )? {
             existing_names.insert(row.layout.clone(), added.clone());
             added_names.push(added.clone());
-            println!("appended reference {:?} to {}", added, append_path.display());
+            println!(
+                "appended reference {:?} to {}",
+                added,
+                append_path.display()
+            );
         }
         row.reference_name = existing_names.get(&row.layout).cloned();
     }

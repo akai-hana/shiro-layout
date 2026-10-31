@@ -23,18 +23,23 @@ fn value_string(value: &toml::Value) -> Option<String> {
 }
 
 pub fn load_references(path: Option<&Path>) -> Result<Vec<Reference>> {
-    let path: PathBuf = path.map(Path::to_path_buf).unwrap_or_else(paths::references_file);
+    let path: PathBuf = path
+        .map(Path::to_path_buf)
+        .unwrap_or_else(paths::references_file);
     if !path.is_file() {
         return Err(anyhow!("reference file not found: {}", path.display()));
     }
     let text = paths::read_to_string(&path)?;
-    let data: toml::Value = toml::from_str(&text)
-        .map_err(|e| anyhow!("{}: invalid TOML: {}", path.display(), e))?;
+    let data: toml::Value =
+        toml::from_str(&text).map_err(|e| anyhow!("{}: invalid TOML: {}", path.display(), e))?;
     let Some(entries) = data.get("reference") else {
         return Ok(Vec::new());
     };
     let Some(entries) = entries.as_array() else {
-        return Err(anyhow!("{}: 'reference' must be an array of tables", path.display()));
+        return Err(anyhow!(
+            "{}: 'reference' must be an array of tables",
+            path.display()
+        ));
     };
     let mut seen = HashSet::new();
     let mut out = Vec::new();
@@ -52,10 +57,7 @@ pub fn load_references(path: Option<&Path>) -> Result<Vec<Reference>> {
             .and_then(value_string)
             .ok_or_else(|| anyhow!("{}: reference #{} needs a layout", path.display(), i + 1))?;
         let letters = layout.chars().filter(|c| c.is_ascii_alphabetic()).count();
-        let distinct: HashSet<char> = layout
-            .chars()
-            .filter(|c| c.is_ascii_alphabetic())
-            .collect();
+        let distinct: HashSet<char> = layout.chars().filter(|c| c.is_ascii_alphabetic()).collect();
         if layout.chars().count() != 30 || letters != 26 || distinct.len() != 26 {
             return Err(anyhow!(
                 "{}: reference {:?} needs 30 keys and 26 distinct letters",
@@ -64,7 +66,11 @@ pub fn load_references(path: Option<&Path>) -> Result<Vec<Reference>> {
             ));
         }
         if !seen.insert(name.clone()) {
-            return Err(anyhow!("{}: duplicate reference name {:?}", path.display(), name));
+            return Err(anyhow!(
+                "{}: duplicate reference name {:?}",
+                path.display(),
+                name
+            ));
         }
         out.push(Reference {
             name,
@@ -116,7 +122,9 @@ pub fn append_reference(
     seed: Option<i64>,
     path: Option<&Path>,
 ) -> Result<Option<String>> {
-    let path: PathBuf = path.map(Path::to_path_buf).unwrap_or_else(paths::references_file);
+    let path: PathBuf = path
+        .map(Path::to_path_buf)
+        .unwrap_or_else(paths::references_file);
     let refs = load_references(Some(&path))?;
     if refs.iter().any(|r| r.layout == layout) {
         return Ok(None);
@@ -142,8 +150,8 @@ pub fn append_reference(
     if let Some(seed) = seed {
         lines.push(format!("seed = {}", seed));
     }
-    let mut text = std::fs::read_to_string(&path)
-        .map_err(|e| anyhow!("{}: {}", path.display(), e))?;
+    let mut text =
+        std::fs::read_to_string(&path).map_err(|e| anyhow!("{}: {}", path.display(), e))?;
     if !text.is_empty() && !text.ends_with('\n') {
         lines.insert(0, String::new());
         text.push('\n');
