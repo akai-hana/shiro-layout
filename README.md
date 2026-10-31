@@ -17,20 +17,23 @@ XKB symbols and installer needed to try a generated arrangement on X11.
 - **Reference comparison** — ranks the layouts listed in a TOML reference file.
 - **XKB workflow** — converts a layout string into symbols and installs it.
 
-The primary entry points are `shirolyzer/compute.py` and
-`shirolyzer/analyze.py`; the other commands are available through
-`python3 -m shirolyzer`.  Implementations live under `shirolyzer/commands/`.
-Model-refitting tools live under `shirolyzer/fitting/` and are not used at
-runtime.
+The primary implementation is the Rust binary in `rust/` (crate
+`shirolyzer`).  It provides `compute`, `analyze`, `render`, `xkb`, `compare`,
+`audit`, and `check-baseline`.  The frozen Python package under `shirolyzer/`
+remains the parity oracle and still contains the corpus parsers and
+model-refitting tools.  The rewrite plan and results are in
+`RUST_REWRITE_TASKLIST.md` and `shirolyzer/results/rust/`.
 
 ## Quick start
 
-Requires Python 3.11+ and the dependencies in `requirements.txt`.
+Requires Rust 1.99+ for the analyzer and Python 3.11+ with the dependencies in
+`requirements.txt` for the corpus parsers and the parity oracle.
 
 ```bash
 python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
+cargo build --manifest-path rust/Cargo.toml --release
 ```
 
 Build the parsed corpora (network access is required):
@@ -43,24 +46,27 @@ python3 corpora/spanish/parse_spanish.py
 Analyze a layout:
 
 ```bash
-python3 shirolyzer/analyze.py ";ntgfjoehkrpmscuaydilbqvwxz,./"
+rust/target/release/shirolyzer analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 Render it as a staggered ASCII grid with its configured fingers:
 
 ```bash
-python3 -m shirolyzer render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+rust/target/release/shirolyzer render ";ntgfjoehkrpmscuaydilbqvwxz,./"
 ```
 
 Generate a layout and write it to XKB:
 
 ```bash
-python3 shirolyzer/compute.py --name shiro --xkb --xkb-name shiro
+rust/target/release/shirolyzer compute --name shiro --xkb --xkb-name shiro
 ```
 
-A default compute run is a long-running search; see
-[`shirolyzer/README.md`](shirolyzer/README.md) for shorter experiments and for
-the meaning of `selected` versus the full `valid_layouts` list.
+`compute --device cpu` is the default and the only shipped backend;
+`--device gpu` currently falls back to CPU with a warning (see
+`shirolyzer/results/rust/GPU_FEASIBILITY.md`).  A default compute run is a
+long-running search; see [`shirolyzer/README.md`](shirolyzer/README.md) for
+shorter experiments and for the meaning of `selected` versus the full
+`valid_layouts` list.
 
 If you use [`just`](https://github.com/casey/just), the common workflows are
 shortcuts:
@@ -70,6 +76,7 @@ just compute
 just analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
 just render ";ntgfjoehkrpmscuaydilbqvwxz,./"
 just test
+just parity
 ```
 
 Install the generated symbols on the current X display:
@@ -116,6 +123,18 @@ research/                 Historical investigation reports
 
 - [`shirolyzer/README.md`](shirolyzer/README.md) — full usage, configuration,
   corpora, search phases, diversity output, tests, and XKB workflow.
+- [`shirolyzer/results/rust/PARITY_REPORT.md`](shirolyzer/results/rust/PARITY_REPORT.md)
+  — Python-vs-Rust parity results.
+- [`shirolyzer/results/rust/BENCHMARKS.md`](shirolyzer/results/rust/BENCHMARKS.md)
+  — CPU optimization and parallel-seed measurements.
+- [`shirolyzer/results/rust/GPU_FEASIBILITY.md`](shirolyzer/results/rust/GPU_FEASIBILITY.md)
+  — GPU probe, decision, and `--device` fallback.
+- [`shirolyzer/results/rust/TUNING_REPORT.md`](shirolyzer/results/rust/TUNING_REPORT.md)
+  — parameter sweeps and final defaults.
+- [`shirolyzer/results/rust/DIVERSITY_REPORT.md`](shirolyzer/results/rust/DIVERSITY_REPORT.md)
+  — near-equal distributions found during tuning.
+- [`shirolyzer/results/rust/SUMMARY.md`](shirolyzer/results/rust/SUMMARY.md)
+  — final completion record and gate results.
 - [`shirolyzer/results/calibration/REPORT.md`](shirolyzer/results/calibration/REPORT.md)
   — runtime calibration and default rationale.
 - [`shirolyzer/results/validation/REPORT.md`](shirolyzer/results/validation/REPORT.md)
@@ -128,10 +147,16 @@ research/                 Historical investigation reports
 ## Tests
 
 ```bash
-python3 -m compileall shirolyzer
-python3 -m shirolyzer check-baseline
-python3 -m unittest discover -s shirolyzer/tests -v
+cd rust
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test --release
+cargo run --release -- check-baseline
 ```
+
+The frozen Python oracle is still runnable with
+`python3 -m unittest discover -s shirolyzer/tests -v` and
+`python3 -m shirolyzer check-baseline`.
 
 ---
 
