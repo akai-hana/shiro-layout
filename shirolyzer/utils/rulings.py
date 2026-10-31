@@ -57,7 +57,7 @@ _T1 = [
     ("L,",  [("L", ",", "MI"), (",", "L", "IM")], "v2.2 #1: L->, = M->I"),
     ("SQ",  [("S", "Q", "IM"), ("Q", "S", "MI")], "v2.2 #2: Q<->S isolated prefers index+middle"),
     ("WQ",  [("W", "Q", "MR"), ("Q", "W", "RM")], "v2.3 #4: W->Q middle->ring; pinky 'really bad'"),
-    ("O.",  [("O", ".", "RP"), (".", "O", "PR")], "v2.3 #2: O<->. ring-pinky 'somewhat works'; middle-index is wrong there"),
+    ("O.",  [("O", ".", "MR"), (".", "O", "RM")], "2026-10-31: ring-pinky reverse scissors are disallowed; fall back to middle/ring"),
     ("FX",  [("F", "X", "IR"), ("X", "F", "RI")], "v2.6 hard check: F->X ring-index (wide X-F gap is no smooth M roll)"),
     ("UM",  [("U", "M", "MI"), ("M", "U", "IM")], "v2.6 #1: U->M = MI ('middle extends for the U, index presses the M')"),
     ("RV",  [("R", "V", "MI"), ("V", "R", "IM")], "v2.6 #1: R->V = MI"),

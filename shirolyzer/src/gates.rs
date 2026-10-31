@@ -130,7 +130,7 @@ impl Gates {
 pub fn windows<'a>(keys: &'a [char], pattern: &'a [char]) -> impl Iterator<Item = usize> + 'a {
     let n = keys.len();
     let m = pattern.len();
-    (0..=n.saturating_sub(m)).filter(move |&start| keys[start..start + m] == *pattern)
+    (0..=n.saturating_sub(m)).filter(move |&start| m <= n && keys[start..start + m] == *pattern)
 }
 
 pub fn decode(mut idx: usize, n: usize) -> Vec<usize> {

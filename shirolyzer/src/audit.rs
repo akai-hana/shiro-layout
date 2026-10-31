@@ -783,18 +783,26 @@ pub fn collect(
     let xa = probe_rows(ctx, &["X", "A"]);
     let xa_map: HashMap<String, f64> = xa.iter().map(|(c, f)| (f.clone(), *c)).collect();
     chk!(
-        "X->A index/ring first and cheaper than middle/ring; ring X + pinky A impossible",
+        "X->A index/ring first; middle/ring impossible; ring X + pinky A impossible",
         top["XA"] == "IR"
             && top["AX"] == "RI"
-            && xa_map.get("IR").copied().unwrap_or(f64::INFINITY)
-                < xa_map.get("MR").copied().unwrap_or(f64::INFINITY)
+            && xa_map
+                .get("MR")
+                .copied()
+                .unwrap_or(f64::INFINITY)
+                .is_infinite()
             && xa
                 .iter()
                 .filter(|(_, f)| f == "RP")
                 .map(|(c, _)| *c)
                 .fold(f64::INFINITY, f64::min)
                 >= 8.0,
-        format!("{} {}", top["XA"], top["AX"])
+        format!(
+            "{} {} MR {:.2}",
+            top["XA"],
+            top["AX"],
+            xa_map.get("MR").copied().unwrap_or(f64::INFINITY)
+        )
     );
     chk!(
         "Q-S = middle/index, S-Q = index/middle",
@@ -892,7 +900,36 @@ pub fn collect(
             .join(" ")
     );
     let xa_get = |f: &str| xa_map.get(f).copied().unwrap_or(f64::INFINITY);
-    chk!("X->A order: index/ring < middle/ring < index/middle < any pinky fingering; index/pinky never", xa_get("IP") >= 8.0 && xa_get("IR") < xa_get("MR") && xa_get("MR") < xa_get("IM") && xa_get("IM") < xa_get("MP"), format!("IR {:.2} MR {:.2} IM {:.2} MP {:.2} IP {:.2}", xa_get("IR"), xa_get("MR"), xa_get("IM"), xa_get("MP"), xa_get("IP")));
+    chk!(
+        "X->A order: index/ring < index/middle < middle/pinky; middle/ring and index/pinky impossible",
+        xa_get("MR").is_infinite()
+            && xa_get("IP") >= 8.0
+            && xa_get("IR") < xa_get("IM")
+            && xa_get("IM") < xa_get("MP"),
+        format!(
+            "IR {:.2} MR {:.2} IM {:.2} MP {:.2} IP {:.2}",
+            xa_get("IR"),
+            xa_get("MR"),
+            xa_get("IM"),
+            xa_get("MP"),
+            xa_get("IP")
+        )
+    );
+    let o_dot = penalty(ctx, &["O", "."]);
+    let dot_o = penalty(ctx, &[".", "O"]);
+    let rp = finger("R") * NF + finger("P");
+    let pr = finger("P") * NF + finger("R");
+    let mr = finger("M") * NF + finger("R");
+    chk!(
+        "ring-pinky reverse scissors blocked (O->. RP, .->O PR) without blocking O->. MR",
+        o_dot[rp] >= crate::conditions::PENALTY
+            && dot_o[pr] >= crate::conditions::PENALTY
+            && o_dot[mr] == 0.0,
+        format!(
+            "O. RP {:.1} .O PR {:.1} O. MR {:.1}",
+            o_dot[rp], dot_o[pr], o_dot[mr]
+        )
+    );
     let mut ipbad = Vec::new();
     for a in KEYS {
         for b in KEYS {

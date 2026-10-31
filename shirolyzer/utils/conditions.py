@@ -33,11 +33,40 @@ def _finger_set(entries) -> set[tuple[int, int]] | None:
     return out
 
 
+def _finger_pairs(entries) -> list[tuple[tuple[int, int], tuple[int, int]]] | None:
+    if not entries:
+        return None
+    out = []
+    for pair in entries:
+        if len(pair) != 2:
+            raise ValueError("pairs must contain exactly two fingers")
+        parsed = []
+        for token in pair:
+            if len(token) != 2 or token[0] not in ("L", "R"):
+                raise ValueError("pairs require explicit hand/finger tokens")
+            parsed.append((0 if token[0] == "L" else 1, FI[token[-1]]))
+        out.append((parsed[0], parsed[1]))
+    return out
+
+
 def _matches_fingers(cond, a, fa, b, fb) -> bool:
     fingers = cond.get("_fingers")
     if fingers is None:
         return True
     return (int(H[a]), fa) in fingers or (int(H[b]), fb) in fingers
+
+
+def _matches_pairs(cond, a, fa, b, fb) -> bool:
+    pairs = cond.get("_pairs")
+    if pairs is None:
+        return True
+    ab = (int(H[a]), fa, int(H[b]), fb)
+    for first, second in pairs:
+        if ab == (first[0], first[1], second[0], second[1]):
+            return True
+        if ab == (second[0], second[1], first[0], first[1]):
+            return True
+    return False
 
 
 def _allowed_pair(a, fa, b, fb, conditions) -> bool:
@@ -51,6 +80,8 @@ def _allowed_pair(a, fa, b, fb, conditions) -> bool:
     for cond in conditions:
         kind = cond["type"]
         if not _matches_fingers(cond, a, fa, b, fb):
+            continue
+        if not _matches_pairs(cond, a, fa, b, fb):
             continue
         match = False
         if kind == "scissors":
@@ -74,7 +105,14 @@ def _allowed_pair(a, fa, b, fb, conditions) -> bool:
 def configure(conditions, enabled=False):
     global _ENABLED, _PAIR_DENIED, _CONDITIONS
     _ENABLED = bool(enabled)
-    _CONDITIONS = [dict(cond, _fingers=_finger_set(cond.get("fingers"))) for cond in conditions]
+    _CONDITIONS = [
+        dict(
+            cond,
+            _fingers=_finger_set(cond.get("fingers")),
+            _pairs=_finger_pairs(cond.get("pairs")),
+        )
+        for cond in conditions
+    ]
     if not _ENABLED:
         _PAIR_DENIED = None
         return

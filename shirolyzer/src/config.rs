@@ -96,6 +96,7 @@ impl Sacrifice {
 }
 
 pub type FingerSet = HashSet<(usize, usize)>;
+pub type FingerPair = [(usize, usize); 2];
 
 #[derive(Clone, Debug)]
 pub struct Condition {
@@ -104,6 +105,7 @@ pub struct Condition {
     pub distance: Option<String>,
     pub reverse: bool,
     pub fingers: Option<FingerSet>,
+    pub pairs: Option<Vec<FingerPair>>,
     pub max_extra: f64,
     pub min_width: f64,
     pub deficit: f64,
@@ -644,6 +646,54 @@ fn finger_set(path: &Path, where_: &str, value: Option<&Value>) -> Result<Option
     Ok(Some(out))
 }
 
+fn parse_finger_pair_token(path: &Path, where_: &str, value: &Value) -> Result<(usize, usize)> {
+    let text = as_string(path, where_, value)?.to_uppercase();
+    let chars: Vec<char> = text.chars().collect();
+    if chars.len() != 2 || (chars[0] != 'L' && chars[0] != 'R') {
+        return Err(fail(
+            path,
+            where_,
+            "expected an explicit hand/finger token (LP/LR/LM/LI/RI/RM/RR/RP)",
+        ));
+    }
+    let fi = finger_index(chars[1]).ok_or_else(|| fail(path, where_, "invalid finger token"))?;
+    let hand = if chars[0] == 'L' { 0 } else { 1 };
+    Ok((hand, fi))
+}
+
+fn parse_finger_pairs(
+    path: &Path,
+    where_: &str,
+    value: Option<&Value>,
+) -> Result<Option<Vec<FingerPair>>> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    if value.is_null() {
+        return Ok(None);
+    }
+    let seq = value
+        .as_sequence()
+        .ok_or_else(|| fail(path, where_, "expected a list of two-finger pairs"))?;
+    if seq.is_empty() {
+        return Ok(None);
+    }
+    let mut out = Vec::new();
+    for (i, item) in seq.iter().enumerate() {
+        let pair_where = format!("{}[{}]", where_, i);
+        let pair = item
+            .as_sequence()
+            .ok_or_else(|| fail(path, &pair_where, "expected a two-finger pair"))?;
+        if pair.len() != 2 {
+            return Err(fail(path, &pair_where, "expected exactly two fingers"));
+        }
+        let first = parse_finger_pair_token(path, &format!("{}[0]", pair_where), &pair[0])?;
+        let second = parse_finger_pair_token(path, &format!("{}[1]", pair_where), &pair[1])?;
+        out.push([first, second]);
+    }
+    Ok(Some(out))
+}
+
 fn parse_conditions(path: &Path, value: Option<&Value>) -> Result<Vec<Condition>> {
     let value = value.ok_or_else(|| fail(path, "conditions", "missing conditions"))?;
     let seq = value
@@ -676,6 +726,7 @@ fn parse_conditions(path: &Path, value: Option<&Value>) -> Result<Vec<Condition>
         let mut distance = None;
         let mut reverse = false;
         let mut fingers = None;
+        let mut pairs = None;
         let mut max_extra = 2.0;
         let mut min_width = 1.9;
         let mut deficit = 0.30;
@@ -697,6 +748,7 @@ fn parse_conditions(path: &Path, value: Option<&Value>) -> Result<Vec<Condition>
                 reverse = as_bool(path, &format!("{}.reverse", where_i), v)?;
             }
             fingers = finger_set(path, &format!("{}.fingers", where_i), get(map, "fingers"))?;
+            pairs = parse_finger_pairs(path, &format!("{}.pairs", where_i), get(map, "pairs"))?;
         } else if kind == "spread" {
             if let Some(v) = get(map, "max_extra") {
                 max_extra = as_number(path, &format!("{}.max_extra", where_i), v, Some(0.0), None)?;
@@ -715,6 +767,7 @@ fn parse_conditions(path: &Path, value: Option<&Value>) -> Result<Vec<Condition>
             distance,
             reverse,
             fingers,
+            pairs,
             max_extra,
             min_width,
             deficit,
@@ -906,9 +959,17 @@ fn parse_hand_restrictions(path: &Path, value: Option<&Value>) -> Result<[Option
     Ok(out)
 }
 
-fn default_raw() -> Result<Value> {
-    let text = paths::read_to_string(&paths::config_file())?;
-    serde_yaml::from_str(&text).context("default config")
+const DEFAULT_CONDITIONS_YAML: &str = r#"
+- {type: scissors, distance: full, reverse: true, fingers: [LP, LR, LM, RM, RR, RP], allow: false}
+- {type: scissors, distance: half, fingers: [LP, RP], allow: false}
+- {type: scissors, distance: half, allow: true}
+- {type: spread, max_extra: 2.0, allow: false}
+- {type: separation, min_width: 1.9, fingers: [LP, LI], allow: false}
+- {type: crossing, deficit: 0.30, allow: false}
+"#;
+
+fn default_conditions() -> Result<Value> {
+    serde_yaml::from_str(DEFAULT_CONDITIONS_YAML).context("default conditions")
 }
 
 pub fn load(path: Option<&Path>) -> Result<Config> {
@@ -1088,8 +1149,8 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let priority_list = parse_priority(&path, get(root, "priority_list"))?;
     let (finger_balance, flat_share) = parse_balance(&path, get(root, "finger_balance"))?;
     let hand_restrictions = parse_hand_restrictions(&path, get(root, "hand_restrictions"))?;
-    let conditions_are_default = match default_raw() {
-        Ok(default) => get(default.as_mapping().unwrap(), "conditions") == get(root, "conditions"),
+    let conditions_are_default = match default_conditions() {
+        Ok(default) => default == *get(root, "conditions").unwrap_or(&Value::Null),
         Err(_) => false,
     };
 

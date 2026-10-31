@@ -278,10 +278,10 @@
     "O",
     "."
    ],
-   "RP"
+   "MR"
   ],
   "family": "O.",
-  "note": "",
+  "note": "2026-10-31: ring-pinky reverse scissors are disallowed; fall back to middle/ring",
   "soft": false
  },
  {
@@ -293,10 +293,10 @@
     ".",
     "O"
    ],
-   "PR"
+   "RM"
   ],
   "family": "O.",
-  "note": "",
+  "note": "2026-10-31: ring-pinky reverse scissors are disallowed; fall back to ring/middle",
   "soft": false
  },
  {

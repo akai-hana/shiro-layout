@@ -59,6 +59,23 @@ impl Conditions {
         fingers.contains(&(hand_a, fa)) || fingers.contains(&(hand_b, fb))
     }
 
+    pub fn matches_pairs(
+        &self,
+        cond: &Condition,
+        hand_a: usize,
+        fa: usize,
+        hand_b: usize,
+        fb: usize,
+    ) -> bool {
+        let Some(pairs) = &cond.pairs else {
+            return true;
+        };
+        let ab = (hand_a, fa, hand_b, fb);
+        pairs
+            .iter()
+            .any(|[x, y]| ab == (x.0, x.1, y.0, y.1) || ab == (y.0, y.1, x.0, x.1))
+    }
+
     pub fn condition_matches(
         &self,
         cond: &Condition,
@@ -68,7 +85,9 @@ impl Conditions {
         fb: usize,
         pf: &crate::model::PairFeature,
     ) -> bool {
-        if !self.matches_fingers(cond, hand_a, fa, hand_b, fb) {
+        if !self.matches_fingers(cond, hand_a, fa, hand_b, fb)
+            || !self.matches_pairs(cond, hand_a, fa, hand_b, fb)
+        {
             return false;
         }
         let same_hand = hand_a == hand_b;
