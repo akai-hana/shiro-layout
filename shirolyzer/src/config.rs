@@ -106,6 +106,7 @@ pub struct Config {
     pub priority_list: Vec<Vec<String>>,
     pub finger_balance: HashMap<char, f64>,
     pub flat_share: HashMap<char, f64>,
+    pub hand_restrictions: [Option<usize>; 26],
 }
 
 impl Config {
@@ -820,6 +821,76 @@ fn parse_balance(
     Ok((per_finger, flat))
 }
 
+fn parse_hand_chars(path: &Path, where_: &str, value: &Value) -> Result<Vec<char>> {
+    let mut out = Vec::new();
+    match value {
+        Value::Null => {}
+        Value::String(text) => {
+            out.extend(text.chars().filter(|c| !c.is_whitespace() && *c != ','));
+        }
+        Value::Sequence(seq) => {
+            for (i, item) in seq.iter().enumerate() {
+                let text = as_string(path, &format!("{}[{}]", where_, i), item)?;
+                out.extend(text.chars().filter(|c| !c.is_whitespace() && *c != ','));
+            }
+        }
+        _ => {
+            return Err(fail(
+                path,
+                where_,
+                "expected a string or list of characters",
+            ))
+        }
+    }
+    Ok(out)
+}
+
+fn parse_hand_restrictions(path: &Path, value: Option<&Value>) -> Result<[Option<usize>; 26]> {
+    let mut out = [None; 26];
+    let Some(value) = value else {
+        return Ok(out);
+    };
+    if value.is_null() {
+        return Ok(out);
+    }
+    let map = as_mapping(path, "hand_restrictions", value)?;
+    for (key, val) in map {
+        let name = as_string(path, "hand_restrictions key", key)?;
+        let hand = match name.trim().to_ascii_lowercase().as_str() {
+            "left" | "l" => 0,
+            "right" | "r" => 1,
+            _ => {
+                return Err(fail(
+                    path,
+                    &format!("hand_restrictions.{}", name),
+                    "expected left or right",
+                ))
+            }
+        };
+        let where_ = format!("hand_restrictions.{}", name);
+        for ch in parse_hand_chars(path, &where_, val)? {
+            let lower = ch.to_ascii_lowercase();
+            if !lower.is_ascii_alphabetic() {
+                return Err(fail(
+                    path,
+                    &where_,
+                    &format!("expected an ASCII letter, got {ch:?}"),
+                ));
+            }
+            let idx = (lower as u8 - b'a') as usize;
+            if out[idx].is_some() {
+                return Err(fail(
+                    path,
+                    &where_,
+                    &format!("character {lower:?} is restricted more than once"),
+                ));
+            }
+            out[idx] = Some(hand);
+        }
+    }
+    Ok(out)
+}
+
 fn default_raw() -> Result<Value> {
     let text = paths::read_to_string(&paths::config_file())?;
     serde_yaml::from_str(&text).context("default config")
@@ -833,7 +904,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let raw: Value =
         serde_yaml::from_str(&text).with_context(|| format!("{}: invalid YAML", path.display()))?;
     let root = as_mapping(&path, "root", &raw)?;
-    let known = [
+    let required = [
         "general",
         "model",
         "fingermap",
@@ -842,13 +913,14 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         "priority_list",
         "finger_balance",
     ];
+    let known = [required.as_slice(), &["hand_restrictions"]].concat();
     for key in root.keys() {
         let name = key.as_str().unwrap_or("?");
         if !known.contains(&name) {
             return Err(fail(&path, "root", &format!("unknown section {name:?}")));
         }
     }
-    for section in known {
+    for section in required {
         if get(root, section).is_none() {
             return Err(fail(
                 &path,
@@ -964,6 +1036,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let conditions = parse_conditions(&path, get(root, "conditions"))?;
     let priority_list = parse_priority(&path, get(root, "priority_list"))?;
     let (finger_balance, flat_share) = parse_balance(&path, get(root, "finger_balance"))?;
+    let hand_restrictions = parse_hand_restrictions(&path, get(root, "hand_restrictions"))?;
     let conditions_are_default = match default_raw() {
         Ok(default) => get(default.as_mapping().unwrap(), "conditions") == get(root, "conditions"),
         Err(_) => false,
@@ -988,6 +1061,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         priority_list,
         finger_balance,
         flat_share,
+        hand_restrictions,
     })
 }
 
@@ -1000,4 +1074,42 @@ pub fn build_model(cfg: &Config) -> Result<crate::model::Model> {
     )?;
     model.scales = cfg.scales();
     Ok(model)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn restrictions(yaml: &str) -> Result<[Option<usize>; 26]> {
+        let value: Value = serde_yaml::from_str(yaml).unwrap();
+        parse_hand_restrictions(Path::new("config.yaml"), Some(&value))
+    }
+
+    #[test]
+    fn hand_restrictions_accept_lists_and_strings() {
+        let parsed = restrictions("left: [z, X]\nright: b\n").unwrap();
+        assert_eq!(parsed[25], Some(0));
+        assert_eq!(parsed[23], Some(0));
+        assert_eq!(parsed[1], Some(1));
+        assert_eq!(parsed[0], None);
+
+        let parsed = restrictions("left: zx\nright: [b]\n").unwrap();
+        assert_eq!(parsed[25], Some(0));
+        assert_eq!(parsed[23], Some(0));
+        assert_eq!(parsed[1], Some(1));
+    }
+
+    #[test]
+    fn hand_restrictions_are_optional() {
+        let parsed = parse_hand_restrictions(Path::new("config.yaml"), None).unwrap();
+        assert!(parsed.iter().all(Option::is_none));
+    }
+
+    #[test]
+    fn hand_restrictions_reject_conflicts() {
+        assert!(restrictions("left: z\nright: z\n").is_err());
+        assert!(restrictions("left: [z, z]\n").is_err());
+        assert!(restrictions("middle: z\n").is_err());
+        assert!(restrictions("left: [z, 1]\n").is_err());
+    }
 }

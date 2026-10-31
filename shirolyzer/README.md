@@ -96,8 +96,9 @@ validation/round-8 artifacts.
 
 `shirolyzer/config/config.yaml` is the user-facing source of truth for the
 physical layout, corpora, fingermap, alt-finger rules, geometric conditions,
-objective priorities, and finger balance.  Fitted model parameters live in the
-parameter file referenced by the config.
+objective priorities, finger balance, and optional per-hand character
+restrictions.  Fitted model parameters live in the parameter file referenced
+by the config.
 
 The shipped `model/pattern_parameters_A_all.json` is a JSON object mapping the
 named coefficients in `utils/comfort.py` to their calibrated values.  `A` is the
@@ -134,6 +135,10 @@ The remaining sections control the search:
 - `fingermap`: 30 space-separated key/finger tokens in QWERTY row-major order.
   A token is a QWERTY key label followed by `P`, `R`, `M`, or `I` (pinky,
   ring, middle, index), for example `QR` or `;P`.
+- `hand_restrictions`: optional `left` and `right` lists (or strings) of
+  letters.  `compute` keeps each listed letter on keys of that hand; unlisted
+  letters are free.  Seeds that violate a restriction are skipped with a
+  warning.
 - `alt_fingers`: context gates and explicit sequence overrides.  A gate uses
   `key`, `finger`, `mode` (`only`, `block`, or `never`), and an optional
   `context` list of QWERTY keys.  An explicit override uses `sequence` plus a

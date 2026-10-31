@@ -1,5 +1,8 @@
 //! Layout scoring and the permutation evaluator used by generation.
 
+use rand::seq::SliceRandom;
+use rand::Rng;
+
 use crate::corpus::{Corpus, SPACE_INDEX};
 use crate::geometry::{finger_index, key_index, KEYS, NK};
 use crate::model::Model;
@@ -130,6 +133,7 @@ pub struct Evaluator<'a> {
     pub w_balance: f64,
     pub w_hand: f64,
     pub flat_share: [f64; 4],
+    pub hand_restrictions: [Option<usize>; 26],
 }
 
 impl<'a> Evaluator<'a> {
@@ -202,7 +206,84 @@ impl<'a> Evaluator<'a> {
             w_balance,
             w_hand,
             flat_share,
+            hand_restrictions: [None; 26],
         })
+    }
+
+    pub fn set_hand_restrictions(&mut self, restrictions: [Option<usize>; 26]) {
+        self.hand_restrictions = restrictions;
+    }
+
+    #[inline]
+    fn slot_hand_allowed(&self, letter: usize, slot: usize) -> bool {
+        self.hand_restrictions[letter].is_none_or(|hand| self.hand[slot] == hand)
+    }
+
+    pub fn perm_allowed(&self, perm: &[usize]) -> bool {
+        (0..26).all(|letter| self.slot_hand_allowed(letter, perm[letter]))
+    }
+
+    pub fn swap_allowed(&self, perm: &[usize], a: usize, b: usize) -> bool {
+        self.slot_hand_allowed(a, perm[b]) && self.slot_hand_allowed(b, perm[a])
+    }
+
+    pub fn cycle3_allowed(&self, perm: &[usize], a: usize, b: usize, c: usize) -> bool {
+        self.slot_hand_allowed(a, perm[b])
+            && self.slot_hand_allowed(b, perm[c])
+            && self.slot_hand_allowed(c, perm[a])
+    }
+
+    pub fn constrained_shuffle(&self, rng: &mut impl Rng) -> Result<Vec<usize>, String> {
+        let mut slots_by_hand: [Vec<usize>; 2] = [Vec::new(), Vec::new()];
+        for slot in 0..26 {
+            slots_by_hand[self.hand[slot]].push(slot);
+        }
+        let mut letters_by_hand: [Vec<usize>; 2] = [Vec::new(), Vec::new()];
+        let mut free = Vec::new();
+        for letter in 0..26 {
+            match self.hand_restrictions[letter] {
+                Some(hand) => letters_by_hand[hand].push(letter),
+                None => free.push(letter),
+            }
+        }
+        let mut perm = vec![usize::MAX; 26];
+        for hand in 0..2 {
+            if letters_by_hand[hand].len() > slots_by_hand[hand].len() {
+                return Err(format!(
+                    "hand restrictions require {} letters on the {} hand, but only {} letter keys are available",
+                    letters_by_hand[hand].len(),
+                    if hand == 0 { "left" } else { "right" },
+                    slots_by_hand[hand].len()
+                ));
+            }
+            slots_by_hand[hand].shuffle(rng);
+            for (i, &letter) in letters_by_hand[hand].iter().enumerate() {
+                perm[letter] = slots_by_hand[hand][i];
+            }
+        }
+        let mut remaining: Vec<usize> = (0..26).filter(|slot| !perm.contains(slot)).collect();
+        remaining.shuffle(rng);
+        for (letter, slot) in free.into_iter().zip(remaining) {
+            perm[letter] = slot;
+        }
+        Ok(perm)
+    }
+
+    pub fn perturb(&self, perm: &[usize], rng: &mut impl Rng, k: usize) -> Vec<usize> {
+        let mut cand = perm.to_vec();
+        let mut idx: Vec<usize> = (0..26).collect();
+        idx.shuffle(rng);
+        let moved = &idx[..(2 * k).min(idx.len())];
+        let mut a = 0;
+        while a + 1 < moved.len() {
+            let i = moved[a];
+            let j = moved[a + 1];
+            if self.swap_allowed(&cand, i, j) {
+                cand.swap(i, j);
+            }
+            a += 2;
+        }
+        cand
     }
 
     pub fn key_ids(&self, perm: &[usize]) -> [u8; 26] {
