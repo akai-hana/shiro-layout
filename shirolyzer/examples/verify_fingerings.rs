@@ -44,8 +44,7 @@ fn parse_desired(
             parse_finger8(&text).ok_or_else(|| format!("bad finger {token:?}"))?
         } else {
             let f = *chars.last().unwrap();
-            finger_index8(f, geom.hand[keys[pos]])
-                .ok_or_else(|| format!("bad finger {token:?}"))?
+            finger_index8(f, geom.hand[keys[pos]]).ok_or_else(|| format!("bad finger {token:?}"))?
         };
         out.push(fi);
     }

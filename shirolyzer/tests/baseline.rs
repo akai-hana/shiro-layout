@@ -50,14 +50,14 @@ fn reference_trigram_scores() {
         ("sturdy", 3.889733868168627),
         ("gallium", 3.856981334580291),
         ("semimak", 3.912355900675485),
-        ("shiro", 3.616314698706010),
+        ("shiro", 3.616_314_698_706_01),
         ("t5-diversity-2", 3.645952537652866),
     ];
     let refs_text = std::fs::read_to_string(shirolyzer::paths::references_file()).unwrap();
     let refs: References = toml::from_str(&refs_text).unwrap();
     let primary = evaluate::score_layout(SHIRO, &corpus, &tables);
     assert!(
-        (primary - 3.616314698706010).abs() < 1e-9,
+        (primary - 3.616_314_698_706_01).abs() < 1e-9,
         "configured current layout score {primary}"
     );
     let mut worst = 0.0f64;

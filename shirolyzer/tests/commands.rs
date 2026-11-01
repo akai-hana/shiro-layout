@@ -79,7 +79,7 @@ fn analyze_score_matches_baseline() {
     assert!(out.status.success());
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
-    assert!((score - 3.616314698706010).abs() < 1e-12);
+    assert!((score - 3.616_314_698_706_01).abs() < 1e-12);
     for entry in value["guide"].as_object().unwrap().values() {
         for contexts in entry["alt_contexts"].as_object().unwrap().values() {
             for item in contexts.as_array().unwrap() {
