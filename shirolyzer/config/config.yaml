@@ -22,6 +22,10 @@
 # --polish-rounds is opt-in because it continues optimizing near-equal picks.
 general:
   geometry: geometry/ansi.yaml
+  # Fingering mode: "flexible" lets the model choose any reachable finger for
+  # each ngram (subject to alt_fingers); "fixed" always uses the fingermap
+  # below and ignores alt_fingers.  Use config.fixed.yaml for the fixed mode.
+  fingering: flexible
   # Non-letter characters placed by compute.  Letters occupy the other 26
   # physical keys, so these four characters are permuted across the remaining
   # positions.  analyze uses the most recent compute result when --layout is
@@ -56,7 +60,7 @@ fingermap: |
 # only be placed on keys of that hand by `compute`. Unlisted characters are
 # free. Empty lists disable the restriction.
 hand_restrictions:
-  left: []
+  left: [z, x, c, v]
   right: []
 
 # Alt-finger ngram rules.  Each entry names an ordered sequence of QWERTY
@@ -78,6 +82,8 @@ hand_restrictions:
 # afterwards as fallbacks.  The target key keeps the finger from the old gate.
 # Unigram block entries preserve the old "only in this context" restriction.
 alt_fingers:
+  - {ngram: [H], fingers: [LI], mode: allow}
+  - {ngram: [Y], fingers: [LM], mode: allow}
   - {ngram: [C, X], fingers: [LI, LM], mode: allow}
   - {ngram: [C, X], fingers: [LP, LM], mode: allow}
   - {ngram: [C, X], fingers: [LR, LM], mode: allow}
@@ -180,6 +186,51 @@ alt_fingers:
   - {ngram: [G, V], fingers: [LI, LM], mode: block}
   - {ngram: [V, G], fingers: [LM, LI], mode: block}
   - {ngram: [G], fingers: [LM], mode: block}
+
+# Repeated-key context rules.  Under positional overlap a repeated key must use
+# one finger, so a longer context that licenses the key's blocked finger must
+# carry that finger to the repeated occurrence.  Without these rules the
+# unigram block makes the trigram infeasible (for example Q-W-W).
+  - {ngram: [Q, W, W], fingers: [LR, LM, LM], mode: allow}
+  - {ngram: [Q, W, W], fingers: [LP, LM, LM], mode: allow}
+  - {ngram: [Q, W, W], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [Q, W, W], fingers: [LI, LM, LM], mode: allow}
+  - {ngram: [W, W, Q], fingers: [LM, LM, LR], mode: allow}
+  - {ngram: [W, W, Q], fingers: [LM, LM, LP], mode: allow}
+  - {ngram: [W, W, Q], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [W, W, Q], fingers: [LM, LM, LI], mode: allow}
+  - {ngram: [W, W, S], fingers: [LM, LM, LI], mode: allow}
+  - {ngram: [W, W, S], fingers: [LM, LM, LR], mode: allow}
+  - {ngram: [W, W, S], fingers: [LM, LM, LP], mode: allow}
+  - {ngram: [W, W, S], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [W, W, X], fingers: [LM, LM, LI], mode: allow}
+  - {ngram: [W, W, X], fingers: [LM, LM, LR], mode: allow}
+  - {ngram: [W, W, X], fingers: [LM, LM, LP], mode: allow}
+  - {ngram: [W, W, X], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [S, W, W], fingers: [LI, LM, LM], mode: allow}
+  - {ngram: [S, W, W], fingers: [LR, LM, LM], mode: allow}
+  - {ngram: [S, W, W], fingers: [LP, LM, LM], mode: allow}
+  - {ngram: [S, W, W], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [X, W, W], fingers: [LI, LM, LM], mode: allow}
+  - {ngram: [X, W, W], fingers: [LR, LM, LM], mode: allow}
+  - {ngram: [X, W, W], fingers: [LP, LM, LM], mode: allow}
+  - {ngram: [X, W, W], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [O, L, L], fingers: [RM, RI, RI], mode: allow}
+  - {ngram: [O, L, L], fingers: [RR, RI, RI], mode: allow}
+  - {ngram: [O, L, L], fingers: [RP, RI, RI], mode: allow}
+  - {ngram: [O, L, L], fingers: [RI, RI, RI], mode: allow}
+  - {ngram: [L, L, O], fingers: [RI, RI, RM], mode: allow}
+  - {ngram: [L, L, O], fingers: [RI, RI, RR], mode: allow}
+  - {ngram: [L, L, O], fingers: [RI, RI, RP], mode: allow}
+  - {ngram: [L, L, O], fingers: [RI, RI, RI], mode: allow}
+  - {ngram: [X, X, C], fingers: [LM, LM, LI], mode: allow}
+  - {ngram: [X, X, C], fingers: [LM, LM, LP], mode: allow}
+  - {ngram: [X, X, C], fingers: [LM, LM, LR], mode: allow}
+  - {ngram: [X, X, C], fingers: [LM, LM, LM], mode: allow}
+  - {ngram: [C, X, X], fingers: [LI, LM, LM], mode: allow}
+  - {ngram: [C, X, X], fingers: [LP, LM, LM], mode: allow}
+  - {ngram: [C, X, X], fingers: [LR, LM, LM], mode: allow}
+  - {ngram: [C, X, X], fingers: [LM, LM, LM], mode: allow}
 
 
 # Conditions are evaluated from top to bottom; the first matching entry wins.

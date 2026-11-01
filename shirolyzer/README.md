@@ -35,6 +35,7 @@ Mainly, it features user-defined condition/preference/restriction configuration 
 - Custom fingermap definition, using hand/finger tokens `LP/LR/LM/LI` and `RI/RM/RR/RP`.
 - Finger rest keys definition.
 - Alt-finger ngram rules that override the fingermap for specific physical-key sequences, including explicit cross-hand fingerings.
+- Configurable fingering mode: context-dependent `flexible` or physical-fingermap `fixed` (`general.fingering`).
 - Conditional preferences/restrictions for scissors, spread, separation, and crossing.
 
 **Tuning**:
@@ -102,6 +103,31 @@ alt_fingers:
 ```
 
 Internally the tokens map to eight finger states ordered by `hand * 4 + finger`: `LP=0`, `LR=1`, `LM=2`, `LI=3`, `RP=4`, `RR=5`, `RM=6`, `RI=7`. A bare `P/R/M/I` token still means the physical key's own hand, so the shipped fingermap and existing rules keep their same-hand meaning. Cross-hand travel is priced from absolute key/finger positions, not from a hand-relative mirror, and cross-hand states remain unavailable unless a rule explicitly allows them. Same-hand pair terms use the fingering hand, so two cross-body keys typed by fingers of the same hand are still treated as a same-hand pair.
+
+#### Fingering modes
+
+Finger selection is user-defined through `general.fingering`:
+
+```yaml
+general:
+  fingering: flexible   # default: any reachable finger, subject to alt_fingers
+  # fingering: fixed    # always use the fingermap; ignore alt_fingers
+```
+
+- `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis.
+- `fixed` forces every key to its `fingermap` finger. Alt rules are ignored, so the resulting metrics are directly comparable to fixed-fingering analyzers such as oxeylyzer. Conditions and the fitted model still apply.
+
+Two configs are shipped:
+
+- `shirolyzer/config/config.yaml` — flexible (the default).
+- `shirolyzer/config/config.fixed.yaml` — fixed physical/default fingering with no alt rules.
+
+Switch between them with `--config`:
+
+```sh
+shirolyzer analyze "layout" --config shirolyzer/config/config.fixed.yaml
+shirolyzer compare --config shirolyzer/config/config.fixed.yaml
+```
 
 ### Priority tiers
 

@@ -19,4 +19,5 @@ pub mod references;
 pub mod render;
 pub mod scorer;
 pub mod search;
+pub mod worst;
 pub mod xkb;

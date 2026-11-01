@@ -486,6 +486,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         lines.push(s);
     };
     out(format!("layout: {}", layout));
+    out(format!("fingering: {}", ctx.cfg.fingering.label()));
     out("grid (QWERTY order, left/right split 5+5):".to_string());
     let chars: Vec<char> = layout.chars().collect();
     for r in 0..3 {
@@ -648,6 +649,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         .collect();
     let payload = json!({
         "layout": layout,
+        "fingering": ctx.cfg.fingering.label(),
         "primary_score": primary_score,
         "primary_corpora": primary_paths,
         "secondary_score": secondary_score,
