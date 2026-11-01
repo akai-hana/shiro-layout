@@ -19,6 +19,13 @@ pub struct Gates {
     pub rules: Vec<AltRule>,
 }
 
+#[derive(Clone, Copy)]
+struct RuleMatch {
+    start: usize,
+    len: usize,
+    rule_idx: usize,
+}
+
 impl Gates {
     pub fn from_config(cfg: &Config) -> Self {
         Self {
@@ -49,25 +56,8 @@ impl Gates {
         out
     }
 
-    pub fn penalty_mask_into(&self, keys: &[char], conditions: &Conditions, out: &mut [f64]) {
+    fn active_matches(&self, keys: &[char]) -> Vec<RuleMatch> {
         let n = keys.len();
-        let mut size = 1usize;
-        for _ in 0..n {
-            size *= NF;
-        }
-        let out = &mut out[..size];
-        conditions.penalty_mask_into(keys, out);
-        if n == 0 {
-            return;
-        }
-
-        #[derive(Clone, Copy)]
-        struct RuleMatch {
-            start: usize,
-            len: usize,
-            rule_idx: usize,
-        }
-
         let matches: Vec<RuleMatch> = self
             .rules
             .iter()
@@ -90,26 +80,52 @@ impl Gates {
         // A longer allow rule overrides any shorter rule whose range it
         // overlaps.  A longer block rule adds a restriction but does not
         // cancel a shorter block, so overlapping block rules all stay active.
-        let active: Vec<bool> = matches
+        matches
             .iter()
-            .enumerate()
-            .map(|(i, m)| {
-                !matches.iter().enumerate().any(|(j, other)| {
-                    j != i
-                        && other.len > m.len
+            .copied()
+            .filter(|m| {
+                !matches.iter().any(|other| {
+                    other.len > m.len
                         && self.rules[other.rule_idx].mode == AltMode::Allow
                         && m.start < other.start + other.len
                         && other.start < m.start + m.len
                 })
             })
-            .collect();
+            .collect()
+    }
+
+    /// Fingers explicitly named by active `allow` rules, per sequence position.
+    pub fn explicit_fingers(&self, keys: &[char]) -> Vec<[bool; NF]> {
+        let mut out = vec![[false; NF]; keys.len()];
+        for m in self.active_matches(keys) {
+            let rule = &self.rules[m.rule_idx];
+            if rule.mode != AltMode::Allow {
+                continue;
+            }
+            for (offset, &finger) in rule.fingers.iter().enumerate() {
+                out[m.start + offset][finger] = true;
+            }
+        }
+        out
+    }
+
+    pub fn penalty_mask_into(&self, keys: &[char], conditions: &Conditions, out: &mut [f64]) {
+        let n = keys.len();
+        let mut size = 1usize;
+        for _ in 0..n {
+            size *= NF;
+        }
+        let out = &mut out[..size];
+        conditions.penalty_mask_into(keys, out);
+        if n == 0 {
+            return;
+        }
+
+        let matches = self.active_matches(keys);
 
         let mut allow_groups: Vec<(usize, usize, Vec<usize>)> = Vec::new();
         let mut block_rules: Vec<(usize, usize, usize)> = Vec::new();
-        for (i, m) in matches.iter().enumerate() {
-            if !active[i] {
-                continue;
-            }
+        for m in matches {
             match self.rules[m.rule_idx].mode {
                 AltMode::Allow => {
                     if let Some(group) = allow_groups
@@ -241,6 +257,34 @@ mod tests {
     }
     fn index(fingers: &[usize]) -> usize {
         fingers.iter().fold(0, |acc, &f| acc * NF + f)
+    }
+
+    #[test]
+    fn explicit_allow_rules_license_requested_unreachable_fingers() {
+        let conditions = conditions_off();
+        let lr = parse_finger8("LR").unwrap();
+        let li = parse_finger8("LI").unwrap();
+        let lp = parse_finger8("LP").unwrap();
+        let gates = Gates {
+            rules: vec![
+                AltRule {
+                    keys: vec!['C', 'H', 'X'],
+                    fingers: vec![lr, li, lp],
+                    mode: AltMode::Allow,
+                },
+                AltRule {
+                    keys: vec!['H', 'X'],
+                    fingers: vec![li, lp],
+                    mode: AltMode::Allow,
+                },
+            ],
+        };
+        let chx = gates.penalty_mask(&['C', 'H', 'X'], &conditions);
+        assert!(chx[index(&[lr, li, lp])].is_finite());
+        assert!(chx[index(&[li, li, lp])].is_infinite());
+        let hx = gates.penalty_mask(&['H', 'X'], &conditions);
+        assert!(hx[index(&[li, lp])].is_finite());
+        assert!(hx[index(&[li, lr])].is_infinite());
     }
 
     #[test]

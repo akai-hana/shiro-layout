@@ -129,6 +129,59 @@ fn cross_hand_alt_fingers_reach_the_scorer() {
 }
 
 #[test]
+fn explicit_alt_rules_override_geometry_reachability() {
+    let mut cfg = config::load(Some(&common::reference_config())).expect("config");
+    let c = geometry::key_index("C").unwrap();
+    let h = geometry::key_index("H").unwrap();
+    let x = geometry::key_index("X").unwrap();
+    let lr = geometry::parse_finger8("LR").unwrap();
+    let li = geometry::parse_finger8("LI").unwrap();
+    let lp = geometry::parse_finger8("LP").unwrap();
+    cfg.alt_fingers = vec![
+        config::AltRule {
+            keys: vec!['H'],
+            fingers: vec![li],
+            mode: config::AltMode::Allow,
+        },
+        config::AltRule {
+            keys: vec!['C', 'H', 'X'],
+            fingers: vec![lr, li, lp],
+            mode: config::AltMode::Allow,
+        },
+        config::AltRule {
+            keys: vec!['H', 'X'],
+            fingers: vec![li, lp],
+            mode: config::AltMode::Allow,
+        },
+        config::AltRule {
+            keys: vec!['H', 'X', 'X'],
+            fingers: vec![li, lp, lp],
+            mode: config::AltMode::Allow,
+        },
+        config::AltRule {
+            keys: vec!['X', 'H', 'X'],
+            fingers: vec![lp, li, lp],
+            mode: config::AltMode::Allow,
+        },
+    ];
+
+    let geom = geometry::Geometry::new();
+    assert!(!geom.is_reachable(c, lr));
+    assert!(!geom.is_reachable(x, lp));
+    let model = config::build_model(&cfg).expect("model");
+    let gates = gates::Gates::from_config(&cfg);
+    let conds = conditions::Conditions::from_config(&cfg, &geom);
+    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
+
+    let hx = tables.big_f[scorer::big_idx(h, x)] as usize;
+    assert_eq!(hx / scorer::FINGER_SLOTS, li);
+    assert_eq!(hx % scorer::FINGER_SLOTS, lp);
+
+    let chx = tables.tri_f[scorer::tri_idx(c, h, x)];
+    assert_eq!(chx, [lr as u8, li as u8, lp as u8]);
+}
+
+#[test]
 fn fixed_config_forces_fingermap_fingers() {
     let path = shirolyzer::paths::repo_root().join("shirolyzer/config/config.fixed.yaml");
     let cfg = config::load(Some(&path)).expect("fixed config");

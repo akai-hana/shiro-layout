@@ -6,9 +6,9 @@ use anyhow::{bail, Result};
 use rayon::prelude::*;
 
 use crate::conditions::Conditions;
-use crate::config::{Config, FingeringMode};
+use crate::config::{AltMode, Config, FingeringMode};
 use crate::gates::Gates;
-use crate::geometry::{finger_hand, Geometry, KEYS, NF, NK};
+use crate::geometry::{finger_hand, key_index, Geometry, KEYS, NF, NK};
 use crate::model::{Model, ModelTables, W_ALT};
 
 pub const N: usize = 31;
@@ -61,6 +61,23 @@ impl Tables {
         let chars: Vec<char> = (0..NK).map(key_char).collect();
         let fixed = cfg.fingering == FingeringMode::Fixed;
 
+        // Explicit allow rules may name fingers that geometry marks as
+        // unreachable.  In that case we need a second table with reachability
+        // removed; the normal travel/effort weights still decide the cost.
+        let mt_unrestricted = if fixed {
+            None
+        } else if gates.rules.iter().any(|rule| {
+            rule.mode == AltMode::Allow
+                && rule.keys.iter().zip(&rule.fingers).any(|(&key, &finger)| {
+                    let k = key_index(&key.to_string()).unwrap_or(0);
+                    !geom.is_reachable(k, finger)
+                })
+        }) {
+            Some(model.tables_unrestricted(geom))
+        } else {
+            None
+        };
+
         let mut big = vec![f64::INFINITY; N * N];
         let mut big_f = vec![0u8; N * N];
         big.par_chunks_mut(N)
@@ -81,6 +98,11 @@ impl Tables {
                     } else {
                         gates.penalty_mask_into(&[ca, chars[b]], conditions, &mut pm);
                     }
+                    let explicit = if mt_unrestricted.is_some() && !fixed {
+                        Some(gates.explicit_fingers(&[ca, chars[b]]))
+                    } else {
+                        None
+                    };
                     let fb_range = if fixed {
                         cfg.fingermap[b]..cfg.fingermap[b] + 1
                     } else {
@@ -90,9 +112,22 @@ impl Tables {
                     let mut best_f = 0usize;
                     for fa in fa_range.clone() {
                         for fb in fb_range.clone() {
-                            let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)]
-                                + 2.0 * PRESS
-                                + pm[fa * NF + fb];
+                            let penalty = pm[fa * NF + fb];
+                            let mut c =
+                                mt.t2[crate::model::pt_idx(a, fa, b, fb)] + 2.0 * PRESS + penalty;
+                            if let (Some(mtu), Some(explicit)) = (&mt_unrestricted, &explicit) {
+                                if c.is_infinite() && penalty.is_finite() {
+                                    let unreachable =
+                                        !geom.is_reachable(a, fa) || !geom.is_reachable(b, fb);
+                                    let allowed = (geom.is_reachable(a, fa) || explicit[0][fa])
+                                        && (geom.is_reachable(b, fb) || explicit[1][fb]);
+                                    if unreachable && allowed {
+                                        c = mtu.t2[crate::model::pt_idx(a, fa, b, fb)]
+                                            + 2.0 * PRESS
+                                            + penalty;
+                                    }
+                                }
+                            }
                             if a == b && fa != fb {
                                 c = f64::INFINITY;
                             }
@@ -135,6 +170,28 @@ impl Tables {
                         } else {
                             gates.penalty_mask_into(&[ca, cb, chars[c]], conditions, &mut pm);
                         }
+                        let explicit = if mt_unrestricted.is_some() && !fixed {
+                            Some(gates.explicit_fingers(&[ca, cb, chars[c]]))
+                        } else {
+                            None
+                        };
+                        let needs_unrestricted = explicit.as_ref().is_some_and(|ex| {
+                            ex.iter().enumerate().any(|(pos, fingers)| {
+                                let key = [a, b, c][pos];
+                                fingers
+                                    .iter()
+                                    .enumerate()
+                                    .any(|(f, &allowed)| allowed && !geom.is_reachable(key, f))
+                            })
+                        });
+                        let mut costs_unrestricted = if needs_unrestricted {
+                            Some(vec![0.0; NF * NF * NF])
+                        } else {
+                            None
+                        };
+                        if let (Some(mtu), Some(cu)) = (&mt_unrestricted, &mut costs_unrestricted) {
+                            model.tri_many_into(geom, mtu, &[a], &[b], &[c], cu);
+                        }
                         let f3_range = if fixed {
                             cfg.fingermap[c]..cfg.fingermap[c] + 1
                         } else {
@@ -147,7 +204,26 @@ impl Tables {
                             for f2 in f2_range.clone() {
                                 for f3 in f3_range.clone() {
                                     let idx = (f1 * NF + f2) * NF + f3;
-                                    let value = costs[idx] + 3.0 * PRESS + pm[idx];
+                                    let penalty = pm[idx];
+                                    let mut value = costs[idx] + 3.0 * PRESS + penalty;
+                                    if let (Some(cu), Some(explicit)) =
+                                        (&costs_unrestricted, &explicit)
+                                    {
+                                        if value.is_infinite() && penalty.is_finite() {
+                                            let fs = [f1, f2, f3];
+                                            let keys = [a, b, c];
+                                            let unreachable = fs
+                                                .iter()
+                                                .enumerate()
+                                                .any(|(pos, &f)| !geom.is_reachable(keys[pos], f));
+                                            let allowed = fs.iter().enumerate().all(|(pos, &f)| {
+                                                geom.is_reachable(keys[pos], f) || explicit[pos][f]
+                                            });
+                                            if unreachable && allowed {
+                                                value = cu[idx] + 3.0 * PRESS + penalty;
+                                            }
+                                        }
+                                    }
                                     if value < best {
                                         best = value;
                                         best_f = [f1 as u8, f2 as u8, f3 as u8];
