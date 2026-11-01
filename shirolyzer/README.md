@@ -86,9 +86,10 @@ alt_fingers:
   - {ngram: [S, T, R], fingers: [LR, LM, LI], mode: block}
 ```
 
-- Matching is exact and ordered. Longer ngrams override shorter ngrams.
+- Matching is exact and ordered. A longer `allow` rule overrides shorter rules only where their matched ranges overlap; non-overlapping shorter rules remain active, and overlapping `block` rules all stay active.
 - `allow` restricts an ngram to the listed fingering; `block` forbids that exact fingering while leaving other fingerings available.
 - Listed fingers are mandatory. An explicit rule never silently falls back to the default fingermap.
+- An explicit `allow` rule also licenses a finger that geometry would otherwise mark unreachable; the normal travel weights still price that reach.
 - When the same ngram is defined more than once, earlier definitions are preferred; later definitions act as fallbacks.
 - Context-key defaults are listed first, followed by other fingers on the same hand as fallbacks.
 
@@ -102,7 +103,7 @@ alt_fingers:
   - {ngram: [Y], fingers: [LM], mode: allow}
 ```
 
-Internally the tokens map to eight finger states ordered by `hand * 4 + finger`: `LP=0`, `LR=1`, `LM=2`, `LI=3`, `RP=4`, `RR=5`, `RM=6`, `RI=7`. A bare `P/R/M/I` token still means the physical key's own hand, so the shipped fingermap and existing rules keep their same-hand meaning. Cross-hand travel is priced from absolute key/finger positions, not from a hand-relative mirror, and cross-hand states remain unavailable unless a rule explicitly allows them. Same-hand pair terms use the fingering hand, so two cross-body keys typed by fingers of the same hand are still treated as a same-hand pair.
+Internally the tokens map to eight finger states ordered by `hand * 4 + finger`: `LP=0`, `LR=1`, `LM=2`, `LI=3`, `RP=4`, `RR=5`, `RM=6`, `RI=7`. A bare `P/R/M/I` token still means the physical key's own hand, so the shipped fingermap and existing rules keep their same-hand meaning. Cross-hand travel is priced from absolute key/finger positions, not from a hand-relative mirror, and cross-hand states remain unavailable unless a rule explicitly allows them. An explicit `allow` rule may name a finger outside the geometry reach map; the scorer then prices the reach with the normal travel weights instead of rejecting it. Same-hand pair terms use the fingering hand, so two cross-body keys typed by fingers of the same hand are still treated as a same-hand pair.
 
 #### Fingering modes
 

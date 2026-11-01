@@ -46,7 +46,8 @@ Concrete failure with the shipped `config.yaml`:
 8. Add the requested concrete rules:
    - `C H X -> LR LI LP`
    - `H X -> LI LP`
-   These are currently blocked by geometry reachability; see below.
+   `C:LR` and `X:LP` are outside the geometry reach map, so explicit allow
+   rules must also override reachability; see the resolution below.
 9. Add gates unit tests for:
    - non-overlapping shorter allow rules still apply;
    - overlapping longer allow rules override shorter rules;
@@ -70,33 +71,51 @@ Concrete failure with the shipped `config.yaml`:
 ## Acceptance
 
 - `C X H` honors the H unigram allow rule.
-- `C H X` uses `LR LI LP`; `H X` uses `LI LP` (blocked on reachability).
+- `C H X` uses `LR LI LP`; `H X` uses `LI LP`.
 - `Q W W` remains feasible.
 - `cargo test --release` passes.
 - The change is committed on the branch with a message referencing issue #91.
 
-## Blocked: requested CHX/HX fingerings are unreachable
+## Resolution: explicit allow rules override reachability
 
-The current `geometry/ansi.yaml` reach map does not allow the requested fingers
-for the physical keys:
+`C:LR` and `X:LP` are outside the geometry reach map, so the requested rules
+could not build: `Tables::build` reported `no feasible fingering`. We took
+option 2 from the original list: an active `allow` rule licenses the exact
+finger it names even when geometry would mark that key/finger unreachable. The
+normal travel and effort weights still price the fingering, so the result is a
+finite but expensive cross-body reach rather than a free one.
 
-| key | reachable fingers | requested |
-| --- | --- | --- |
-| C | `LM`, `LI`, `RI` | `LR` (unreachable) |
-| H | `LR`, `LM`, `LI` (cross), `RM`, `RI` | `LI` (reachable) |
-| X | `LR`, `LM`, `LI` | `LP` (unreachable) |
+Implementation:
 
-So `{ngram: [C, H, X], fingers: [LR, LI, LP]}` and
-`{ngram: [H, X], fingers: [LI, LP]}` cannot build: `Tables::build` reports
-`no feasible fingering` because the model marks `C:LR` and `X:LP` as infinite.
-Explicit alt rules constrain finger choice but do not override model
-reachability.
+- `Model::tables_unrestricted` rebuilds the key/pair/trigram tables without the
+  reachability infinity.
+- `Tables::build` uses the unrestricted tables only for fingerings that are
+  both explicitly named by an active `allow` rule and otherwise unreachable.
+- `Gates::explicit_fingers` exposes the fingers named by active allow groups so
+  the scorer can make that decision per position.
 
-Options:
+Because `H X` forces `X:LP`, it overlaps existing `X A`, `X C`, and repeated
+`X` contexts at the same position. The shipped config now carries longer
+context rules that keep those trigrams feasible:
 
-1. Use reachable alternatives (for example `C:LM` or `C:LI`, and `X:LR` or
-   `X:LM`).
-2. Relax reachability for fingers named by an explicit `allow` rule, assigning
-   a large finite cost instead of infinity.
-3. Keep the requested rules out of the shipped config and use them only in a
-   test fixture that stubs reachability.
+- `H X A -> LI LP {LR,LM,LP}`
+- `H X C -> LI LP {LI,LP,LR,LM}`
+- `H X X -> LI LP LP`
+- `X H X -> LP LI LP`
+
+Reachability relaxation is deliberately global for explicit allow rules, so
+previously inert rules that named unreachable fingers (for example `C:LP`,
+`Q:LI`, `X:LP`, `S:LP`, `O:RP`, `O:RI`) now take effect. This changes the
+user-config scores while the same-hand reference config used by the regression
+tests is unchanged. `score_baseline.json` still describes that reference model;
+running `check-baseline` against `config.yaml` therefore reports different
+reference scores. That mismatch predates this change (it already occurs at
+`71dc36f`) and is recorded here rather than folded into the reference baseline.
+
+Verification:
+
+- `cargo test --release`: all unit, baseline, command, and parity tests pass.
+- `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and
+  `just dev-tools` pass.
+- New tests cover the requested `C H X` / `H X` fingerings at the gates and
+  scorer level, including the unreachable `C:LR` / `X:LP` states.

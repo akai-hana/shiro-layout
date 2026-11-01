@@ -264,6 +264,10 @@ impl Model {
     }
 
     pub fn key_cost(&self, geom: &Geometry) -> (Vec<f64>, Vec<f64>) {
+        self.key_cost_impl(geom, false)
+    }
+
+    fn key_cost_impl(&self, geom: &Geometry, ignore_reach: bool) -> (Vec<f64>, Vec<f64>) {
         let mut e = vec![0.0; NK * NF];
         let mut nd = vec![0.0; NK * NF];
         let mut ndr = vec![0.0; NK * NF];
@@ -325,7 +329,7 @@ impl Model {
                 let ndv = e_nd * nd[i] + e_ndgap * gap;
                 final_nd[i] = ndv;
                 let mut value = e[i] + ndv + e_nd_rest * ndr[i];
-                if !geom.is_reachable(k, f) {
+                if !ignore_reach && !geom.is_reachable(k, f) {
                     value = f64::INFINITY;
                 }
                 final_e[i] = value;
@@ -507,7 +511,18 @@ impl Model {
     }
 
     pub fn tables(&self, geom: &Geometry) -> ModelTables {
-        let (e, nd) = self.key_cost(geom);
+        self.tables_impl(geom, false)
+    }
+
+    /// Same as [`Self::tables`], but ignores geometry reachability.  Used only
+    /// for explicit alt rules, which are allowed to name otherwise unreachable
+    /// fingers.
+    pub fn tables_unrestricted(&self, geom: &Geometry) -> ModelTables {
+        self.tables_impl(geom, true)
+    }
+
+    fn tables_impl(&self, geom: &Geometry, ignore_reach: bool) -> ModelTables {
+        let (e, nd) = self.key_cost_impl(geom, ignore_reach);
         let (strain, parts) = self.pair_parts(geom, &nd);
         let size = NK * NF * NK * NF;
         let mut pt = vec![0.0; size];
@@ -539,7 +554,8 @@ impl Model {
                         if a == b {
                             out = W_REPEAT + if fa != fb { W_REPEAT_SWAP } else { 0.0 };
                         }
-                        let reach = geom.is_reachable(a, fa) && geom.is_reachable(b, fb);
+                        let reach =
+                            ignore_reach || (geom.is_reachable(a, fa) && geom.is_reachable(b, fb));
                         if !reach {
                             out = f64::INFINITY;
                         }
