@@ -1,9 +1,9 @@
 use anyhow::Result;
 
 use shirolyzer::context;
-use shirolyzer::geometry::{finger_index, key_index, FINGERS, KEYS, NF};
+use shirolyzer::geometry::{finger_index8, finger_token, key_index, parse_finger8, KEYS, NF};
 use shirolyzer::model::pt_idx;
-use shirolyzer::scorer::{big_idx, tri_idx, PRESS};
+use shirolyzer::scorer::{big_idx, tri_idx, FINGER_SLOTS, PRESS};
 
 fn letter_id(ch: char) -> Option<usize> {
     match ch {
@@ -27,9 +27,8 @@ fn key_char(k: usize) -> char {
     KEYS[k].chars().next().unwrap()
 }
 
-fn hand_finger(hand: usize, f: usize) -> String {
-    let h = if hand == 0 { 'L' } else { 'R' };
-    format!("{h}{}", FINGERS[f])
+fn hand_finger(_hand: usize, f: usize) -> String {
+    finger_token(f).to_string()
 }
 
 fn parse_desired(
@@ -41,18 +40,13 @@ fn parse_desired(
     for (pos, token) in tokens.iter().enumerate() {
         let text = token.to_uppercase();
         let chars: Vec<char> = text.chars().collect();
-        let f = *chars.last().unwrap();
-        let fi = finger_index(f).ok_or_else(|| format!("bad finger {token:?}"))?;
-        if chars.len() > 1 {
-            let hand = chars[0];
-            let expected = if geom.hand[keys[pos]] == 0 { 'L' } else { 'R' };
-            if hand != expected {
-                return Err(format!(
-                    "{token} on {} is wrong hand (needs {expected})",
-                    key_char(keys[pos])
-                ));
-            }
-        }
+        let fi = if chars.len() == 2 {
+            parse_finger8(&text).ok_or_else(|| format!("bad finger {token:?}"))?
+        } else {
+            let f = *chars.last().unwrap();
+            finger_index8(f, geom.hand[keys[pos]])
+                .ok_or_else(|| format!("bad finger {token:?}"))?
+        };
         out.push(fi);
     }
     Ok(out)
@@ -300,7 +294,7 @@ fn main() -> Result<()> {
         } else {
             let idx = big_idx(ids[0], ids[1]);
             let enc = ctx.tables.big_f[idx] as usize;
-            let fs = [enc / 5, enc % 5];
+            let fs = [enc / FINGER_SLOTS, enc % FINGER_SLOTS];
             (fs.to_vec(), ctx.tables.big[idx])
         };
         let cur_tokens: Vec<String> = cur_fs
@@ -325,11 +319,8 @@ fn main() -> Result<()> {
                         bi_cost(&ctx, &ids, &fs)
                     };
                     let cost = raw + pen;
-                    let tokens: Vec<String> = fs
-                        .iter()
-                        .enumerate()
-                        .map(|(pos, &f)| hand_finger(ctx.geom.hand[ids[pos]], f))
-                        .collect();
+                    let tokens: Vec<String> =
+                        fs.iter().map(|&f| finger_token(f).to_string()).collect();
                     let delta = cost - cur_cost;
                     println!(
                         "  desired {:<14} {} cost={:.3} raw={:.3} gate={:.3} cond={:.3} delta={:+.3}",
@@ -343,11 +334,11 @@ fn main() -> Result<()> {
                     );
                     if raw.is_infinite() {
                         for (pos, &f) in fs.iter().enumerate() {
-                            if !ctx.geom.reach[ids[pos]][f] {
+                            if !ctx.geom.is_reachable(ids[pos], f) {
                                 println!(
                                     "    unreachable: {} by {}",
                                     key_char(ids[pos]),
-                                    hand_finger(ctx.geom.hand[ids[pos]], f)
+                                    finger_token(f)
                                 );
                             }
                         }

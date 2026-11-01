@@ -6,7 +6,7 @@ use anyhow::{bail, Result};
 use rayon::prelude::*;
 
 use crate::conditions::Conditions;
-use crate::config::Config;
+use crate::config::{Config, FingeringMode};
 use crate::gates::Gates;
 use crate::geometry::{finger_hand, Geometry, KEYS, NF, NK};
 use crate::model::{Model, ModelTables, W_ALT};
@@ -52,13 +52,14 @@ impl Tables {
     pub fn build(
         model: &Model,
         geom: &Geometry,
-        _cfg: &Config,
+        cfg: &Config,
         gates: &Gates,
         conditions: &Conditions,
     ) -> Result<Self> {
         let mt = model.tables(geom);
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
         let chars: Vec<char> = (0..NK).map(key_char).collect();
+        let fixed = cfg.fingering == FingeringMode::Fixed;
 
         let mut big = vec![f64::INFINITY; N * N];
         let mut big_f = vec![0u8; N * N];
@@ -69,12 +70,26 @@ impl Tables {
             .for_each(|(a, (big_row, big_f_row))| {
                 let mut pm = vec![0.0; NF * NF];
                 let ca = chars[a];
+                let fa_range = if fixed {
+                    cfg.fingermap[a]..cfg.fingermap[a] + 1
+                } else {
+                    0..NF
+                };
                 for b in 0..NK {
-                    gates.penalty_mask_into(&[ca, chars[b]], conditions, &mut pm);
+                    if fixed {
+                        conditions.penalty_mask_into(&[ca, chars[b]], &mut pm);
+                    } else {
+                        gates.penalty_mask_into(&[ca, chars[b]], conditions, &mut pm);
+                    }
+                    let fb_range = if fixed {
+                        cfg.fingermap[b]..cfg.fingermap[b] + 1
+                    } else {
+                        0..NF
+                    };
                     let mut best = f64::INFINITY;
                     let mut best_f = 0usize;
-                    for fa in 0..NF {
-                        for fb in 0..NF {
+                    for fa in fa_range.clone() {
+                        for fb in fb_range.clone() {
                             let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)]
                                 + 2.0 * PRESS
                                 + pm[fa * NF + fb];
@@ -102,16 +117,35 @@ impl Tables {
                 let mut pm = vec![0.0; NF * NF * NF];
                 let mut costs = vec![0.0; NF * NF * NF];
                 let ca = chars[a];
+                let f1_range = if fixed {
+                    cfg.fingermap[a]..cfg.fingermap[a] + 1
+                } else {
+                    0..NF
+                };
                 for b in 0..NK {
                     let cb = chars[b];
+                    let f2_range = if fixed {
+                        cfg.fingermap[b]..cfg.fingermap[b] + 1
+                    } else {
+                        0..NF
+                    };
                     for c in 0..NK {
-                        gates.penalty_mask_into(&[ca, cb, chars[c]], conditions, &mut pm);
+                        if fixed {
+                            conditions.penalty_mask_into(&[ca, cb, chars[c]], &mut pm);
+                        } else {
+                            gates.penalty_mask_into(&[ca, cb, chars[c]], conditions, &mut pm);
+                        }
+                        let f3_range = if fixed {
+                            cfg.fingermap[c]..cfg.fingermap[c] + 1
+                        } else {
+                            0..NF
+                        };
                         model.tri_many_into(geom, &mt, &[a], &[b], &[c], &mut costs);
                         let mut best = f64::INFINITY;
                         let mut best_f = [0u8; 3];
-                        for f1 in 0..NF {
-                            for f2 in 0..NF {
-                                for f3 in 0..NF {
+                        for f1 in f1_range.clone() {
+                            for f2 in f2_range.clone() {
+                                for f3 in f3_range.clone() {
                                     let idx = (f1 * NF + f2) * NF + f3;
                                     let value = costs[idx] + 3.0 * PRESS + pm[idx];
                                     if value < best {
@@ -128,7 +162,11 @@ impl Tables {
             });
 
         for a in 0..NK {
-            let (f, _) = argmin_same_hand_finger(geom, a, &e_with_press[a * NF..(a + 1) * NF]);
+            let (f, _) = if fixed {
+                (cfg.fingermap[a], f64::INFINITY)
+            } else {
+                argmin_same_hand_finger(geom, a, &e_with_press[a * NF..(a + 1) * NF])
+            };
             let ea = mt.e[crate::model::e_idx(a, f)];
             let value = ea + PRESS + SPACE_EFFORT + W_ALT;
             big[big_idx(a, SPACE_ID)] = value;
@@ -153,6 +191,8 @@ impl Tables {
                         .map(|&x| {
                             if x == SPACE_ID {
                                 vec![SPACE_FINGER]
+                            } else if fixed {
+                                vec![cfg.fingermap[x]]
                             } else {
                                 (0..NF)
                                     .filter(|&f| {
@@ -206,9 +246,10 @@ impl Tables {
             for b in 0..NK {
                 if !big[big_idx(a, b)].is_finite() {
                     bail!(
-                        "alt_fingers: no feasible fingering for bigram {}->{}",
+                        "no feasible fingering for bigram {}->{} (mode: {})",
                         KEYS[a],
-                        KEYS[b]
+                        KEYS[b],
+                        cfg.fingering.label()
                     );
                 }
             }
@@ -218,10 +259,11 @@ impl Tables {
                 for c in 0..NK {
                     if !tri[tri_idx(a, b, c)].is_finite() {
                         bail!(
-                            "alt_fingers: no feasible fingering for trigram {}->{}->{}",
+                            "no feasible fingering for trigram {}->{}->{} (mode: {})",
                             KEYS[a],
                             KEYS[b],
-                            KEYS[c]
+                            KEYS[c],
+                            cfg.fingering.label()
                         );
                     }
                 }

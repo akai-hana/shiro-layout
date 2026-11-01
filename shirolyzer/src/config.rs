@@ -50,6 +50,22 @@ pub enum AltMode {
     Block,
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum FingeringMode {
+    Fixed,
+    #[default]
+    Flexible,
+}
+
+impl FingeringMode {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Fixed => "fixed",
+            Self::Flexible => "flexible",
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct AltRule {
     pub keys: Vec<char>,
@@ -123,6 +139,7 @@ pub struct Config {
     pub disallow_reverse_scissors: [[bool; NFINGER]; NFINGER],
     pub parameters_file: String,
     pub parameters_path: PathBuf,
+    pub fingering: FingeringMode,
     pub fingermap: [usize; NK],
     pub finger_tokens: Vec<char>,
     pub alt_fingers: Vec<AltRule>,
@@ -343,6 +360,22 @@ fn parse_percent(path: &Path, where_: &str, value: &Value) -> Result<f64> {
         return Err(fail(path, where_, "expected a non-negative percentage"));
     }
     Ok(number)
+}
+
+fn parse_fingering(path: &Path, value: Option<&Value>) -> Result<FingeringMode> {
+    let Some(value) = value else {
+        return Ok(FingeringMode::Flexible);
+    };
+    let text = as_string(path, "general.fingering", value)?;
+    match text.trim().to_ascii_lowercase().as_str() {
+        "fixed" | "default" => Ok(FingeringMode::Fixed),
+        "flexible" | "free" => Ok(FingeringMode::Flexible),
+        other => Err(fail(
+            path,
+            "general.fingering",
+            &format!("unknown mode {other:?}; expected \"fixed\" or \"flexible\""),
+        )),
+    }
 }
 
 fn parse_sacrifice(path: &Path, value: Option<&Value>) -> Result<Sacrifice> {
@@ -1072,6 +1105,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         get(general, "secondary_corpus"),
     )?;
     let primary_sacrifice = parse_sacrifice(&path, get(general, "primary_sacrifice"))?;
+    let fingering = parse_fingering(&path, get(general, "fingering"))?;
 
     let model = as_mapping(&path, "model", get(root, "model").unwrap())?;
     let mut disallow_reverse_scissors = [[false; NFINGER]; NFINGER];
@@ -1164,6 +1198,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         disallow_reverse_scissors,
         parameters_file,
         parameters_path,
+        fingering,
         fingermap,
         finger_tokens,
         alt_fingers,
@@ -1223,6 +1258,33 @@ mod tests {
         assert!(restrictions("middle: z\n").is_err());
         assert!(restrictions("left: [z, 1]\n").is_err());
     }
+
+    #[test]
+    fn fingering_mode_defaults_to_flexible_and_parses_aliases() {
+        let path = Path::new("config.yaml");
+        assert_eq!(
+            parse_fingering(path, None).unwrap(),
+            FingeringMode::Flexible
+        );
+        for text in ["fixed", "default", "FIXED"] {
+            let value = Value::String(text.into());
+            assert_eq!(
+                parse_fingering(path, Some(&value)).unwrap(),
+                FingeringMode::Fixed,
+                "{text}"
+            );
+        }
+        for text in ["flexible", "free", "Flexible"] {
+            let value = Value::String(text.into());
+            assert_eq!(
+                parse_fingering(path, Some(&value)).unwrap(),
+                FingeringMode::Flexible,
+                "{text}"
+            );
+        }
+        let bad = Value::String("contextual".into());
+        assert!(parse_fingering(path, Some(&bad)).is_err());
+    }
 }
 
 #[cfg(test)]
@@ -1264,13 +1326,14 @@ mod cross_hand_tests {
                 "{key} uses a cross-hand default"
             );
         }
-        for rule in &cfg.alt_fingers {
+        // Cross-hand tokens are legal in alt rules, but the canonical fixed
+        // config must not opt into them by accident.
+        let fixed = load(Some(&paths::config_dir().join("config.fixed.yaml"))).unwrap();
+        for rule in &fixed.alt_fingers {
             for (&key, &finger) in rule.keys.iter().zip(rule.fingers.iter()) {
                 let key = key.to_string();
                 if finger_hand(finger) != hand_of(&key) {
-                    // Cross-hand tokens are legal in alt rules, but the shipped
-                    // configuration must not opt into them by accident.
-                    panic!("shipped alt rule {key} uses cross-hand {finger}");
+                    panic!("fixed config alt rule {key} uses cross-hand {finger}");
                 }
             }
         }

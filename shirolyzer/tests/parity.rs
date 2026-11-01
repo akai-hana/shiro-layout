@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use shirolyzer::diversity::{self, Row};
 use shirolyzer::{conditions, config, corpus, gates, geometry, scorer};
 
+mod common;
+
 const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
 
 fn setup() -> (
@@ -11,7 +13,7 @@ fn setup() -> (
     scorer::Tables,
     corpus::Corpus,
 ) {
-    let cfg = config::load(None).expect("config");
+    let cfg = config::load(Some(&common::reference_config())).expect("config");
     let geom = geometry::Geometry::new();
     let model = config::build_model(&cfg).expect("model");
     let gates = gates::Gates::from_config(&cfg);
@@ -94,7 +96,7 @@ fn diversity_keeps_only_comparable_distinct_layouts() {
 
 #[test]
 fn cross_hand_alt_fingers_reach_the_scorer() {
-    let mut cfg = config::load(None).expect("config");
+    let mut cfg = config::load(Some(&common::reference_config())).expect("config");
     let h = geometry::key_index("H").unwrap();
     let y = geometry::key_index("Y").unwrap();
     let li = geometry::parse_finger8("LI").unwrap();
@@ -124,4 +126,40 @@ fn cross_hand_alt_fingers_reach_the_scorer() {
 
     let tri = tables.tri_f[scorer::tri_idx(h, y, h)];
     assert_eq!(tri, [li as u8, lm as u8, li as u8]);
+}
+
+#[test]
+fn fixed_config_forces_fingermap_fingers() {
+    let path = shirolyzer::paths::repo_root().join("shirolyzer/config/config.fixed.yaml");
+    let cfg = config::load(Some(&path)).expect("fixed config");
+    assert_eq!(cfg.fingering, config::FingeringMode::Fixed);
+
+    let geom = geometry::Geometry::new();
+    let model = config::build_model(&cfg).expect("model");
+    let gates = gates::Gates::from_config(&cfg);
+    let conds = conditions::Conditions::from_config(&cfg, &geom);
+    let tables = scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
+
+    for a in 0..30 {
+        for b in 0..30 {
+            let encoded = tables.big_f[scorer::big_idx(a, b)] as usize;
+            assert_eq!(encoded / scorer::FINGER_SLOTS, cfg.fingermap[a], "{a}->{b}");
+            assert_eq!(encoded % scorer::FINGER_SLOTS, cfg.fingermap[b], "{a}->{b}");
+        }
+    }
+    for a in 0..30 {
+        for b in 0..30 {
+            for c in 0..30 {
+                assert_eq!(
+                    tables.tri_f[scorer::tri_idx(a, b, c)],
+                    [
+                        cfg.fingermap[a] as u8,
+                        cfg.fingermap[b] as u8,
+                        cfg.fingermap[c] as u8
+                    ],
+                    "{a}->{b}->{c}"
+                );
+            }
+        }
+    }
 }

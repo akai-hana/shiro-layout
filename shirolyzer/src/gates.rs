@@ -60,89 +60,114 @@ impl Gates {
         if n == 0 {
             return;
         }
-        let mut allow_len = 0;
-        for rule in &self.rules {
-            let len = rule.keys.len();
-            if rule.mode == AltMode::Allow
-                && len <= keys.len()
-                && len > allow_len
-                && windows(keys, &rule.keys).next().is_some()
-            {
-                allow_len = len;
-            }
+
+        #[derive(Clone, Copy)]
+        struct RuleMatch {
+            start: usize,
+            len: usize,
+            rule_idx: usize,
         }
-        let mut allow_groups: Vec<(usize, Vec<&AltRule>)> = Vec::new();
-        let mut block_rules: Vec<(usize, &AltRule)> = Vec::new();
-        for rule in &self.rules {
-            let len = rule.keys.len();
-            if len < allow_len {
+
+        let matches: Vec<RuleMatch> = self
+            .rules
+            .iter()
+            .enumerate()
+            .flat_map(|(rule_idx, rule)| {
+                let len = rule.keys.len();
+                if len == 0 || len > n {
+                    return Vec::new();
+                }
+                windows(keys, &rule.keys)
+                    .map(|start| RuleMatch {
+                        start,
+                        len,
+                        rule_idx,
+                    })
+                    .collect::<Vec<_>>()
+            })
+            .collect();
+
+        // A longer allow rule overrides any shorter rule whose range it
+        // overlaps.  A longer block rule adds a restriction but does not
+        // cancel a shorter block, so overlapping block rules all stay active.
+        let active: Vec<bool> = matches
+            .iter()
+            .enumerate()
+            .map(|(i, m)| {
+                !matches.iter().enumerate().any(|(j, other)| {
+                    j != i
+                        && other.len > m.len
+                        && self.rules[other.rule_idx].mode == AltMode::Allow
+                        && m.start < other.start + other.len
+                        && other.start < m.start + m.len
+                })
+            })
+            .collect();
+
+        let mut allow_groups: Vec<(usize, usize, Vec<usize>)> = Vec::new();
+        let mut block_rules: Vec<(usize, usize, usize)> = Vec::new();
+        for (i, m) in matches.iter().enumerate() {
+            if !active[i] {
                 continue;
             }
-            for start in windows(keys, &rule.keys) {
-                match rule.mode {
-                    AltMode::Allow if len == allow_len => {
-                        if let Some(group) = allow_groups.iter_mut().find(|(s, _)| *s == start) {
-                            group.1.push(rule);
-                        } else {
-                            allow_groups.push((start, vec![rule]));
-                        }
+            match self.rules[m.rule_idx].mode {
+                AltMode::Allow => {
+                    if let Some(group) = allow_groups
+                        .iter_mut()
+                        .find(|(start, len, _)| *start == m.start && *len == m.len)
+                    {
+                        group.2.push(m.rule_idx);
+                    } else {
+                        allow_groups.push((m.start, m.len, vec![m.rule_idx]));
                     }
-                    AltMode::Block => block_rules.push((start, rule)),
-                    _ => {}
                 }
+                AltMode::Block => block_rules.push((m.start, m.len, m.rule_idx)),
             }
         }
+
         let key_hands: Vec<usize> = keys
             .iter()
             .map(|key| crate::geometry::hand_of(&key.to_string()))
             .collect();
-        for (idx, value) in out.iter_mut().enumerate() {
+        'tuple: for (idx, value) in out.iter_mut().enumerate() {
             let fingers = decode(idx, n);
-            if block_rules.iter().any(|(start, rule)| {
-                let len = rule.keys.len();
-                fingers[*start..*start + len] == rule.fingers[..]
-            }) {
-                *value = f64::INFINITY;
-                continue;
+            for &(start, len, rule_idx) in &block_rules {
+                if fingers[start..start + len] == self.rules[rule_idx].fingers[..] {
+                    *value = f64::INFINITY;
+                    continue 'tuple;
+                }
             }
-            let mut allowed = true;
             let mut fallback = 0.0;
-            for (start, group) in &allow_groups {
-                match group
-                    .iter()
-                    .position(|rule| fingers[*start..*start + allow_len] == rule.fingers[..])
-                {
+            for (start, len, group) in &allow_groups {
+                match group.iter().position(|&rule_idx| {
+                    fingers[*start..*start + *len] == self.rules[rule_idx].fingers[..]
+                }) {
                     Some(pos) => fallback += pos as f64 * FALLBACK_PENALTY,
                     None => {
-                        allowed = false;
-                        break;
+                        *value = f64::INFINITY;
+                        continue 'tuple;
                     }
                 }
             }
-            if allowed {
-                *value += fallback;
-            } else {
-                *value = f64::INFINITY;
-                continue;
-            }
-            // Cross-hand fingerings are impossible by default.  An allow rule
-            // must name the exact cross-hand state at that sequence position.
+            // Cross-hand fingerings are impossible by default.  An active allow
+            // rule must name the exact cross-hand state at that sequence position.
             for (pos, &finger) in fingers.iter().enumerate() {
                 if finger_hand(finger) == key_hands[pos] {
                     continue;
                 }
-                let licensed = allow_groups.iter().any(|(start, group)| {
+                let licensed = allow_groups.iter().any(|(start, len, group)| {
                     pos >= *start
-                        && pos < *start + allow_len
+                        && pos < *start + *len
                         && group
                             .iter()
-                            .any(|rule| rule.fingers[pos - *start] == finger)
+                            .any(|&rule_idx| self.rules[rule_idx].fingers[pos - *start] == finger)
                 });
                 if !licensed {
                     *value = f64::INFINITY;
-                    break;
+                    continue 'tuple;
                 }
             }
+            *value += fallback;
         }
     }
 }
@@ -213,5 +238,111 @@ mod tests {
         let y = licensed.penalty_mask(&['Y'], &conditions);
         assert!(y[lm].is_finite());
         assert!(y[rm].is_infinite());
+    }
+    fn index(fingers: &[usize]) -> usize {
+        fingers.iter().fold(0, |acc, &f| acc * NF + f)
+    }
+
+    #[test]
+    fn non_overlapping_shorter_allow_rules_still_apply() {
+        let conditions = conditions_off();
+        let li = parse_finger8("LI").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let ri = parse_finger8("RI").unwrap();
+        let gates = Gates {
+            rules: vec![
+                AltRule {
+                    keys: vec!['C', 'X'],
+                    fingers: vec![li, lm],
+                    mode: AltMode::Allow,
+                },
+                AltRule {
+                    keys: vec!['H'],
+                    fingers: vec![li],
+                    mode: AltMode::Allow,
+                },
+            ],
+        };
+        let mask = gates.penalty_mask(&['C', 'X', 'H'], &conditions);
+        assert!(mask[index(&[li, lm, li])].is_finite());
+        assert!(mask[index(&[li, lm, ri])].is_infinite());
+    }
+
+    #[test]
+    fn longer_allow_rule_overrides_overlapping_block() {
+        let conditions = conditions_off();
+        let lr = parse_finger8("LR").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let gates = Gates {
+            rules: vec![
+                AltRule {
+                    keys: vec!['W'],
+                    fingers: vec![lm],
+                    mode: AltMode::Block,
+                },
+                AltRule {
+                    keys: vec!['Q', 'W'],
+                    fingers: vec![lr, lm],
+                    mode: AltMode::Allow,
+                },
+            ],
+        };
+        let mask = gates.penalty_mask(&['Q', 'W'], &conditions);
+        assert!(mask[index(&[lr, lm])].is_finite());
+        assert!(mask[index(&[lr, lr])].is_infinite());
+    }
+
+    #[test]
+    fn longer_block_rule_does_not_cancel_shorter_block() {
+        let conditions = conditions_off();
+        let lp = parse_finger8("LP").unwrap();
+        let li = parse_finger8("LI").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let gates = Gates {
+            rules: vec![
+                AltRule {
+                    keys: vec!['G'],
+                    fingers: vec![lm],
+                    mode: AltMode::Block,
+                },
+                AltRule {
+                    keys: vec!['V', 'G'],
+                    fingers: vec![lp, lm],
+                    mode: AltMode::Block,
+                },
+            ],
+        };
+        let mask = gates.penalty_mask(&['V', 'G'], &conditions);
+        assert!(mask[index(&[lm, lm])].is_infinite());
+        assert!(mask[index(&[lp, lm])].is_infinite());
+        assert!(mask[index(&[lp, li])].is_finite());
+    }
+
+    #[test]
+    fn repeated_key_context_rule_can_lift_block_at_other_occurrence() {
+        let conditions = conditions_off();
+        let lr = parse_finger8("LR").unwrap();
+        let lm = parse_finger8("LM").unwrap();
+        let gates = Gates {
+            rules: vec![
+                AltRule {
+                    keys: vec!['W'],
+                    fingers: vec![lm],
+                    mode: AltMode::Block,
+                },
+                AltRule {
+                    keys: vec!['Q', 'W'],
+                    fingers: vec![lr, lm],
+                    mode: AltMode::Allow,
+                },
+                AltRule {
+                    keys: vec!['Q', 'W', 'W'],
+                    fingers: vec![lr, lm, lm],
+                    mode: AltMode::Allow,
+                },
+            ],
+        };
+        let mask = gates.penalty_mask(&['Q', 'W', 'W'], &conditions);
+        assert!(mask[index(&[lr, lm, lm])].is_finite());
     }
 }
