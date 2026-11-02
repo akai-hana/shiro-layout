@@ -43,7 +43,7 @@ Mainly, it features user-defined condition/preference/restriction configuration 
 - Primary and secondary corpora, with weight-specific blending.
 - Primary sacrifice limits, expressed as score and/or per-metric percentages.
 - Optional per-hand character restrictions (`hand_restrictions`), so selected characters are only placed on one hand during generation.
-- Priority tiers for selected objective terms.
+- Priority tiers for selected objective terms and ranked redirect preference tiers.
 
 ## Generation
 > shirolyzer's layout generation capabilities and specifications
@@ -134,6 +134,21 @@ shirolyzer compare --config shirolyzer/config/config.fixed.yaml
 
 `priority_list` groups objective terms into ordered tiers. Earlier tiers receive a larger multiplier than later tiers, while omitted terms use their default weight. This makes it possible to prioritize, for example, low SFB/SFT and scissors over rolls without removing lower-priority terms from the objective.
 
+### Redirect tiers
+
+`redirect_tiers` ranks same-hand redirect patterns from most preferred to most avoided. Fingers are numbered per hand (`1=index`, `2=middle`, `3=ring`, `4=pinky`), and every entry must be a direction reversal such as `1-2-1` or `2-1-3`.
+
+```yaml
+redirect_tiers:
+  - ["1-2-1", "2-1-2", "1-3-1", "3-1-3"]
+  - ["3-2-3"]
+  - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
+  - ["4-1-4", "4-2-4", "2-4-2"]
+  - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
+```
+
+Tier costs are spaced automatically between the calibrated `W_REDIRECT` and `W_REDIRECT_WEAK` endpoints, so tier 1 is the cheapest and the last tier is the most expensive. Same-hand turns that are not listed keep the legacy cost (pinky involved means the weak value, otherwise the regular value). Calibration and audit always use the legacy fitted curve, independent of this preference layer.
+
 ### Conditions
 
 Condition rules are evaluated from top to bottom; the first matching rule wins. `allow: false` forbids a matching pattern and `allow: true` permits it. Unless `reverse: true` is specified, a scissor rule matches both regular and reverse scissors.
@@ -149,6 +164,7 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 
 - bigram categories such as SFBs, scissors, and stretches;
 - trigram patterns including rolls, redirects, alternation, true same-finger trigrams (Sft), and adjacent same-finger trigrams (Sfb/BadSfb lumped); repeated-character trigrams are also reported as an overlapping `repeat` diagnostic;
+- when `redirect_tiers` is configured, per-tier and per-pattern redirect percentages plus `redirect_unclassified` for unlisted turns; the older `redirect`/`redirect_weak` categories remain as deprecated overlapping diagnostics;
 - per-finger usage against the configured finger-balance targets;
 - the pattern-model score, including priority-tier weighting.
 
