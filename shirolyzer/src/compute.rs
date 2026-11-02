@@ -16,7 +16,7 @@ use crate::config::Sacrifice;
 use crate::context::{self, Context};
 use crate::corpus::Corpus;
 use crate::diversity::{self, Row};
-use crate::evaluate::{flat_share_from_config, perm_of, Evaluator};
+use crate::evaluate::{canonical_punctuation, flat_share_from_config, perm_of, Evaluator};
 use crate::geometry::Geometry;
 use crate::paths;
 use crate::redirect::RedirectTiers;
@@ -25,6 +25,8 @@ use crate::scorer::Tables;
 use crate::search;
 use crate::ui;
 use crate::xkb;
+
+const ILS_MIN_LETTER_DISTANCE: usize = 4;
 
 pub fn parse_budget(value: &str) -> Result<f64> {
     let value = value.trim().to_lowercase();
@@ -152,6 +154,7 @@ pub struct ComputeArgs<'a> {
     pub runs: usize,
     pub iters: usize,
     pub ils: usize,
+    pub ils_candidates: usize,
     pub valid_tolerance: f64,
     pub secondary_tolerance: f64,
     pub min_layout_distance: usize,
@@ -211,6 +214,7 @@ fn optimize_seed(
     perm = p;
     let (p, s) = search::quench(ev, delta_tables, &perm, s, rng);
     perm = p;
+    canonical_punctuation(&mut perm);
     let layout = ev.layout_str(&perm);
     let primary = ev.score(&perm);
     Row {
@@ -277,6 +281,7 @@ fn optimize_ils_row(
             best_s = cs;
         }
     }
+    canonical_punctuation(&mut best);
     let layout = ev.layout_str(&best);
     let primary = ev.score(&best);
     Ok(IlsOutcome {
@@ -359,6 +364,7 @@ fn optimize_polish_row(
             break;
         }
     }
+    canonical_punctuation(&mut best);
     let layout = ev.layout_str(&best);
     let primary = ev.score(&best);
     let secondary = secondary_ev.map(|s| s.score(&best));
@@ -701,12 +707,14 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             })
     });
     let ranked = top.clone();
-    top.truncate(4);
+    top = diversity::select_diverse_layouts(&ranked, args.ils_candidates, ILS_MIN_LETTER_DISTANCE);
 
     // ---- Anneal summary -------------------------------------------------
-    let mut hits: std::collections::HashMap<&str, usize> = std::collections::HashMap::new();
+    let mut hits: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     for row in &results {
-        *hits.entry(row.layout.as_str()).or_insert(0) += 1;
+        *hits
+            .entry(diversity::letter_signature(&row.layout))
+            .or_insert(0) += 1;
     }
     let total_starts = results.len();
     println!(
@@ -752,7 +760,9 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             ui::short_name(&r.start),
             r.final_score,
             r.primary,
-            hits.get(r.layout.as_str()).copied().unwrap_or(1),
+            hits.get(&diversity::letter_signature(&r.layout))
+                .copied()
+                .unwrap_or(1),
             if args.verbose {
                 format!("  {}", r.layout)
             } else {
@@ -1156,6 +1166,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     best_sec = cand_s;
                 }
             }
+            canonical_punctuation(&mut best_perm);
             let lay = primary_ev.layout_str(&best_perm);
             let pri = primary_ev.score(&best_perm);
             let sec = secondary_ev.score(&best_perm);
@@ -1400,6 +1411,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "completed_secondary_rounds": completed_secondary_rounds,
         "completed_polish_rounds": completed_polish_rounds,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
+        "ils_candidates": args.ils_candidates,
         "polish_rounds": if args.polish_rounds == usize::MAX { serde_json::Value::Null } else { serde_json::json!(args.polish_rounds) },
         "polish_candidates": args.polish_candidates,
         "valid_tolerance": args.valid_tolerance,
