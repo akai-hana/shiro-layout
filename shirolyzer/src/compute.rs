@@ -23,6 +23,7 @@ use crate::redirect::RedirectTiers;
 use crate::references;
 use crate::scorer::Tables;
 use crate::search;
+use crate::ui;
 use crate::xkb;
 
 pub fn parse_budget(value: &str) -> Result<f64> {
@@ -160,6 +161,7 @@ pub struct ComputeArgs<'a> {
     pub append_references: Option<PathBuf>,
     pub seed: Option<u64>,
     pub time_budget: Option<f64>,
+    pub verbose: bool,
     pub xkb: bool,
     pub xkb_name: Option<String>,
     pub out: Option<PathBuf>,
@@ -244,6 +246,7 @@ fn optimize_ils_row(
     anneal_base: u64,
     rng: &mut impl Rng,
     deadline: Option<Instant>,
+    on_round: &(dyn Fn() + Sync),
 ) -> Result<IlsOutcome> {
     let mut best = perm_of(&row.layout, &ev.punctuation).map_err(anyhow::Error::msg)?;
     let mut best_s = row.final_score;
@@ -268,6 +271,7 @@ fn optimize_ils_row(
         let (cand, cs) = search::quench(ev, delta_tables, &cand, cs, rng);
         rounds += 1;
         iterations += round_iters;
+        on_round();
         if cs < best_s - 1e-12 {
             best = cand;
             best_s = cs;
@@ -314,6 +318,7 @@ fn optimize_polish_row(
     rng: &mut impl Rng,
     secondary_ev: Option<&Evaluator<'_>>,
     deadline: Option<Instant>,
+    on_round: &(dyn Fn() + Sync),
 ) -> Result<PolishOutcome> {
     let mut best = perm_of(&row.layout, &ev.punctuation).map_err(anyhow::Error::msg)?;
     let mut best_s = ev.score(&best);
@@ -346,6 +351,7 @@ fn optimize_polish_row(
         let (cand, cs) = search::quench(ev, delta_tables, &cand, cs, rng);
         passes += 1;
         iterations += round_iters;
+        on_round();
         if cs < best_s - 1e-12 {
             best = cand;
             best_s = cs;
@@ -369,6 +375,77 @@ fn optimize_polish_row(
         iterations,
         start_s,
     })
+}
+
+/// Draw a layout with the same staggered geometry as `render --plain`.
+fn layout_lines(layout: &str) -> Vec<String> {
+    match crate::render::render(layout, None) {
+        Ok(text) => text.lines().map(str::to_string).collect(),
+        Err(_) => vec![layout.to_string()],
+    }
+}
+
+fn score_text(row: &Row) -> String {
+    match row.secondary {
+        Some(sec) => format!("primary {:.4} · secondary {:.4}", row.primary, sec),
+        None => format!("primary {:.4}", row.primary),
+    }
+}
+
+fn print_summary(
+    ui: &ui::Style,
+    selected: &Row,
+    best_primary: &Row,
+    valid_rows: &[Row],
+    valid_truncated: bool,
+    status: &str,
+) {
+    let status_text = if status == "clear_winner" {
+        "clear winner"
+    } else {
+        "multiple valid layouts"
+    };
+    let mut body = layout_lines(&selected.layout);
+    body.push(String::new());
+    let mut score = score_text(selected);
+    if selected.layout == best_primary.layout {
+        score.push_str(" · best primary");
+    }
+    body.push(score);
+    for line in ui.boxed(&format!("Best layout · {status_text}"), &body) {
+        println!("{line}");
+    }
+    let others: Vec<&Row> = valid_rows
+        .iter()
+        .filter(|r| r.layout != selected.layout)
+        .collect();
+    if !others.is_empty() {
+        println!();
+        println!("{}", ui.bold("Other valid layouts"));
+        let cards: Vec<Vec<String>> = others
+            .iter()
+            .enumerate()
+            .map(|(i, r)| {
+                let mut head = format!("#{}  {}", i + 2, score_text(r));
+                if r.layout == best_primary.layout {
+                    head.push_str(" · best primary");
+                }
+                let mut card = vec![head];
+                card.extend(
+                    layout_lines(&r.layout)
+                        .into_iter()
+                        .map(|l| format!("  {l}")),
+                );
+                card
+            })
+            .collect();
+        for line in ui::columns(&cards, 4, ui::term_width()) {
+            println!("{line}");
+        }
+    }
+    if valid_truncated {
+        println!("{}", ui.dim("additional comparable layouts omitted"));
+    }
 }
 
 pub fn run(args: ComputeArgs) -> Result<()> {
@@ -405,11 +482,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             .unwrap_or(0);
         (nanos ^ (std::process::id() as u64)) & 0x7fff_ffff
     });
-    println!(
-        "seed={}{}",
-        seed,
-        if seed_generated { " (generated)" } else { "" }
-    );
+    let ui = ui::Style::detect();
     let mut rng = ChaCha8Rng::seed_from_u64(seed);
 
     let (primary_corpus, primary_paths) = if !args.primary_corpus.is_empty() {
@@ -525,7 +598,23 @@ pub fn run(args: ComputeArgs) -> Result<()> {
 
     let mut results: Vec<Row> = Vec::new();
     let mut best_primary: Option<Row> = None;
-    println!("{:<18} {:>9} {:>9}  layout", "start", "final", "primary");
+    println!(
+        "{}",
+        ui.bold(&format!(
+            "shirolyzer compute · seed {} · {} starts · {} iters · {} ILS · polish {}",
+            seed,
+            seeds.len(),
+            ui::compact(args.iters),
+            args.ils,
+            match args.polish_rounds {
+                0 => "off".to_string(),
+                usize::MAX => "∞".to_string(),
+                n => n.to_string(),
+            }
+        ))
+    );
+    println!();
+    let anneal_progress = ui::Progress::new("Anneal", seeds.len());
     let parallel = args.time_budget.is_none() && seeds.len() > 1;
     let mut seed_rows: Vec<Row> = if parallel {
         seeds
@@ -533,7 +622,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             .enumerate()
             .map(|(index, (name, start))| {
                 let mut rng = seed_rng(seed, index);
-                optimize_seed(
+                let row = optimize_seed(
                     &primary_ev,
                     &delta_tables,
                     &mut rng,
@@ -541,7 +630,9 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     start,
                     args.iters,
                     seed_anneal(seed, index),
-                )
+                );
+                anneal_progress.tick();
+                row
             })
             .collect()
     } else {
@@ -549,7 +640,8 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         for (index, (name, start)) in seeds.iter().enumerate() {
             if let Some(budget) = args.time_budget {
                 if !rows.is_empty() && started.elapsed().as_secs_f64() >= budget {
-                    println!("time budget reached; saving best so far");
+                    anneal_progress.finish();
+                    println!("{}", ui.dim("time budget reached; saving best so far"));
                     break;
                 }
             }
@@ -563,16 +655,14 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 args.iters,
                 seed_anneal(seed, index),
             ));
+            anneal_progress.tick();
         }
         rows
     };
+    anneal_progress.finish();
     for row in seed_rows.drain(..) {
         completed_runs += 1;
         completed_iterations += args.iters;
-        println!(
-            "{:<18} {:>9.4} {:>9.4}  {}",
-            row.start, row.final_score, row.primary, row.layout
-        );
         if best_primary
             .as_ref()
             .map(|b| row.primary < b.primary)
@@ -610,11 +700,87 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     .unwrap_or(std::cmp::Ordering::Equal)
             })
     });
+    let ranked = top.clone();
     top.truncate(4);
-    println!("\nILS (primary):");
+
+    // ---- Anneal summary -------------------------------------------------
+    let mut hits: std::collections::HashMap<&str, usize> = std::collections::HashMap::new();
+    for row in &results {
+        *hits.entry(row.layout.as_str()).or_insert(0) += 1;
+    }
+    let total_starts = results.len();
+    println!(
+        "{}",
+        ui.section(
+            "Anneal",
+            Some((total_starts, total_starts)),
+            &format!(
+                "{} distinct layouts · best primary {}",
+                ranked.len(),
+                ui.bold_green(&format!("{:.4}", ranked[0].primary))
+            )
+        )
+    );
+    let shown = if args.verbose {
+        ranked.len()
+    } else {
+        ranked.len().min(8)
+    };
+    let name_w = ranked
+        .iter()
+        .take(shown)
+        .map(|r| ui::short_name(&r.start).chars().count())
+        .max()
+        .unwrap_or(5)
+        .max(5);
+    println!(
+        "{}",
+        ui.dim(&format!(
+            "   {:>2}  {:<name_w$}  {:>7}  {:>7}  {:>4}{}",
+            "#",
+            "start",
+            "final",
+            "primary",
+            "hits",
+            if args.verbose { "  layout" } else { "" }
+        ))
+    );
+    for (i, r) in ranked.iter().take(shown).enumerate() {
+        let line = format!(
+            "   {:>2}  {:<name_w$}  {:>7.4}  {:>7.4}  {:>4}{}",
+            i + 1,
+            ui::short_name(&r.start),
+            r.final_score,
+            r.primary,
+            hits.get(r.layout.as_str()).copied().unwrap_or(1),
+            if args.verbose {
+                format!("  {}", r.layout)
+            } else {
+                String::new()
+            }
+        );
+        println!("{}", if i == 0 { ui.bold(&line) } else { line });
+    }
+    if ranked.len() > shown {
+        println!(
+            "{}",
+            ui.dim(&format!(
+                "      … {} more distinct layouts (--verbose lists them all)",
+                ranked.len() - shown
+            ))
+        );
+    }
+    println!(
+        "{}",
+        ui.dim("   final = search's running score · primary = score recomputed from scratch · hits = starts reaching this layout")
+    );
+    println!();
     let deadline = args
         .time_budget
         .map(|budget| started + std::time::Duration::from_secs_f64(budget));
+    let ils_planned = top.len() * args.ils.max(1);
+    let ils_progress = ui::Progress::new("ILS", ils_planned);
+    let ils_tick = || ils_progress.tick();
     let ils_outcomes: Vec<IlsOutcome> = if deadline.is_none() {
         top.par_iter()
             .enumerate()
@@ -630,6 +796,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     seed_anneal(seed, 0x1000 + rank),
                     &mut rng,
                     None,
+                    &ils_tick,
                 )
             })
             .collect::<Result<Vec<_>>>()?
@@ -637,7 +804,11 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         let mut outcomes = Vec::new();
         for (rank, r) in top.iter().enumerate() {
             if deadline.is_some_and(|d| Instant::now() >= d) {
-                println!("time budget reached during ILS; saving best so far");
+                ils_progress.finish();
+                println!(
+                    "{}",
+                    ui.dim("time budget reached during ILS; saving best so far")
+                );
                 break;
             }
             let mut rng = ils_rng(seed, rank);
@@ -651,15 +822,38 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 seed_anneal(seed, 0x1000 + rank),
                 &mut rng,
                 deadline,
+                &ils_tick,
             )?);
         }
         outcomes
     };
-    for (rank, outcome) in ils_outcomes.into_iter().enumerate() {
+    ils_progress.finish();
+    let ils_done: usize = ils_outcomes.iter().map(|o| o.rounds).sum();
+    println!(
+        "{}",
+        ui.section(
+            "ILS",
+            Some((ils_done, ils_planned)),
+            &format!("{} starts × {} rounds", ils_outcomes.len(), args.ils.max(1))
+        )
+    );
+    let ils_name_w = ils_outcomes
+        .iter()
+        .map(|o| ui::short_name(&o.source_start).chars().count())
+        .max()
+        .unwrap_or(5)
+        .max(5);
+    println!(
+        "{}",
+        ui.dim(&format!(
+            "   {:<ils_name_w$}  {:>7}     {:>7}  {:>7}  {:>8}",
+            "start", "before", "after", "primary", "gain"
+        ))
+    );
+    for outcome in ils_outcomes.into_iter() {
         completed_ils_rounds += outcome.rounds;
         completed_iterations += outcome.iterations;
         let row = outcome.row;
-        let ilay = row.layout.clone();
         let ipri = row.primary;
         let final_score = row.final_score;
         results.push(row.clone());
@@ -670,19 +864,24 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         {
             best_primary = Some(row);
         }
+        let gain = outcome.start_score - final_score;
+        let gain_text = if gain > 1e-9 {
+            ui.green(&format!("▼{:.4}", gain))
+        } else {
+            ui.dim("—")
+        };
         println!(
-            "  ILS{} {:<16} {:.4} -> {:.4} primary={:.4}  {}",
-            rank + 1,
-            outcome.source_start,
+            "   {:<ils_name_w$}  {:>7.4}  →  {:>7.4}  {:>7.4}  {}",
+            ui::short_name(&outcome.source_start),
             outcome.start_score,
             final_score,
             ipri,
-            ilay
+            gain_text
         );
     }
+    println!();
 
     if args.polish_rounds > 0 {
-        println!("\npolish (primary):");
         let rows: Vec<Row> = results
             .iter()
             .filter(|r| !r.start.starts_with("secondary:"))
@@ -710,6 +909,8 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             args.min_layout_distance,
             args.polish_candidates,
         );
+        let polish_progress = ui::Progress::new("Polish", 0);
+        let polish_tick = || polish_progress.tick();
         let polish_outcomes: Vec<PolishOutcome> = if deadline.is_none() {
             candidates
                 .par_iter()
@@ -727,6 +928,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                         &mut rng,
                         secondary_ev.as_ref(),
                         None,
+                        &polish_tick,
                     )
                 })
                 .collect::<Result<Vec<_>>>()?
@@ -745,27 +947,73 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     &mut rng,
                     secondary_ev.as_ref(),
                     deadline,
+                    &polish_tick,
                 )?);
             }
             outcomes
         };
+        polish_progress.finish();
+        let polish_cap = if args.polish_rounds == usize::MAX {
+            "unlimited rounds".to_string()
+        } else {
+            format!("up to {} rounds", args.polish_rounds)
+        };
+        println!(
+            "{}",
+            ui.section(
+                "Polish",
+                None,
+                &format!(
+                    "{} candidate{} · {}",
+                    polish_outcomes.len(),
+                    if polish_outcomes.len() == 1 { "" } else { "s" },
+                    polish_cap
+                )
+            )
+        );
+        let pol_name_w = polish_outcomes
+            .iter()
+            .map(|o| {
+                ui::short_name(o.row.start.trim_start_matches("polish:"))
+                    .chars()
+                    .count()
+            })
+            .max()
+            .unwrap_or(9)
+            .max(9);
+        if !polish_outcomes.is_empty() {
+            println!(
+                "{}",
+                ui.dim(&format!(
+                    "   {:<pol_name_w$}  {:>7}     {:>7}  {:>7}  rounds",
+                    "candidate", "before", "after", "primary"
+                ))
+            );
+        }
         let mut polished = Vec::new();
-        for (i, outcome) in polish_outcomes.into_iter().enumerate() {
+        for outcome in polish_outcomes.into_iter() {
             completed_polish_rounds += outcome.passes;
             completed_iterations += outcome.iterations;
             let row = outcome.row;
+            let status = if outcome.passes >= args.polish_rounds {
+                "round limit"
+            } else if outcome.start_s - row.final_score > 1e-9 {
+                "converged"
+            } else {
+                "no improvement"
+            };
             println!(
-                "  polish{} {:<16} {:.4} -> {:.4} primary={:.4} rounds={}  {}",
-                i + 1,
-                row.start.trim_start_matches("polish:"),
+                "   {:<pol_name_w$}  {:>7.4}  →  {:>7.4}  {:>7.4}  {} {}",
+                ui::short_name(row.start.trim_start_matches("polish:")),
                 outcome.start_s,
                 row.final_score,
                 row.primary,
                 outcome.passes,
-                row.layout
+                ui.dim(&format!("({status})"))
             );
             polished.push(row);
         }
+        println!();
         results.extend(polished.iter().cloned());
         for row in &polished {
             if best_primary
@@ -836,16 +1084,39 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         });
         primary_results.truncate(4);
         let score_text = score_limit
-            .map(|limit| format!("score <= {}", fmt_sig(limit, 6)))
+            .map(|limit| format!("score ≤ {}", fmt_sig(limit, 6)))
             .unwrap_or_else(|| "score unconstrained".into());
         println!(
-            "\nsecondary phase ({score_text}; per-metric budgets active: {}):",
-            sacrifice.has_metrics()
+            "{}",
+            ui.section(
+                "Secondary",
+                None,
+                &format!(
+                    "{} · per-metric budgets {}",
+                    score_text,
+                    if sacrifice.has_metrics() { "on" } else { "off" }
+                )
+            )
         );
+        let sec_name_w = primary_results
+            .iter()
+            .map(|r| ui::short_name(&r.start).chars().count())
+            .max()
+            .unwrap_or(9)
+            .max(9);
+        if !primary_results.is_empty() {
+            println!(
+                "{}",
+                ui.dim(&format!(
+                    "   {:<sec_name_w$}  {:>7}  {:>9}",
+                    "candidate", "primary", "secondary"
+                ))
+            );
+        }
         for r in primary_results {
             if let Some(t) = args.time_budget {
                 if started.elapsed().as_secs_f64() >= t {
-                    println!("time budget reached before secondary phase");
+                    println!("{}", ui.dim("time budget reached before secondary phase"));
                     break;
                 }
             }
@@ -906,10 +1177,13 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 best_secondary = Some(row);
             }
             println!(
-                "  {:<16} primary={:.6} secondary={:.6}  {}",
-                r.start, pri, sec, lay
+                "   {:<sec_name_w$}  {:>7.4}  {:>9.4}",
+                ui::short_name(&r.start),
+                pri,
+                sec
             );
         }
+        println!();
         if let Some(ref b) = best_secondary {
             final_row = b.clone();
         }
@@ -974,11 +1248,6 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     };
     final_row = valid_rows[0].clone();
     let latest_path = paths::write_latest_layout(&final_row.layout, &timestamp)?;
-    println!(
-        "latest layout: {} -> {}",
-        paths::latest_layout_file().display(),
-        latest_path.display()
-    );
 
     let append_path = args
         .append_references
@@ -1010,11 +1279,6 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         )? {
             existing_names.insert(row.layout.clone(), added.clone());
             added_names.push(added.clone());
-            println!(
-                "appended reference {:?} to {}",
-                added,
-                append_path.display()
-            );
         }
         row.reference_name = existing_names.get(&row.layout).cloned();
     }
@@ -1028,7 +1292,6 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             .unwrap_or(xkb::safe_name(&final_row.layout)?);
         let path = paths::xkb_dir().join(&name);
         xkb::write(&path, &final_row.layout, &name)?;
-        println!("wrote {}", path.display());
         xkb_path = Some(path);
     }
 
@@ -1165,19 +1428,47 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "xkb": xkb_path,
     });
     std::fs::write(&out_json, serde_json::to_string_pretty(&payload)? + "\n")?;
-    println!(
-        "\nbest_primary: {} ({:.6})",
-        best_primary.layout, best_primary.primary
+    print_summary(
+        &ui,
+        &final_row,
+        &best_primary,
+        &valid_rows,
+        valid_truncated,
+        selection_status,
     );
-    println!("selected: {} ({})", final_row.layout, selection_status);
-    for line in diversity::format_valid_layouts(&valid_rows, selection_status, valid_truncated) {
-        println!("{}", line);
+    let rel = |p: &Path| -> String {
+        p.strip_prefix(paths::repo_root())
+            .unwrap_or(p)
+            .display()
+            .to_string()
+    };
+    let label = |name: &str| ui.dim(&format!(" {:<7}", name));
+    let saved = if out_path.with_extension("txt") == out_path
+        && out_json.with_extension("json") == out_json
+        && out_path.with_extension("") == out_json.with_extension("")
+    {
+        format!("{}.{{txt,json}}", rel(&out_path.with_extension("")))
+    } else {
+        format!("{}, {}", rel(&out_path), rel(&out_json))
+    };
+    println!();
+    println!("{} {}", label("saved"), saved);
+    println!("{} {}", label("latest"), rel(&latest_path));
+    if !added_names.is_empty() {
+        println!(
+            "{} +{} → {}",
+            label("refs"),
+            added_names.join(", +"),
+            rel(&append_path)
+        );
+    }
+    if let Some(path) = xkb_path.as_ref() {
+        println!("{} {}", label("xkb"), rel(path));
     }
     println!(
-        "wrote {} and {} ({:.0}s)",
-        out_path.display(),
-        out_json.display(),
-        started.elapsed().as_secs_f64()
+        "{} {}",
+        label("done"),
+        ui.bold(&format!("{:.0}s", started.elapsed().as_secs_f64()))
     );
     Ok(())
 }
