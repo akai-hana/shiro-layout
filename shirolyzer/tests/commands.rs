@@ -79,7 +79,7 @@ fn analyze_score_matches_baseline() {
     assert!(out.status.success());
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
-    assert!((score - 3.616_314_698_706_01).abs() < 1e-12);
+    assert!((score - 3.628_766_121_938_924).abs() < 1e-12);
     for entry in value["guide"].as_object().unwrap().values() {
         for contexts in entry["alt_contexts"].as_object().unwrap().values() {
             for item in contexts.as_array().unwrap() {
@@ -90,6 +90,22 @@ fn analyze_score_matches_baseline() {
             }
         }
     }
+    let pats = value["trigram_patterns"].as_object().unwrap();
+    for key in [
+        "redirect_tier_1",
+        "redirect_tier_5",
+        "redirect_1_2_1",
+        "redirect_unclassified",
+        "total_redirects",
+    ] {
+        assert!(pats.contains_key(key), "missing {key}");
+    }
+    let tier_total: f64 = (1..=5)
+        .map(|tier| pats[&format!("redirect_tier_{tier}")].as_f64().unwrap())
+        .sum();
+    let unclassified = pats["redirect_unclassified"].as_f64().unwrap();
+    let total = pats["total_redirects"].as_f64().unwrap();
+    assert!((tier_total + unclassified - total).abs() < 1e-9);
 }
 
 #[test]
@@ -114,13 +130,35 @@ fn worst_lists_highest_cost_ngrams() {
 }
 
 #[test]
+fn worst_reports_redirect_tiers() {
+    let config = config_path();
+    let layout = "ztiuqvgrnhekyaocslpd;j,./wxbfm";
+    let out = run(&[
+        "worst",
+        layout,
+        "--config",
+        config.as_str(),
+        "--limit",
+        "20",
+    ]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = stdout(&out);
+    assert!(text.contains("redirect_tier_"), "{text}");
+    assert!(text.contains("redirect_unclassified:"), "{text}");
+}
+
+#[test]
 fn compare_reports_baseline_scores() {
     let config = config_path();
     let out = run(&["compare", "--config", config.as_str()]);
     assert!(out.status.success());
     let text = stdout(&out);
     assert!(text.contains("shiro"));
-    assert!(text.contains("3.616315"));
+    assert!(text.contains("3.628766"));
 }
 
 #[test]
@@ -212,5 +250,5 @@ fn compute_smoke() {
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 2);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.552_843_384_112_219_6).abs() < 1e-6);
+    assert!((primary - 3.576_952_749_945_849_8).abs() < 1e-6);
 }
