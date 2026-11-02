@@ -1,7 +1,8 @@
 # Shirolyzer analyzer improvements tasklist
 
-**Status: in progress.** Improvements 1 and 2 are implemented on
-`analyzer/improvements`; improvements 3–8 are planned.
+**Status: phase 1 complete.** Improvements 1 and 2 are implemented and merged
+to `main`. Improvements 3–8 are explicitly deferred so the phase-1 integration
+can land; they can be tracked in a follow-up issue when prioritized.
 
 Tracking issue: https://github.com/akai-hana/shiro-layout/issues/92
 
@@ -33,9 +34,9 @@ split so each item can be reviewed, tested, and reverted independently.
 
 1. Tracking issue:
    https://github.com/akai-hana/shiro-layout/issues/92
-2. Create the integration branch. It currently starts from
-   `fix/alt-finger-positional-overlap` because issue #91 is still open; rebase
-   it onto `main` after #91 merges:
+2. The integration branch `analyzer/improvements` started from
+   `fix/alt-finger-positional-overlap` and was merged to `main` after the #91
+   fix landed:
    ```sh
    git switch -c analyzer/improvements
    ```
@@ -61,6 +62,8 @@ branches).
 - [x] Keep `repeat` visible as an overlapping diagnostic instead of an
       exclusive bucket.
 - [x] Add unit tests for SFT, lumped Sfb/BadSfb, alternate, and non-SFT cases.
+- [x] Add a parity regression test for exclusive categories, overlapping
+      repeats, and the `sfb_sft` sum.
 - [x] Document the new category semantics in `shirolyzer/README.md`.
 
 Suggested commit: `analyzer: split SFT from adjacent SFB diagnostics`
@@ -79,6 +82,13 @@ Branch: `analyzer/improvements` (same first-phase branch).
 - [x] Re-run the unit, command, parity, baseline, and ignored compute gates.
 
 Suggested commit: `analyzer: weight true SFT twice an adjacent SFB`
+
+## Deferred work
+
+Improvements 3–8 below are intentionally deferred. Phase 1 delivers the
+SFT/SFB taxonomy and budget fix from the original request; the remaining
+observability and comparison work should be tracked separately to keep the
+integration reviewable.
 
 ## Improvement 3 — Corpus provenance
 
@@ -158,11 +168,13 @@ Suggested commit: `analyzer: add optional skipgram and shift reports`
 - [x] Baseline and audit gates via the reference config
       (`cargo test --release --test commands audit_and_check_baseline_pass`)
 - [ ] `shirolyzer/target/release/shirolyzer check-baseline` against the shipped
-      `config.yaml` (blocked by the pre-existing #91 config/baseline mismatch;
-      the reference-config gate passes)
+      `config.yaml` (blocked by the pre-existing shipped-config vs
+      reference-baseline mismatch documented in
+      `research/plans/alt-finger-positional-overlap.md`; the reference-config
+      gate passes)
 - [x] `just dev-tools`
-- [ ] Re-run the full gate suite on the final integration branch after all
-      improvements land.
+- [x] Re-run the full gate suite on `analyzer/improvements` before merging to
+      `main`.
 
 ## Acceptance criteria
 
@@ -171,9 +183,9 @@ Suggested commit: `analyzer: add optional skipgram and shift reports`
 - [x] A true SFT contributes 2x an adjacent SFB to the sacrifice budget.
 - [x] Repeated-character trigrams remain visible through `repeat` without
       hiding their SFT/SFB class.
-- [ ] The remaining improvements are implemented or explicitly deferred with a
-      written decision.
-- [ ] The tracking issue records the final gates and benchmark/score changes.
+- [x] The remaining improvements are explicitly deferred with a written
+      decision.
+- [x] The tracking issue records the final gates and benchmark/score changes.
 
 ## Relevant files
 
