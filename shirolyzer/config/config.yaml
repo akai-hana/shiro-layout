@@ -19,7 +19,10 @@
 # --time-budget stays optional because short budgets truncate seeds and ILS.
 # Diversity output also lives in commands/compute.py: 0.002 primary tolerance,
 # 0.005 secondary tolerance, 4 key positions minimum distance, 8 valid layouts.
-# --polish-rounds is opt-in because it continues optimizing near-equal picks.
+# --polish-rounds defaults to unlimited: polishing repeats until a round finds
+# no improvement.  Pass a number to cap it, or 0 to disable polishing.
+# Searches start from random layouts only; add known layouts with
+# --seed-layout, --seed-reference NAME or --seed-all-references.
 general:
   geometry: geometry/ansi.yaml
   # Fingering mode: "flexible" lets the model choose any reachable finger for
@@ -280,7 +283,7 @@ priority_list:
   - sfbs-sfts # sfb/ts are the unavoidable devil
   - [scissors, redirects] # flow disruptions that are bad to have
   - [rolls, alternation] # flow improving niceties
-  # - finger_balance # balance doesn't matter to me
+  - finger_balance # balance doesn't matter that much to me
 
 # Redirect preferences. Tiers are ordered from most preferred (tier 1) to most
 # avoided (last tier). Fingers are numbered per hand: 1=index, 2=middle,

@@ -138,15 +138,11 @@ impl MetricLimits {
     }
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
-pub enum Device {
-    Cpu,
-    Gpu,
-}
-
 pub struct ComputeArgs<'a> {
     pub config: Option<&'a Path>,
     pub seed_layout: Vec<String>,
+    pub seed_reference: Vec<String>,
+    pub seed_all_references: bool,
     pub name: Option<String>,
     pub primary_corpus: Vec<String>,
     pub secondary_corpus: Vec<String>,
@@ -164,7 +160,6 @@ pub struct ComputeArgs<'a> {
     pub append_references: Option<PathBuf>,
     pub seed: Option<u64>,
     pub time_budget: Option<f64>,
-    pub device: Device,
     pub xkb: bool,
     pub xkb_name: Option<String>,
     pub out: Option<PathBuf>,
@@ -325,6 +320,8 @@ fn optimize_polish_row(
     let start_s = best_s;
     let mut passes = 0usize;
     let mut iterations = 0usize;
+    // polish_rounds == usize::MAX means unlimited: keep going until a round
+    // fails to improve the best layout.
     for round_idx in 0..polish_rounds.max(1) {
         if deadline.is_some_and(|d| Instant::now() >= d) {
             break;
@@ -375,13 +372,6 @@ fn optimize_polish_row(
 }
 
 pub fn run(args: ComputeArgs) -> Result<()> {
-    let device = match args.device {
-        Device::Cpu => "cpu",
-        Device::Gpu => {
-            eprintln!("warning: GPU mode is not enabled in this build; falling back to CPU");
-            "cpu"
-        }
-    };
     let ctx = Context::load(args.config)?;
     let timestamp = paths::timestamp();
     let stem = match args.name.as_deref() {
@@ -480,17 +470,36 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         .unwrap_or_else(paths::references_file);
     let mut seeds: Vec<(String, Vec<usize>)> = Vec::new();
     let mut seen = std::collections::HashSet::new();
-    for entry in references::load_references(Some(&refs_path))? {
-        if seen.insert(entry.layout.clone()) {
-            let perm = perm_of(&entry.layout, &ctx.cfg.punctuation).map_err(anyhow::Error::msg)?;
-            if !primary_ev.perm_allowed(&perm) {
-                eprintln!(
-                    "warning: skipping seed {:?}: violates the configured hand restrictions",
-                    entry.name
+    // Reference layouts are NOT used as starting points unless explicitly
+    // requested (--seed-reference NAME or --seed-all-references).  The
+    // references file is still used below for naming and de-duplicating results.
+    if args.seed_all_references || !args.seed_reference.is_empty() {
+        let refs = references::load_references(Some(&refs_path))?;
+        for wanted in &args.seed_reference {
+            if !refs.iter().any(|e| &e.name == wanted) {
+                anyhow::bail!(
+                    "--seed-reference {:?}: no such layout in {}",
+                    wanted,
+                    refs_path.display()
                 );
+            }
+        }
+        for entry in refs {
+            if !args.seed_all_references && !args.seed_reference.contains(&entry.name) {
                 continue;
             }
-            seeds.push((entry.name, perm));
+            if seen.insert(entry.layout.clone()) {
+                let perm =
+                    perm_of(&entry.layout, &ctx.cfg.punctuation).map_err(anyhow::Error::msg)?;
+                if !primary_ev.perm_allowed(&perm) {
+                    eprintln!(
+                        "warning: skipping seed {:?}: violates the configured hand restrictions",
+                        entry.name
+                    );
+                    continue;
+                }
+                seeds.push((entry.name, perm));
+            }
         }
     }
     for (i, layout) in args.seed_layout.iter().enumerate() {
@@ -1106,7 +1115,6 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         std::fs::create_dir_all(parent)?;
     }
     let payload = json!({
-        "device": device,
         "seed": seed,
         "seed_generated": seed_generated,
         "primary_corpora": primary_paths,
@@ -1129,7 +1137,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "completed_secondary_rounds": completed_secondary_rounds,
         "completed_polish_rounds": completed_polish_rounds,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
-        "polish_rounds": args.polish_rounds,
+        "polish_rounds": if args.polish_rounds == usize::MAX { serde_json::Value::Null } else { serde_json::json!(args.polish_rounds) },
         "polish_candidates": args.polish_candidates,
         "valid_tolerance": args.valid_tolerance,
         "secondary_tolerance": args.secondary_tolerance,
