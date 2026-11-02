@@ -71,9 +71,12 @@ struct WorstArgs {
 fn parse_polish_rounds(v: &str) -> Result<usize, String> {
     match v.trim().to_ascii_lowercase().as_str() {
         "unlimited" | "inf" | "infinite" | "infinity" | "max" => Ok(usize::MAX),
-        n => n
-            .parse::<usize>()
-            .map_err(|_| format!("expected a non-negative integer or \"unlimited\", got {:?}", v)),
+        n => n.parse::<usize>().map_err(|_| {
+            format!(
+                "expected a non-negative integer or \"unlimited\", got {:?}",
+                v
+            )
+        }),
     }
 }
 
@@ -125,6 +128,9 @@ struct ComputeArgs {
     seed: Option<u64>,
     #[arg(long = "time-budget")]
     time_budget: Option<String>,
+    /// List every distinct layout from the anneal stage, with its layout string
+    #[arg(long, short = 'v')]
+    verbose: bool,
     #[arg(long)]
     xkb: bool,
     #[arg(long = "xkb-name")]
@@ -254,6 +260,7 @@ fn main() -> Result<()> {
                 append_references: args.append_references,
                 seed: args.seed,
                 time_budget,
+                verbose: args.verbose,
                 xkb: args.xkb,
                 xkb_name: args.xkb_name,
                 out: args.out,
