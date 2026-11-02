@@ -1,8 +1,9 @@
 # Analyzer deferred improvements — phase 2
 
 Status: **in progress**. Phase 1 (SFT/SFB split and budget fix, #92) is
-merged. This plan starts improvement 3 and lays out the remaining deferred
-work so each item can be reviewed, tested, and reverted independently.
+merged. Improvement 3 (corpus provenance, #94) is complete and merged into
+`analyzer/redirect-tiers`. The remaining deferred work is split so each item
+can be reviewed, tested, and reverted independently.
 
 Tracking issue: <https://github.com/akai-hana/shiro-layout/issues/93>
 Implementation issue for the first item:
@@ -110,8 +111,8 @@ Tasklist:
       `just dev-tools`.
 - [x] Confirm this branch is the phase-2 integration base (no intermediate
       merge needed).
-- [ ] Push the branch, merge it into `analyzer/redirect-tiers` with `--no-ff`
-      when that work lands, and close #94.
+- [x] Push the branch, merge it into `analyzer/redirect-tiers` with
+      `--no-ff`, and close #94 (`5ad8d49`).
 
 ## Improvement 4 — External-comparison mapping and warnings
 
