@@ -37,7 +37,7 @@ general:
     - {name: douglas, weight: 100}
   primary_sacrifice:
     score: 0.00023%            # percent of the best primary score
-    sfbs: 1%                   # combined SFB and SFT degradation
+    sfbs: 1%                   # combined SFB and SFT, SFT weighted 2x
     scissors: 1%
     redirects: 1%
     rolls: 1%
