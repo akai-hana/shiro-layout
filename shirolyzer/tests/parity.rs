@@ -58,6 +58,39 @@ fn tables_have_expected_shape_and_values() {
 }
 
 #[test]
+fn trigram_categories_are_exclusive_and_repeats_overlap() {
+    let (_cfg, geom, tables, corpus) = setup();
+    let pats = shirolyzer::analyze::trigram_patterns(SHIRO, &corpus, &tables, &geom);
+
+    let sft = pats.get("sft").copied().unwrap_or(0.0);
+    let sfb_tri = pats.get("sfb_tri").copied().unwrap_or(0.0);
+    let sfb_sft = pats.get("sfb_sft").copied().unwrap_or(0.0);
+    assert!((sfb_sft - (sft + sfb_tri)).abs() < 1e-9);
+
+    let exclusive = [
+        "alternate",
+        "inroll",
+        "outroll",
+        "onehand",
+        "redirect",
+        "redirect_weak",
+        "sft",
+        "sfb_tri",
+        "other",
+    ];
+    let total: f64 = exclusive
+        .iter()
+        .map(|key| pats.get(*key).copied().unwrap_or(0.0))
+        .sum();
+    assert!((total - 100.0).abs() < 1e-9);
+
+    assert!(
+        pats.get("repeat").copied().unwrap_or(0.0) > 0.0,
+        "repeat must remain visible as an overlapping diagnostic"
+    );
+}
+
+#[test]
 fn diversity_keeps_only_comparable_distinct_layouts() {
     let reference = Row::new("ref", 3.5202, Some(3.7048), SHIRO);
     let near = Row::new(
