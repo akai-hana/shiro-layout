@@ -212,5 +212,5 @@ fn compute_smoke() {
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 2);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.5528408956196365).abs() < 1e-6);
+    assert!((primary - 3.552_843_384_112_219_6).abs() < 1e-6);
 }

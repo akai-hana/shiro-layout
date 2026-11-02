@@ -72,7 +72,7 @@ general:
     finger_balance: 1%
 ```
 
-Percentages are relative to the best primary layout. Lower-is-better metrics (`sfbs`, `scissors`, `redirects`, `finger_balance`) may increase by the given percentage; higher-is-better metrics (`rolls`, `alternation`) may decrease by it. `sfb`, `sfts`, and `sfbs` are aliases for the combined SFB/SFT budget. `score` is optional only when every metric is specified.
+Percentages are relative to the best primary layout. Lower-is-better metrics (`sfbs`, `scissors`, `redirects`, `finger_balance`) may increase by the given percentage; higher-is-better metrics (`rolls`, `alternation`) may decrease by it. `sfb`, `sfts`, and `sfbs` are aliases for the combined SFB/SFT budget. That budget counts ordinary same-finger bigrams and adjacent same-finger trigrams (Sfb and BadSfb lumped together) at 1x, and true all-three-same-finger trigrams (Sft) at 2x. `score` is optional only when every metric is specified.
 
 ### Alt-fingers & Context
 
@@ -148,7 +148,7 @@ The shipped condition list is a built-in default and stays disabled because the 
 The **shirolyzer** analyzer uses the same configuration, geometry, model, and fingering rules as the generator. It reports:
 
 - bigram categories such as SFBs, scissors, and stretches;
-- trigram patterns including rolls, redirects, alternation, and SFB trigrams;
+- trigram patterns including rolls, redirects, alternation, true same-finger trigrams (Sft), and adjacent same-finger trigrams (Sfb/BadSfb lumped); repeated-character trigrams are also reported as an overlapping `repeat` diagnostic;
 - per-finger usage against the configured finger-balance targets;
 - the pattern-model score, including priority-tier weighting.
 
