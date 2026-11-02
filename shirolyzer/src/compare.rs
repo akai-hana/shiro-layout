@@ -6,17 +6,30 @@ use anyhow::Result;
 
 use crate::context;
 use crate::evaluate::score_layout;
+use crate::provenance;
 use crate::references;
 
 pub fn run(
     config: Option<&Path>,
     primary_corpus: Option<&str>,
+    corpus_json: Option<&Path>,
     refs_path: Option<&Path>,
 ) -> Result<()> {
     let ctx = context::Context::load(config)?;
-    let corpus = match primary_corpus {
-        Some(path) => crate::corpus::Corpus::load(Path::new(path))?,
-        None => context::load_role(&ctx.cfg, "primary")?.0,
+    let corpus = if let Some(path) = corpus_json {
+        let source = provenance::describe_external("external", 1.0, path)?;
+        eprintln!(
+            "external corpus {} ({}) sha1={}",
+            source.path.display(),
+            source.kind,
+            source.combined_sha1
+        );
+        crate::corpus::Corpus::load_external(path)?
+    } else {
+        match primary_corpus {
+            Some(path) => crate::corpus::Corpus::load(Path::new(path))?,
+            None => context::load_role(&ctx.cfg, "primary")?.0,
+        }
     };
     eprintln!("loaded model {}", ctx.cfg.parameters_path.display());
     let refs = references::load_references(refs_path)?;
