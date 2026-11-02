@@ -40,7 +40,7 @@ the previous item lands.
 
 | # | Improvement | Branch | Issue | Main commits |
 |---|-------------|--------|-------|--------------|
-| 3 | Corpus provenance | `analyzer/corpus-provenance` | #94 | `docs: plan deferred analyzer improvements`; `analyzer: record corpus provenance`; optional `analyzer: allow external ngram comparison`; `docs: document corpus provenance` |
+| 3 | Corpus provenance | `analyzer/corpus-provenance` | #94 | `docs: plan deferred analyzer improvements`; `analyzer: record corpus provenance in reports` |
 | 4 | External-comparison mapping | `analyzer/comparison-mapping` | TBD | `analyzer: add external comparison mapping` |
 | 5 | Score decomposition | `analyzer/score-decomposition` | TBD | `analyzer: expose score decomposition` |
 | 6 | Naming and semantics cleanup | `analyzer/naming-semantics` | TBD | `analyzer: align redirect and SFB naming` |
@@ -108,7 +108,10 @@ Tasklist:
 - [x] Document the fields and the external-comparison boundary.
 - [x] Run `just build`, `just test`, `just check`, ignored tests, and
       `just dev-tools`.
-- [ ] Merge back to the phase-2 base with `--no-ff` and close #94.
+- [x] Confirm this branch is the phase-2 integration base (no intermediate
+      merge needed).
+- [ ] Push the branch, merge it into `analyzer/redirect-tiers` with `--no-ff`
+      when that work lands, and close #94.
 
 ## Improvement 4 — External-comparison mapping and warnings
 
