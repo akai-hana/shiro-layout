@@ -205,6 +205,15 @@ impl<'a> Local<'a> {
         self.weighted / self.ev.n_tri + self.pen
     }
 
+    fn penalty_after(&self, swaps: &[(usize, usize)]) -> f64 {
+        let mut perm = [0usize; N_ITEMS];
+        perm.copy_from_slice(&self.perm);
+        for &(i, j) in swaps {
+            perm.swap(i, j);
+        }
+        self.ev.penalty(&perm)
+    }
+
     fn delta(&mut self, kid2: &[u8; N_ITEMS], changed: &[usize]) -> f64 {
         self.stamp = self.stamp.wrapping_add(1);
         if self.stamp == 0 {
@@ -277,6 +286,7 @@ impl<'a> Local<'a> {
         self.kid = kid2;
         self.perm.swap(i, j);
         self.weighted += dw;
+        self.pen = self.ev.penalty(&self.perm);
         self.score()
     }
 
@@ -284,6 +294,7 @@ impl<'a> Local<'a> {
         self.perm.swap(i, j);
         self.weighted = w;
         self.kid = kid;
+        self.pen = self.ev.penalty(&self.perm);
     }
 
     fn cycle3(&mut self, i: usize, j: usize, k: usize) -> f64 {
@@ -298,6 +309,7 @@ impl<'a> Local<'a> {
         self.perm[k] = state[0];
         self.kid = kid2;
         self.weighted += dw;
+        self.pen = self.ev.penalty(&self.perm);
         self.score()
     }
 
@@ -315,6 +327,7 @@ impl<'a> Local<'a> {
         self.perm[k] = p[2];
         self.weighted = w;
         self.kid = kid;
+        self.pen = self.ev.penalty(&self.perm);
     }
 }
 
@@ -438,7 +451,8 @@ pub fn quench(
                     }
                 };
                 let dc = st.delta_cross(i1, j1, i2, j2, tables.get(mi));
-                let s = cur + (d1 + d2 + dc) / ev.n_tri;
+                let pen = st.penalty_after(&[(i1, j1), (i2, j2)]);
+                let s = cur + (d1 + d2 + dc) / ev.n_tri + (pen - st.pen);
                 if s < cur - 1e-12 {
                     st.swap(i1, j1);
                     st.swap(i2, j2);
@@ -899,7 +913,8 @@ mod tests {
             let d1 = st.delta_swap(i1, j1);
             let d2 = st.delta_swap(i2, j2);
             let dc = st.delta_cross(i1, j1, i2, j2, tables.get_pairs(i1, j1, i2, j2));
-            let predicted = st.score() + (d1 + d2 + dc) / ev.n_tri;
+            let pen = st.penalty_after(&[(i1, j1), (i2, j2)]);
+            let predicted = st.score() + (d1 + d2 + dc) / ev.n_tri + (pen - st.pen);
             let mut full = st.perm.clone();
             full.swap(i1, j1);
             full.swap(i2, j2);
