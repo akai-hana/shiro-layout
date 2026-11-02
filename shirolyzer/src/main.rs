@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use anyhow::Result;
 use clap::{Args, Parser, Subcommand};
 
-use shirolyzer::{analyze, audit, check, compare, compute, context, render, xkb};
+use shirolyzer::{analyze, audit, check, compare, compute, context, render, worst, xkb};
 
 #[derive(Parser)]
 #[command(name = "shirolyzer", version, about = "Layout analyzer and generator")]
@@ -16,6 +16,8 @@ struct Cli {
 enum Command {
     /// Analyze a layout with the calibrated pattern model
     Analyze(AnalyzeArgs),
+    /// List the highest-cost bigrams and trigrams for a layout
+    Worst(WorstArgs),
     /// Generate a layout with the calibrated pattern model
     Compute(ComputeArgs),
     /// Render a 30-character layout as a staggered ASCII keyboard
@@ -49,6 +51,21 @@ struct AnalyzeArgs {
     out: Option<PathBuf>,
     #[arg(long = "out-json")]
     out_json: Option<PathBuf>,
+}
+
+#[derive(Args)]
+struct WorstArgs {
+    /// 30-character layout to inspect (defaults to the latest compute result)
+    layout: Option<String>,
+    #[arg(long)]
+    config: Option<PathBuf>,
+    #[arg(long = "primary-corpus", action = clap::ArgAction::Append)]
+    primary_corpus: Vec<String>,
+    /// Show only the first N n-grams per kind; 0 shows all
+    #[arg(long, default_value_t = 0)]
+    limit: usize,
+    #[arg(long)]
+    out: Option<PathBuf>,
 }
 
 #[derive(Args)]
@@ -162,6 +179,8 @@ struct CheckArgs {
     baseline: Option<PathBuf>,
     #[arg(long)]
     corpus: Option<PathBuf>,
+    #[arg(long)]
+    config: Option<PathBuf>,
     #[arg(long, default_value_t = 1e-9)]
     tolerance: f64,
     #[arg(long)]
@@ -183,6 +202,13 @@ fn main() -> Result<()> {
                 out_json: args.out_json.as_deref(),
             })
         }
+        Command::Worst(args) => worst::run(worst::WorstArgs {
+            layout: args.layout.as_deref(),
+            config: args.config.as_deref(),
+            primary_corpus: &args.primary_corpus,
+            limit: args.limit,
+            out: args.out.as_deref(),
+        }),
         Command::Compute(args) => {
             let time_budget = match args.time_budget.as_deref() {
                 Some(text) => Some(compute::parse_budget(text)?),
@@ -272,6 +298,7 @@ fn main() -> Result<()> {
         Command::CheckBaseline(args) => check::run(check::CheckArgs {
             baseline: args.baseline.as_deref(),
             corpus: args.corpus.as_deref(),
+            config: args.config.as_deref(),
             tolerance: args.tolerance,
             write: args.write,
         }),

@@ -1,0 +1,77 @@
+# <>|> Shirolyzer fixed-fingering config! <~=| #
+#
+# Companion to config.yaml for apples-to-apples comparisons with fixed-finger
+# analyzers such as oxeylyzer.  Every key always uses its fingermap finger and
+# alt_fingers is ignored, so the finger assignment cannot vary by context.
+# Everything else (geometry, model, corpora, conditions, priorities, balance)
+# is kept in sync with config.yaml.
+#
+# Use it with any analysis command, for example:
+#   shirolyzer analyze 'layout' --config shirolyzer/config/config.fixed.yaml
+#
+# Fingermap tokens are hand/finger pairs in physical-key order:
+# LP/LR/LM/LI on the left hand and RI/RM/RR/RP on the right hand.
+# Internally the tokens map to eight finger states ordered by
+# `hand * 4 + finger` (LP=0, LR=1, LM=2, LI=3, RP=4, RR=5, RM=6, RI=7).
+# Physical key order is defined by the geometry file.
+
+general:
+  geometry: geometry/ansi.yaml
+  # "fixed" uses the fingermap below for every ngram and ignores alt_fingers.
+  fingering: fixed
+  punctuation: ";,./"
+  primary_corpus:
+    - {name: shai, weight: 100}
+  secondary_corpus:
+    - {name: douglas, weight: 100}
+  primary_sacrifice:
+    score: 0.00023%            # percent of the best primary score
+    sfbs: 1%                   # combined SFB and SFT, SFT weighted 2x
+    scissors: 1%
+    redirects: 1%
+    rolls: 1%
+    alternation: 1%
+    finger_balance: 1%
+
+model:
+  parameters_file: model/pattern_parameters_A_all.json
+  disallow_reverse_scissors: [MR]
+
+fingermap: |
+  LR LR LM LM LM  RM RM RM RR RR
+  LP LR LM LI LI  RI RI RM RR RP
+  LP LR LI LI LI  RI RI RR RR RP
+
+# Optional search restriction, mirrored from config.yaml.
+hand_restrictions:
+  left: [z, x, c, v]
+  right: []
+
+# Fixed mode ignores alt rules; an empty list keeps the intent explicit.
+alt_fingers: []
+
+# Conditions are evaluated from top to bottom; the first matching entry wins.
+# Kept identical to config.yaml so only the fingering mode differs.
+conditions:
+  - {type: scissors, distance: half, reverse: true, pairs: [[LR, LP], [RR, RP]], allow: false}
+  - {type: scissors, distance: full, reverse: true, pairs: [[LR, LP], [RR, RP]], allow: false}
+
+# Tiered priority list.
+# High to low, most to least important in consideration.
+priority_list:
+  - sfbs-sfts # sfb/ts are the unavoidable devil
+  - [scissors, redirects] # flow disruptions that are bad to have
+  - [rolls, alternation] # flow improving niceties
+
+# Target share of strokes per finger in percent. The calibrated model uses the
+# same target for both hands: P 9%, R 12.5%, M 14%, I 14.5%.
+finger_balance:
+  LP: 9
+  LR: 12.5
+  LM: 14
+  LI: 14.5
+  RP: 9
+  RR: 12.5
+  RM: 14
+  RI: 14.5
+# = 100

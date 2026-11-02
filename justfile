@@ -20,6 +20,10 @@ compute *ARGS: build
 analyze layout="" *ARGS: build
     {{shirolyzer}} analyze "{{layout}}" {{ARGS}}
 
+# List worst bigrams/trigrams for LAYOUT, or the latest layout when omitted
+worst *ARGS: build
+    {{shirolyzer}} worst {{ARGS}}
+
 # Render LAYOUT as a finger-annotated ASCII grid
 render layout *ARGS: build
     {{shirolyzer}} render "{{layout}}" {{ARGS}}

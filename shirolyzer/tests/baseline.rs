@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use serde::Deserialize;
 use shirolyzer::{conditions, config, corpus, evaluate, gates, geometry, scorer};
 
+mod common;
+
 const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
 
 #[derive(Deserialize)]
@@ -22,7 +24,7 @@ fn setup() -> (
     scorer::Tables,
     corpus::Corpus,
 ) {
-    let cfg = config::load(None).expect("config");
+    let cfg = config::load(Some(&common::reference_config())).expect("config");
     let geom = geometry::Geometry::new();
     let model = config::build_model(&cfg).expect("model");
     let gates = gates::Gates::from_config(&cfg);
@@ -41,21 +43,21 @@ fn setup() -> (
 fn reference_trigram_scores() {
     let (_cfg, _geom, tables, corpus) = setup();
     let expected: &[(&str, f64)] = &[
-        ("qwerty", 4.891300575319204),
-        ("colemak", 4.129772580114925),
-        ("colemak-dh", 4.127792421869173),
-        ("canary", 3.9686502491826143),
-        ("sturdy", 3.8896772496848384),
-        ("gallium", 3.8569799993135887),
-        ("semimak", 3.912355900675508),
-        ("shiro", 3.616309837353795),
-        ("t5-diversity-2", 3.6459453195393503),
+        ("qwerty", 4.891503775394807),
+        ("colemak", 4.129975780190543),
+        ("colemak-dh", 4.127995621944821),
+        ("canary", 3.968681582771612),
+        ("sturdy", 3.889733868168627),
+        ("gallium", 3.856981334580291),
+        ("semimak", 3.912355900675485),
+        ("shiro", 3.616_314_698_706_01),
+        ("t5-diversity-2", 3.645952537652866),
     ];
     let refs_text = std::fs::read_to_string(shirolyzer::paths::references_file()).unwrap();
     let refs: References = toml::from_str(&refs_text).unwrap();
     let primary = evaluate::score_layout(SHIRO, &corpus, &tables);
     assert!(
-        (primary - 3.616309837353795).abs() < 1e-9,
+        (primary - 3.616_314_698_706_01).abs() < 1e-9,
         "configured current layout score {primary}"
     );
     let mut worst = 0.0f64;

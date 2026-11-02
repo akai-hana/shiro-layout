@@ -65,7 +65,8 @@ impl Metrics {
         let pats = trigram_patterns(layout, corpus, tables, geom);
         let usage = finger_usage(layout, corpus, tables, geom);
         let sfb = cat.cats.get("sfb").copied().unwrap_or(0.0);
-        let sft = pats.get("sfb_tri").copied().unwrap_or(0.0);
+        let sfb_tri = pats.get("sfb_tri").copied().unwrap_or(0.0);
+        let sft = pats.get("sft").copied().unwrap_or(0.0);
         let scissors = [
             "scissor_IM_hsb",
             "scissor_IM_fsb",
@@ -84,7 +85,7 @@ impl Metrics {
             }
         }
         Self {
-            sfb_sft: sfb + 2.0 * sft,
+            sfb_sft: sfb + sfb_tri + 2.0 * sft,
             scissors,
             redirects: pats.get("total_redirects").copied().unwrap_or(0.0),
             rolls: pats.get("total_rolls").copied().unwrap_or(0.0),
