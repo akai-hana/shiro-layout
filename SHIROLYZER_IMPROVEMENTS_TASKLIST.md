@@ -3,7 +3,8 @@
 **Status: phase 1 complete; phase 2 in progress.** Improvements 1 and 2 are
 implemented and merged to `main`. Improvements 3–8 are tracked by the phase-2
 plan in `research/plans/analyzer-deferred-improvements.md` (issues #93 and #94).
-Improvement 3 is implemented on `analyzer/corpus-provenance`.
+Improvement 3 is implemented on `analyzer/corpus-provenance`, merged
+into `analyzer/redirect-tiers`, and closed in #94.
 
 Tracking issue: https://github.com/akai-hana/shiro-layout/issues/92
 
