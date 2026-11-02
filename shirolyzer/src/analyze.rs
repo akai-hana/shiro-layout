@@ -189,6 +189,51 @@ pub fn category_report(
     }
 }
 
+pub fn trigram_pattern(fs: [usize; 3]) -> &'static str {
+    let hs = [finger_hand(fs[0]), finger_hand(fs[1]), finger_hand(fs[2])];
+    let os = [
+        FORDER[finger_kind(fs[0])],
+        FORDER[finger_kind(fs[1])],
+        FORDER[finger_kind(fs[2])],
+    ];
+    if (hs == [0, 1, 0]) || (hs == [1, 0, 1]) {
+        return "alternate";
+    }
+    if hs[0] == hs[1] && hs[1] == hs[2] {
+        if fs[0] == fs[1] && fs[1] == fs[2] {
+            "sft"
+        } else if fs[0] == fs[1] || fs[1] == fs[2] {
+            "sfb_tri"
+        } else if (os[1] as i64 - os[0] as i64) * (os[2] as i64 - os[1] as i64) < 0 {
+            if fs.iter().any(|&f| finger_kind(f) == 3) {
+                "redirect"
+            } else {
+                "redirect_weak"
+            }
+        } else {
+            "onehand"
+        }
+    } else if hs[0] == hs[1] {
+        if fs[0] == fs[1] {
+            "sfb_tri"
+        } else if os[0] < os[1] {
+            "inroll"
+        } else {
+            "outroll"
+        }
+    } else if hs[1] == hs[2] {
+        if fs[1] == fs[2] {
+            "sfb_tri"
+        } else if os[1] < os[2] {
+            "inroll"
+        } else {
+            "outroll"
+        }
+    } else {
+        "other"
+    }
+}
+
 pub fn trigram_patterns(
     layout: &str,
     corpus: &crate::corpus::Corpus,
@@ -210,62 +255,13 @@ pub fn trigram_patterns(
             decode_finger_at(enc, 1),
             decode_finger_at(enc, 2),
         ];
-        let hs = [finger_hand(fs[0]), finger_hand(fs[1]), finger_hand(fs[2])];
-        let os_ = [
-            FORDER[finger_kind(fs[0])],
-            FORDER[finger_kind(fs[1])],
-            FORDER[finger_kind(fs[2])],
-        ];
         total += cnt;
         let add = |acc: &mut HashMap<String, f64>, key: &str| {
             *acc.entry(key.to_string()).or_insert(0.0) += cnt;
         };
-        let has_repeat = ids[0] == ids[1] || ids[1] == ids[2] || ids[0] == ids[2];
-        let is_sft = if hs[0] == hs[1] && hs[1] == hs[2] {
-            fs[0] == fs[1] || fs[1] == fs[2]
-        } else if hs[0] == hs[1] {
-            fs[0] == fs[1]
-        } else if hs[1] == hs[2] {
-            fs[1] == fs[2]
-        } else {
-            false
-        };
-        if is_sft && has_repeat {
+        add(&mut acc, trigram_pattern(fs));
+        if ids[0] == ids[1] || ids[1] == ids[2] || ids[0] == ids[2] {
             add(&mut acc, "repeat");
-            continue;
-        }
-        if (hs == [0, 1, 0]) || (hs == [1, 0, 1]) {
-            add(&mut acc, "alternate");
-        } else if hs[0] == hs[1] && hs[1] == hs[2] {
-            if fs[0] == fs[1] || fs[1] == fs[2] {
-                add(&mut acc, "sfb_tri");
-            } else if (os_[1] as i64 - os_[0] as i64) * (os_[2] as i64 - os_[1] as i64) < 0 {
-                if fs.iter().any(|&f| finger_kind(f) == 3) {
-                    add(&mut acc, "redirect");
-                } else {
-                    add(&mut acc, "redirect_weak");
-                }
-            } else {
-                add(&mut acc, "onehand");
-            }
-        } else if hs[0] == hs[1] {
-            if fs[0] == fs[1] {
-                add(&mut acc, "sfb_tri");
-            } else if os_[0] < os_[1] {
-                add(&mut acc, "inroll");
-            } else {
-                add(&mut acc, "outroll");
-            }
-        } else if hs[1] == hs[2] {
-            if fs[1] == fs[2] {
-                add(&mut acc, "sfb_tri");
-            } else if os_[1] < os_[2] {
-                add(&mut acc, "inroll");
-            } else {
-                add(&mut acc, "outroll");
-            }
-        } else {
-            add(&mut acc, "other");
         }
     }
     if total == 0.0 {
@@ -280,9 +276,12 @@ pub fn trigram_patterns(
     let redirects = out.get("redirect").copied().unwrap_or(0.0)
         + out.get("redirect_weak").copied().unwrap_or(0.0);
     let alternation = out.get("alternate").copied().unwrap_or(0.0);
+    let sft = out.get("sft").copied().unwrap_or(0.0);
+    let sfb_tri = out.get("sfb_tri").copied().unwrap_or(0.0);
     out.insert("total_rolls".into(), rolls);
     out.insert("total_redirects".into(), redirects);
     out.insert("hand_alternation".into(), alternation);
+    out.insert("sfb_sft".into(), sfb_tri + sft);
     out
 }
 
@@ -554,7 +553,9 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "redirect",
         "redirect_weak",
         "total_redirects",
+        "sft",
         "sfb_tri",
+        "sfb_sft",
         "repeat",
         "other",
     ] {
@@ -664,4 +665,18 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
     std::fs::write(&out_json, serde_json::to_string_pretty(&payload)? + "\n")?;
     println!("\nwrote {} and {}", out_path.display(), out_json.display());
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::trigram_pattern;
+
+    #[test]
+    fn trigram_categories_separate_sft_from_sfb() {
+        assert_eq!(trigram_pattern([3, 3, 3]), "sft");
+        assert_eq!(trigram_pattern([2, 2, 6]), "sfb_tri");
+        assert_eq!(trigram_pattern([1, 1, 2]), "sfb_tri");
+        assert_eq!(trigram_pattern([2, 2, 7]), "sfb_tri");
+        assert_eq!(trigram_pattern([3, 6, 3]), "alternate");
+    }
 }

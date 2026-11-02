@@ -4,9 +4,10 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
+use crate::analyze::trigram_pattern;
 use crate::context;
 use crate::corpus::SPACE_INDEX;
-use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS};
+use crate::geometry::{finger_token, key_index, KEYS};
 use crate::paths;
 use crate::scorer::{big_idx, tri_idx, FINGER_SLOTS, SPACE_FINGER};
 
@@ -43,57 +44,6 @@ fn finger_label(finger: usize) -> String {
         "T".to_string()
     } else {
         finger_token(finger).to_string()
-    }
-}
-
-fn trigram_pattern(ids: [usize; 3], fs: [usize; 3]) -> &'static str {
-    let hs = [finger_hand(fs[0]), finger_hand(fs[1]), finger_hand(fs[2])];
-    let os = [finger_kind(fs[0]), finger_kind(fs[1]), finger_kind(fs[2])];
-    let has_repeat = ids[0] == ids[1] || ids[1] == ids[2] || ids[0] == ids[2];
-    let is_sft = if hs[0] == hs[1] && hs[1] == hs[2] {
-        fs[0] == fs[1] || fs[1] == fs[2]
-    } else if hs[0] == hs[1] {
-        fs[0] == fs[1]
-    } else if hs[1] == hs[2] {
-        fs[1] == fs[2]
-    } else {
-        false
-    };
-    if is_sft && has_repeat {
-        return "repeat";
-    }
-    if hs == [0, 1, 0] || hs == [1, 0, 1] {
-        "alternate"
-    } else if hs[0] == hs[1] && hs[1] == hs[2] {
-        if fs[0] == fs[1] || fs[1] == fs[2] {
-            "sfb_tri"
-        } else if (os[1] as i64 - os[0] as i64) * (os[2] as i64 - os[1] as i64) < 0 {
-            if fs.iter().any(|&f| finger_kind(f) == 3) {
-                "redirect"
-            } else {
-                "redirect_weak"
-            }
-        } else {
-            "onehand"
-        }
-    } else if hs[0] == hs[1] {
-        if fs[0] == fs[1] {
-            "sfb_tri"
-        } else if os[0] < os[1] {
-            "inroll"
-        } else {
-            "outroll"
-        }
-    } else if hs[1] == hs[2] {
-        if fs[1] == fs[2] {
-            "sfb_tri"
-        } else if os[1] < os[2] {
-            "inroll"
-        } else {
-            "outroll"
-        }
-    } else {
-        "other"
     }
 }
 
@@ -271,7 +221,7 @@ pub fn run(args: WorstArgs) -> Result<()> {
                 finger_label(fs[1]),
                 finger_label(fs[2])
             ),
-            pattern: trigram_pattern([ids[0], ids[1], ids[2]], fs),
+            pattern: trigram_pattern(fs),
             count,
         });
     }
