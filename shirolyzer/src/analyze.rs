@@ -13,6 +13,7 @@ use crate::evaluate::score_layout;
 use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS};
 use crate::model::pair_feature;
 use crate::paths;
+use crate::redirect::{pattern_for, pattern_key, pattern_label, RedirectTiers};
 use crate::scorer::{Tables, FINGER_SLOTS, SPACE_FINGER};
 
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -189,7 +190,36 @@ pub fn category_report(
     }
 }
 
-pub fn trigram_pattern(fs: [usize; 3]) -> &'static str {
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct TrigramPattern {
+    pub category: &'static str,
+    pub redirect: Option<[u8; 3]>,
+    pub tier: Option<usize>,
+}
+
+impl TrigramPattern {
+    fn plain(category: &'static str) -> Self {
+        Self {
+            category,
+            redirect: None,
+            tier: None,
+        }
+    }
+
+    pub fn label(&self, tiers: Option<&RedirectTiers>) -> String {
+        match (self.redirect, self.tier) {
+            (Some(pattern), Some(tier)) => {
+                format!("redirect_tier_{}:{}", tier + 1, pattern_label(pattern))
+            }
+            (Some(pattern), None) if tiers.is_some() => {
+                format!("redirect_unclassified:{}", pattern_label(pattern))
+            }
+            _ => self.category.to_string(),
+        }
+    }
+}
+
+pub fn trigram_pattern(fs: [usize; 3], tiers: Option<&RedirectTiers>) -> TrigramPattern {
     let hs = [finger_hand(fs[0]), finger_hand(fs[1]), finger_hand(fs[2])];
     let os = [
         FORDER[finger_kind(fs[0])],
@@ -197,40 +227,44 @@ pub fn trigram_pattern(fs: [usize; 3]) -> &'static str {
         FORDER[finger_kind(fs[2])],
     ];
     if (hs == [0, 1, 0]) || (hs == [1, 0, 1]) {
-        return "alternate";
+        return TrigramPattern::plain("alternate");
     }
     if hs[0] == hs[1] && hs[1] == hs[2] {
         if fs[0] == fs[1] && fs[1] == fs[2] {
-            "sft"
+            TrigramPattern::plain("sft")
         } else if fs[0] == fs[1] || fs[1] == fs[2] {
-            "sfb_tri"
-        } else if (os[1] as i64 - os[0] as i64) * (os[2] as i64 - os[1] as i64) < 0 {
-            if fs.iter().any(|&f| finger_kind(f) == 3) {
-                "redirect"
-            } else {
-                "redirect_weak"
+            TrigramPattern::plain("sfb_tri")
+        } else if let Some(pattern) = pattern_for(fs) {
+            TrigramPattern {
+                category: if fs.iter().any(|&f| finger_kind(f) == 3) {
+                    "redirect"
+                } else {
+                    "redirect_weak"
+                },
+                redirect: Some(pattern),
+                tier: tiers.and_then(|tiers| tiers.tier_of(pattern)),
             }
         } else {
-            "onehand"
+            TrigramPattern::plain("onehand")
         }
     } else if hs[0] == hs[1] {
         if fs[0] == fs[1] {
-            "sfb_tri"
+            TrigramPattern::plain("sfb_tri")
         } else if os[0] < os[1] {
-            "inroll"
+            TrigramPattern::plain("inroll")
         } else {
-            "outroll"
+            TrigramPattern::plain("outroll")
         }
     } else if hs[1] == hs[2] {
         if fs[1] == fs[2] {
-            "sfb_tri"
+            TrigramPattern::plain("sfb_tri")
         } else if os[1] < os[2] {
-            "inroll"
+            TrigramPattern::plain("inroll")
         } else {
-            "outroll"
+            TrigramPattern::plain("outroll")
         }
     } else {
-        "other"
+        TrigramPattern::plain("other")
     }
 }
 
@@ -239,6 +273,7 @@ pub fn trigram_patterns(
     corpus: &crate::corpus::Corpus,
     tables: &Tables,
     _geom: &crate::geometry::Geometry,
+    tiers: Option<&RedirectTiers>,
 ) -> HashMap<String, f64> {
     let m = keymap(layout);
     let mut acc: HashMap<String, f64> = HashMap::new();
@@ -259,7 +294,18 @@ pub fn trigram_patterns(
         let add = |acc: &mut HashMap<String, f64>, key: &str| {
             *acc.entry(key.to_string()).or_insert(0.0) += cnt;
         };
-        add(&mut acc, trigram_pattern(fs));
+        let pat = trigram_pattern(fs, tiers);
+        add(&mut acc, pat.category);
+        if let Some(redirect) = pat.redirect {
+            match pat.tier {
+                Some(tier) => {
+                    add(&mut acc, &format!("redirect_tier_{}", tier + 1));
+                    add(&mut acc, &pattern_key(redirect));
+                }
+                None if tiers.is_some() => add(&mut acc, "redirect_unclassified"),
+                None => {}
+            }
+        }
         if ids[0] == ids[1] || ids[1] == ids[2] || ids[0] == ids[2] {
             add(&mut acc, "repeat");
         }
@@ -464,7 +510,15 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         || category_report(layout, &corpus, &ctx.tables, &ctx.geom),
         || {
             rayon::join(
-                || trigram_patterns(layout, &corpus, &ctx.tables, &ctx.geom),
+                || {
+                    trigram_patterns(
+                        layout,
+                        &corpus,
+                        &ctx.tables,
+                        &ctx.geom,
+                        ctx.cfg.redirect_tiers.as_ref(),
+                    )
+                },
                 || {
                     rayon::join(
                         || finger_usage(layout, &corpus, &ctx.tables, &ctx.geom),
@@ -564,6 +618,32 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             k,
             pats.get(k).copied().unwrap_or(0.0)
         ));
+    }
+    if let Some(tiers) = ctx.cfg.redirect_tiers.as_ref() {
+        out(String::new());
+        out("== redirect tiers (configured, % of trigrams) ==".to_string());
+        for (i, tier) in tiers.tiers().iter().enumerate() {
+            out(format!(
+                "  {:<16} {:6.2}",
+                format!("tier {}", i + 1),
+                pats.get(&format!("redirect_tier_{}", i + 1))
+                    .copied()
+                    .unwrap_or(0.0)
+            ));
+            for &pattern in tier {
+                out(format!(
+                    "    {:<14} {:6.2}",
+                    pattern_label(pattern),
+                    pats.get(&pattern_key(pattern)).copied().unwrap_or(0.0)
+                ));
+            }
+        }
+        out(format!(
+            "  {:<16} {:6.2}",
+            "unclassified",
+            pats.get("redirect_unclassified").copied().unwrap_or(0.0)
+        ));
+        out("  note: redirect/redirect_weak are deprecated legacy labels".to_string());
     }
     out(String::new());
     out("== finger load (% of all strokes) ==".to_string());
@@ -670,13 +750,52 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::trigram_pattern;
+    use crate::redirect::RedirectTiers;
+
+    fn fingers(pattern: [u8; 3], hand: usize) -> [usize; 3] {
+        pattern.map(|rank| hand * 4 + (4 - rank) as usize)
+    }
+
+    fn tiers() -> RedirectTiers {
+        RedirectTiers::new(vec![vec![[1, 2, 1]], vec![[3, 2, 3]], vec![[1, 4, 1]]])
+    }
 
     #[test]
     fn trigram_categories_separate_sft_from_sfb() {
-        assert_eq!(trigram_pattern([3, 3, 3]), "sft");
-        assert_eq!(trigram_pattern([2, 2, 6]), "sfb_tri");
-        assert_eq!(trigram_pattern([1, 1, 2]), "sfb_tri");
-        assert_eq!(trigram_pattern([2, 2, 7]), "sfb_tri");
-        assert_eq!(trigram_pattern([3, 6, 3]), "alternate");
+        assert_eq!(trigram_pattern([3, 3, 3], None).category, "sft");
+        assert_eq!(trigram_pattern([2, 2, 6], None).category, "sfb_tri");
+        assert_eq!(trigram_pattern([1, 1, 2], None).category, "sfb_tri");
+        assert_eq!(trigram_pattern([2, 2, 7], None).category, "sfb_tri");
+        assert_eq!(trigram_pattern([3, 6, 3], None).category, "alternate");
+    }
+
+    #[test]
+    fn redirect_tiers_are_shared_by_both_hands() {
+        let tiers = tiers();
+        let left = trigram_pattern(fingers([1, 2, 1], 0), Some(&tiers));
+        let right = trigram_pattern(fingers([1, 2, 1], 1), Some(&tiers));
+        assert_eq!(left.category, "redirect");
+        assert_eq!(left.redirect, Some([1, 2, 1]));
+        assert_eq!(left.tier, Some(0));
+        assert_eq!(right.tier, Some(0));
+        assert_eq!(left.label(Some(&tiers)), "redirect_tier_1:1-2-1");
+
+        let ring = trigram_pattern(fingers([3, 2, 3], 0), Some(&tiers));
+        assert_eq!(ring.tier, Some(1));
+        assert_eq!(ring.label(Some(&tiers)), "redirect_tier_2:3-2-3");
+
+        let pinky = trigram_pattern(fingers([1, 4, 1], 0), Some(&tiers));
+        assert_eq!(pinky.tier, Some(2));
+    }
+
+    #[test]
+    fn unlisted_redirects_use_the_legacy_fallback() {
+        let tiers = tiers();
+        let pattern = trigram_pattern(fingers([1, 3, 2], 0), Some(&tiers));
+        assert_eq!(pattern.category, "redirect");
+        assert_eq!(pattern.redirect, Some([1, 3, 2]));
+        assert_eq!(pattern.tier, None);
+        assert_eq!(pattern.label(Some(&tiers)), "redirect_unclassified:1-3-2");
+        assert_eq!(pattern.label(None), "redirect");
     }
 }

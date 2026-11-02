@@ -19,6 +19,7 @@ use crate::diversity::{self, Row};
 use crate::evaluate::{flat_share_from_config, perm_of, Evaluator};
 use crate::geometry::Geometry;
 use crate::paths;
+use crate::redirect::RedirectTiers;
 use crate::references;
 use crate::scorer::Tables;
 use crate::search;
@@ -60,9 +61,10 @@ impl Metrics {
         tables: &Tables,
         geom: &Geometry,
         targets: &std::collections::HashMap<char, f64>,
+        redirect_tiers: Option<&RedirectTiers>,
     ) -> Self {
         let cat = category_report(layout, corpus, tables, geom);
-        let pats = trigram_patterns(layout, corpus, tables, geom);
+        let pats = trigram_patterns(layout, corpus, tables, geom, redirect_tiers);
         let usage = finger_usage(layout, corpus, tables, geom);
         let sfb = cat.cats.get("sfb").copied().unwrap_or(0.0);
         let sfb_tri = pats.get("sfb_tri").copied().unwrap_or(0.0);
@@ -781,6 +783,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 &ctx.tables,
                 &ctx.geom,
                 &ctx.cfg.finger_balance,
+                ctx.cfg.redirect_tiers.as_ref(),
             )
         });
         let metric_limits = base_metrics
@@ -796,6 +799,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                         &ctx.tables,
                         &ctx.geom,
                         &ctx.cfg.finger_balance,
+                        ctx.cfg.redirect_tiers.as_ref(),
                     ))
                 })
                 .unwrap_or(true)
