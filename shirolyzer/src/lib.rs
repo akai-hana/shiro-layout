@@ -15,6 +15,7 @@ pub mod gates;
 pub mod geometry;
 pub mod model;
 pub mod paths;
+pub mod redirect;
 pub mod references;
 pub mod render;
 pub mod scorer;

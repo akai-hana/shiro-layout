@@ -11,6 +11,7 @@ use serde_json::Value;
 use crate::geometry::{
     finger_hand, finger_kind, finger_token, length_rank, Geometry, FINGERS, NF, NFINGER, NK,
 };
+use crate::redirect::{redirect_cost, RedirectCostTable};
 
 pub const PARAM_NAMES: [&str; 47] = [
     "e_dn",
@@ -174,6 +175,7 @@ pub struct Scales {
     pub redirect: f64,
     pub roll: f64,
     pub alt: f64,
+    pub redirect_costs: Option<RedirectCostTable>,
 }
 
 impl Default for Scales {
@@ -184,6 +186,7 @@ impl Default for Scales {
             redirect: 1.0,
             roll: 1.0,
             alt: 1.0,
+            redirect_costs: None,
         }
     }
 }
@@ -631,8 +634,6 @@ impl Model {
                         let d2 = f3 as i32 - f2 as i32;
                         let turn = d1 * d2 < 0;
                         let cont = d1 * d2 > 0;
-                        let has_p =
-                            finger_kind(f1) == 0 || finger_kind(f2) == 0 || finger_kind(f3) == 0;
                         let mut cost = tabs.e[e_idx(ka, f1)]
                             + tabs.e[e_idx(kb, f2)]
                             + tabs.e[e_idx(kc, f3)]
@@ -641,15 +642,12 @@ impl Model {
                         let same = finger_hand(f1) == finger_hand(f2)
                             && finger_hand(f2) == finger_hand(f3);
                         if same {
-                            let add = (if turn {
-                                if has_p {
-                                    W_REDIRECT_WEAK
-                                } else {
-                                    W_REDIRECT
-                                }
+                            let redirect = if turn {
+                                redirect_cost(self.scales.redirect_costs.as_ref(), [f1, f2, f3])
                             } else {
                                 0.0
-                            } + if cont { W_CONTINUE } else { 0.0 })
+                            };
+                            let add = (redirect + if cont { W_CONTINUE } else { 0.0 })
                                 * self.scales.redirect;
                             cost += add;
                             let s13 = tabs.strain[pt_idx(ka, f1, kc, f3)];
@@ -745,6 +743,59 @@ mod tests {
         assert!(e[e_idx(h, ri)].is_finite());
         assert!(e[e_idx(h, li)] < 3.0);
         assert!(e[e_idx(y, lm)] < 3.5);
+    }
+
+    #[test]
+    fn redirect_tiers_price_only_configured_patterns() {
+        let geom = Geometry::new();
+        let cfg = crate::config::load(None).unwrap();
+        let tiers = cfg.redirect_tiers.clone().expect("shipped redirect tiers");
+        let mut model = crate::config::build_model(&cfg).unwrap();
+        let configured_index = (NF + 2) * NF + 1;
+        let unlisted_index = (3 * NF + 1) * NF + 2;
+        let ring_middle_ring = [3, 2, 3];
+        let unlisted = [1, 3, 2];
+
+        let tables = model.tables(&geom);
+        let mut chosen = None;
+        'search: for a in 0..NK {
+            for b in 0..NK {
+                for c in 0..NK {
+                    if a == b || b == c || a == c {
+                        continue;
+                    }
+                    let block = model.tri_block(&geom, &tables, a, b, c);
+                    if block[configured_index].is_finite() && block[unlisted_index].is_finite() {
+                        chosen = Some((a, b, c, block));
+                        break 'search;
+                    }
+                }
+            }
+        }
+        let (a, b, c, block) = chosen.expect("reachable redirect test trigram");
+        let configured = block[configured_index];
+        let unlisted_cost = block[unlisted_index];
+
+        model.scales.redirect_costs = None;
+        let legacy_tables = model.tables(&geom);
+        let legacy_block = model.tri_block(&geom, &legacy_tables, a, b, c);
+        let legacy_configured = legacy_block[configured_index];
+        let legacy_unlisted = legacy_block[unlisted_index];
+
+        let expected =
+            (crate::redirect::tier_cost(1, tiers.len()) - W_REDIRECT) * model.scales.redirect;
+        assert!(
+            (configured - legacy_configured - expected).abs() < 1e-12,
+            "configured={configured} legacy={legacy_configured} expected={expected}"
+        );
+        assert!((unlisted_cost - legacy_unlisted).abs() < 1e-12);
+        assert!(model.scales.redirect_costs.is_none());
+        assert!(Scales::default().redirect_costs.is_none());
+        assert_eq!(
+            tiers.cost(ring_middle_ring),
+            Some(crate::redirect::tier_cost(1, tiers.len()))
+        );
+        assert_eq!(tiers.cost(unlisted), None);
     }
 
     #[test]
