@@ -67,6 +67,7 @@ class Config:
     flat_share: dict[str, float]
     primary_corpus: list[dict]
     secondary_corpus: list[dict]
+    redirect_tiers: list[list[tuple[int, int, int]]] = field(default_factory=list)
 
     @property
     def physical_layout(self) -> str:
@@ -343,6 +344,47 @@ def _parse_priority(path: Path, value: Any) -> list[list[str]]:
     return out
 
 
+def _parse_redirect_tiers(path: Path, value: Any) -> list[list[tuple[int, int, int]]]:
+    if value is None:
+        return []
+    if not isinstance(value, list) or not value:
+        _fail(path, "redirect_tiers", "expected a non-empty list of tiers")
+    out, seen = [], set()
+    for i, item in enumerate(value):
+        where_i = f"redirect_tiers[{i}]"
+        if not isinstance(item, list) or not item:
+            _fail(path, where_i, "expected a non-empty list of redirect patterns")
+        tier = []
+        for j, pattern_text in enumerate(item):
+            where_j = f"{where_i}[{j}]"
+            if not isinstance(pattern_text, str):
+                _fail(path, where_j, f"expected a redirect pattern string, got {pattern_text!r}")
+            parts = pattern_text.split("-")
+            if len(parts) != 3:
+                _fail(path, where_j,
+                      f"expected three 1-4 numbers separated by '-', got {pattern_text!r}")
+            pattern = []
+            for part in parts:
+                if len(part) != 1 or part not in "1234":
+                    _fail(path, where_j,
+                          f"expected a finger number from 1 to 4, got {part!r}")
+                pattern.append(int(part))
+            a, b, c = pattern
+            if a == b == c:
+                _fail(path, where_j, f"{pattern_text!r} is an SFT, not a redirect")
+            if (b - a) * (c - b) >= 0:
+                _fail(path, where_j,
+                      f"{pattern_text!r} is not a same-hand direction reversal "
+                      "(for example 1-2-1)")
+            key = (a, b, c)
+            if key in seen:
+                _fail(path, where_j, f"duplicate redirect pattern {pattern_text!r}")
+            seen.add(key)
+            tier.append(key)
+        out.append(tier)
+    return out
+
+
 def _parse_balance(path: Path, value: Any) -> tuple[dict[str, float], dict[str, float]]:
     data = _as_mapping(path, "finger_balance", value)
     allowed = {h + f for h in "LR" for f in FINGERS} | set(FINGERS)
@@ -386,12 +428,13 @@ def load(path=None) -> Config:
     except yaml.YAMLError as exc:
         raise ConfigError(f"{path}: invalid YAML: {exc}") from None
     raw = _as_mapping(path, "root", raw)
-    known = {"general", "model", "fingermap", "alt_fingers", "conditions",
-             "priority_list", "finger_balance"}
+    required = {"general", "model", "fingermap", "alt_fingers", "conditions",
+                "priority_list", "finger_balance"}
+    known = required | {"redirect_tiers"}
     unknown = set(raw) - known
     if unknown:
         _fail(path, "root", f"unknown section(s): {sorted(unknown)}")
-    for section in known:
+    for section in required:
         if section not in raw:
             _fail(path, "root", f"missing required section {section!r}")
 
@@ -435,6 +478,7 @@ def load(path=None) -> Config:
     alt_fingers = _parse_alt_fingers(path, raw["alt_fingers"])
     conditions = _parse_conditions(path, raw["conditions"])
     priority = _parse_priority(path, raw["priority_list"])
+    redirect_tiers = _parse_redirect_tiers(path, raw.get("redirect_tiers"))
     balance, flat = _parse_balance(path, raw["finger_balance"])
 
     general = dict(general)
@@ -443,7 +487,8 @@ def load(path=None) -> Config:
                  model={"type": "pattern", "variant": variant, "parameters_file": parameters_file},
                  fingermap=fingermap, finger_tokens=finger_tokens,
                  alt_fingers=alt_fingers, conditions=conditions,
-                 priority_list=priority, finger_balance=balance, flat_share=flat,
+                 priority_list=priority, redirect_tiers=redirect_tiers,
+                 finger_balance=balance, flat_share=flat,
                  primary_corpus=primary, secondary_corpus=secondary)
     return cfg
 
@@ -465,6 +510,7 @@ def apply(cfg: Config | None = None) -> Config:
     cg.W_REDIRECT_SCALE = scales["redirects"]
     cg.W_ROLL_SCALE = scales["rolls"]
     cg.W_ALT_SCALE = scales["alternation"]
+    cg.configure_redirect_tiers(cfg.redirect_tiers)
     _STATE.active = cfg
     return cfg
 
