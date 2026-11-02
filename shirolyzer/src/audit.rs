@@ -1382,7 +1382,11 @@ mod tests {
         assert_eq!(probe_rows(&ctx, &["Y", "H"])[0].1, "LMLI");
         assert_eq!(probe_rows(&ctx, &["H", "J"])[0].1, "LIRI");
 
-        let default = Context::load(None).unwrap().calibration().unwrap();
+        let fixed_path = crate::paths::config_dir().join("config.fixed.yaml");
+        let default = Context::load(Some(&fixed_path))
+            .unwrap()
+            .calibration()
+            .unwrap();
         assert_eq!(probe_rows(&default, &["H", "Y"])[0].1, "RIRM");
     }
 }

@@ -1,0 +1,9 @@
+Continue the session "ses_e6a1afffdffeQ2TcGh0TRKXL0V" with the following user prompt:
+
+"""
+2. i want the shirolyzer to also distinguish between the three categories, like the oxeylyzer does. i believe a true sft should be weighted twice as negatively as a sfb. as for sfb vs badsfb, i don't consider that all 3 on one hand vs mixed hands makes a difference in the fact that there's a sfb, so i'd liek to have these two lumped together.
+
+4. please make a plan containing all the improvements you mentioned, from 1 to 8, into a new .md file. this plan should use git issues/branches/commits, and you should include a checked tasklist to keep track of work as it is being implemented.  
+"""
+
+Review the session agent's latest work for context, and thne proceed to continue along with replying to the provided prompt.

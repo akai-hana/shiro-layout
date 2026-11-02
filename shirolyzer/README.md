@@ -35,6 +35,7 @@ Mainly, it features user-defined condition/preference/restriction configuration 
 - Custom fingermap definition, using hand/finger tokens `LP/LR/LM/LI` and `RI/RM/RR/RP`.
 - Finger rest keys definition.
 - Alt-finger ngram rules that override the fingermap for specific physical-key sequences, including explicit cross-hand fingerings.
+- Configurable fingering mode: context-dependent `flexible` or physical-fingermap `fixed` (`general.fingering`).
 - Conditional preferences/restrictions for scissors, spread, separation, and crossing.
 
 **Tuning**:
@@ -71,7 +72,7 @@ general:
     finger_balance: 1%
 ```
 
-Percentages are relative to the best primary layout. Lower-is-better metrics (`sfbs`, `scissors`, `redirects`, `finger_balance`) may increase by the given percentage; higher-is-better metrics (`rolls`, `alternation`) may decrease by it. `sfb`, `sfts`, and `sfbs` are aliases for the combined SFB/SFT budget. `score` is optional only when every metric is specified.
+Percentages are relative to the best primary layout. Lower-is-better metrics (`sfbs`, `scissors`, `redirects`, `finger_balance`) may increase by the given percentage; higher-is-better metrics (`rolls`, `alternation`) may decrease by it. `sfb`, `sfts`, and `sfbs` are aliases for the combined SFB/SFT budget. That budget counts ordinary same-finger bigrams and adjacent same-finger trigrams (Sfb and BadSfb lumped together) at 1x, and true all-three-same-finger trigrams (Sft) at 2x. `score` is optional only when every metric is specified.
 
 ### Alt-fingers & Context
 
@@ -85,9 +86,10 @@ alt_fingers:
   - {ngram: [S, T, R], fingers: [LR, LM, LI], mode: block}
 ```
 
-- Matching is exact and ordered. Longer ngrams override shorter ngrams.
+- Matching is exact and ordered. A longer `allow` rule overrides shorter rules only where their matched ranges overlap; non-overlapping shorter rules remain active, and overlapping `block` rules all stay active.
 - `allow` restricts an ngram to the listed fingering; `block` forbids that exact fingering while leaving other fingerings available.
 - Listed fingers are mandatory. An explicit rule never silently falls back to the default fingermap.
+- An explicit `allow` rule also licenses a finger that geometry would otherwise mark unreachable; the normal travel weights still price that reach.
 - When the same ngram is defined more than once, earlier definitions are preferred; later definitions act as fallbacks.
 - Context-key defaults are listed first, followed by other fingers on the same hand as fallbacks.
 
@@ -101,7 +103,32 @@ alt_fingers:
   - {ngram: [Y], fingers: [LM], mode: allow}
 ```
 
-Internally the tokens map to eight finger states ordered by `hand * 4 + finger`: `LP=0`, `LR=1`, `LM=2`, `LI=3`, `RP=4`, `RR=5`, `RM=6`, `RI=7`. A bare `P/R/M/I` token still means the physical key's own hand, so the shipped fingermap and existing rules keep their same-hand meaning. Cross-hand travel is priced from absolute key/finger positions, not from a hand-relative mirror, and cross-hand states remain unavailable unless a rule explicitly allows them. Same-hand pair terms use the fingering hand, so two cross-body keys typed by fingers of the same hand are still treated as a same-hand pair.
+Internally the tokens map to eight finger states ordered by `hand * 4 + finger`: `LP=0`, `LR=1`, `LM=2`, `LI=3`, `RP=4`, `RR=5`, `RM=6`, `RI=7`. A bare `P/R/M/I` token still means the physical key's own hand, so the shipped fingermap and existing rules keep their same-hand meaning. Cross-hand travel is priced from absolute key/finger positions, not from a hand-relative mirror, and cross-hand states remain unavailable unless a rule explicitly allows them. An explicit `allow` rule may name a finger outside the geometry reach map; the scorer then prices the reach with the normal travel weights instead of rejecting it. Same-hand pair terms use the fingering hand, so two cross-body keys typed by fingers of the same hand are still treated as a same-hand pair.
+
+#### Fingering modes
+
+Finger selection is user-defined through `general.fingering`:
+
+```yaml
+general:
+  fingering: flexible   # default: any reachable finger, subject to alt_fingers
+  # fingering: fixed    # always use the fingermap; ignore alt_fingers
+```
+
+- `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis.
+- `fixed` forces every key to its `fingermap` finger. Alt rules are ignored, so the resulting metrics are directly comparable to fixed-fingering analyzers such as oxeylyzer. Conditions and the fitted model still apply.
+
+Two configs are shipped:
+
+- `shirolyzer/config/config.yaml` — flexible (the default).
+- `shirolyzer/config/config.fixed.yaml` — fixed physical/default fingering with no alt rules.
+
+Switch between them with `--config`:
+
+```sh
+shirolyzer analyze "layout" --config shirolyzer/config/config.fixed.yaml
+shirolyzer compare --config shirolyzer/config/config.fixed.yaml
+```
 
 ### Priority tiers
 
@@ -121,7 +148,7 @@ The shipped condition list is a built-in default and stays disabled because the 
 The **shirolyzer** analyzer uses the same configuration, geometry, model, and fingering rules as the generator. It reports:
 
 - bigram categories such as SFBs, scissors, and stretches;
-- trigram patterns including rolls, redirects, alternation, and SFB trigrams;
+- trigram patterns including rolls, redirects, alternation, true same-finger trigrams (Sft), and adjacent same-finger trigrams (Sfb/BadSfb lumped); repeated-character trigrams are also reported as an overlapping `repeat` diagnostic;
 - per-finger usage against the configured finger-balance targets;
 - the pattern-model score, including priority-tier weighting.
 

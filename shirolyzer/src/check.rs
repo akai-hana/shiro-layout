@@ -16,6 +16,7 @@ use crate::scorer::{big_idx, tri_idx, Tables};
 pub struct CheckArgs<'a> {
     pub baseline: Option<&'a Path>,
     pub corpus: Option<&'a Path>,
+    pub config: Option<&'a Path>,
     pub tolerance: f64,
     pub write: bool,
 }
@@ -136,7 +137,7 @@ pub fn run(args: CheckArgs) -> Result<()> {
         .corpus
         .map(Path::to_path_buf)
         .unwrap_or_else(|| paths::corpus_root().join("shai").join("parsed"));
-    let ctx = context::Context::load(None)?;
+    let ctx = context::Context::load(args.config)?;
     let actual = collect(&ctx, &corpus_path)?;
     if args.write {
         if let Some(parent) = baseline.parent() {

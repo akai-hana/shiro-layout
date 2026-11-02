@@ -3,6 +3,8 @@ use std::process::Command;
 
 use serde_json::Value;
 
+mod common;
+
 fn root() -> PathBuf {
     shirolyzer::paths::repo_root()
 }
@@ -25,11 +27,16 @@ fn stdout(out: &std::process::Output) -> String {
     String::from_utf8_lossy(&out.stdout).into_owned()
 }
 
+fn config_path() -> String {
+    common::reference_config().to_string_lossy().into_owned()
+}
+
 const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
 
 #[test]
 fn render_matches_reference() {
-    let out = run(&["render", SHIRO]);
+    let config = config_path();
+    let out = run(&["render", SHIRO, "--config", config.as_str()]);
     assert!(out.status.success());
     let expected = ";R nR tM gM fM  jM oM eM hR kR\n rP pR mM sI cI  uI aI yM dR iP\n  lP bR qI vI wI  xI zI ,R .R /P\n";
     assert_eq!(stdout(&out), expected);
@@ -59,12 +66,20 @@ fn xkb_matches_reference() {
 
 #[test]
 fn analyze_score_matches_baseline() {
+    let config = config_path();
     let path = tmp("analyze.json");
-    let out = run(&["analyze", SHIRO, "--out-json", path.to_str().unwrap()]);
+    let out = run(&[
+        "analyze",
+        SHIRO,
+        "--config",
+        config.as_str(),
+        "--out-json",
+        path.to_str().unwrap(),
+    ]);
     assert!(out.status.success());
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
-    assert!((score - 3.616309837353795).abs() < 1e-12);
+    assert!((score - 3.616_314_698_706_01).abs() < 1e-12);
     for entry in value["guide"].as_object().unwrap().values() {
         for contexts in entry["alt_contexts"].as_object().unwrap().values() {
             for item in contexts.as_array().unwrap() {
@@ -78,21 +93,46 @@ fn analyze_score_matches_baseline() {
 }
 
 #[test]
+fn worst_lists_highest_cost_ngrams() {
+    let config = config_path();
+    let layout = "ztiuqvgrnhekyaocslpd;j,./wxbfm";
+    let out = run(&["worst", layout, "--config", config.as_str(), "--limit", "1"]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = stdout(&out);
+    assert!(text.contains("showing 1 of 676 ngrams"));
+    assert!(text.contains("xv"));
+    assert!(text.contains("M Y"));
+    assert!(text.contains("RM-RI"));
+    assert!(text.contains("showing 1 of 15437 ngrams"));
+    assert!(text.contains("rnp"));
+    assert!(text.contains("I O L"));
+    assert!(text.contains("onehand"));
+}
+
+#[test]
 fn compare_reports_baseline_scores() {
-    let out = run(&["compare"]);
+    let config = config_path();
+    let out = run(&["compare", "--config", config.as_str()]);
     assert!(out.status.success());
     let text = stdout(&out);
     assert!(text.contains("shiro"));
-    assert!(text.contains("3.616310"));
+    assert!(text.contains("3.616315"));
 }
 
 #[test]
 fn audit_and_check_baseline_pass() {
+    let config = config_path();
     let out_json = tmp("audit.json");
     let out_txt = tmp("audit.txt");
     let out = run(&[
         "audit",
         "A:all",
+        "--config",
+        config.as_str(),
         "--out",
         out_txt.to_str().unwrap(),
         "--out-json",
@@ -115,6 +155,8 @@ fn audit_and_check_baseline_pass() {
     let default_txt = tmp("audit-default.txt");
     let out = run(&[
         "audit",
+        "--config",
+        config.as_str(),
         "--out",
         default_txt.to_str().unwrap(),
         "--out-json",
@@ -125,7 +167,7 @@ fn audit_and_check_baseline_pass() {
         serde_json::from_str(&std::fs::read_to_string(&default_json).unwrap()).unwrap();
     assert!(value["config"].is_null());
 
-    let out = run(&["check-baseline"]);
+    let out = run(&["check-baseline", "--config", config.as_str()]);
     assert!(out.status.success());
     assert!(stdout(&out).contains("baseline OK: audit 166/166, 9 references"));
 }
@@ -139,10 +181,13 @@ fn compute_smoke() {
         format!("[[reference]]\nname = \"shiro\"\nlayout = \"{SHIRO}\"\n"),
     )
     .unwrap();
+    let config = config_path();
     let out_json = tmp("compute.json");
     let out_txt = tmp("compute.txt");
     let out = run(&[
         "compute",
+        "--config",
+        config.as_str(),
         "--references",
         refs.to_str().unwrap(),
         "--runs",
@@ -167,5 +212,5 @@ fn compute_smoke() {
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 2);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.5528408956196365).abs() < 1e-6);
+    assert!((primary - 3.552_843_384_112_219_6).abs() < 1e-6);
 }
