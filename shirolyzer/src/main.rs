@@ -13,6 +13,7 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
+#[allow(clippy::large_enum_variant)]
 enum Command {
     /// Analyze a layout with the calibrated pattern model
     Analyze(AnalyzeArgs),
@@ -108,6 +109,9 @@ struct ComputeArgs {
     iters: usize,
     #[arg(long, default_value_t = 8)]
     ils: usize,
+    /// Number of diverse top layouts advanced to ILS
+    #[arg(long = "ils-candidates", default_value_t = 4)]
+    ils_candidates: usize,
     #[arg(long = "valid-tolerance", default_value_t = 0.002)]
     valid_tolerance: f64,
     #[arg(long = "secondary-tolerance", default_value_t = 0.005)]
@@ -251,6 +255,7 @@ fn main() -> Result<()> {
                 runs: args.runs,
                 iters: args.iters,
                 ils: args.ils,
+                ils_candidates: args.ils_candidates,
                 valid_tolerance: args.valid_tolerance,
                 secondary_tolerance: args.secondary_tolerance,
                 min_layout_distance: args.min_layout_distance,
