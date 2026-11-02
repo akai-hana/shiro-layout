@@ -106,6 +106,47 @@ fn analyze_score_matches_baseline() {
     let unclassified = pats["redirect_unclassified"].as_f64().unwrap();
     let total = pats["total_redirects"].as_f64().unwrap();
     assert!((tier_total + unclassified - total).abs() < 1e-9);
+
+    let provenance = &value["corpus_provenance"];
+    for role in ["primary", "secondary"] {
+        let entries = provenance[role].as_array().unwrap();
+        assert_eq!(entries.len(), 1, "{role} provenance");
+        let entry = &entries[0];
+        assert_eq!(entry["kind"], "parsed");
+        assert_eq!(entry["parser"], "parsed-json-v1");
+        assert_eq!(entry["normalization"], "none (pre-parsed counts)");
+        assert_eq!(entry["files"].as_array().unwrap().len(), 3);
+        assert_eq!(entry["combined_sha1"].as_str().unwrap().len(), 40);
+        assert!(entry["totals"]["trigram_entries"].as_u64().unwrap() > 0);
+    }
+}
+
+#[test]
+fn compare_accepts_external_ngram_json() {
+    let config = config_path();
+    let path = tmp("external-ngrams.txt");
+    std::fs::write(
+        &path,
+        r#"{"letters": {"a": 3}, "bigrams": {"ab": 2}, "trigrams": {"abc": 1}}"#,
+    )
+    .unwrap();
+    let out = run(&[
+        "compare",
+        "--config",
+        config.as_str(),
+        "--corpus-json",
+        path.to_str().unwrap(),
+    ]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = stdout(&out);
+    assert!(text.contains("shiro"), "{text}");
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("external corpus"), "{err}");
+    assert!(err.contains("external-json"), "{err}");
 }
 
 #[test]

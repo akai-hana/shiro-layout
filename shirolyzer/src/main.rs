@@ -147,8 +147,11 @@ struct XkbArgs {
 struct CompareArgs {
     #[arg(long)]
     config: Option<PathBuf>,
-    #[arg(long = "primary-corpus")]
+    #[arg(long = "primary-corpus", conflicts_with = "corpus_json")]
     primary_corpus: Option<String>,
+    /// Read an external letters/bigrams/trigrams JSON bundle (comparison only)
+    #[arg(long = "corpus-json")]
+    corpus_json: Option<PathBuf>,
     #[arg(long)]
     refs: Option<PathBuf>,
 }
@@ -284,6 +287,7 @@ fn main() -> Result<()> {
         Command::Compare(args) => compare::run(
             args.config.as_deref(),
             args.primary_corpus.as_deref(),
+            args.corpus_json.as_deref(),
             args.refs.as_deref(),
         ),
         Command::Audit(args) => audit::run(audit::AuditArgs {
