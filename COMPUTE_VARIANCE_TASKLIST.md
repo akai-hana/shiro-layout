@@ -103,23 +103,23 @@ Branch: `compute/ils-diversity`
 
 Steps:
 
-- [ ] Add `--ils-candidates` (default `4`) to `ComputeArgs` and replace the
+- [x] Add `--ils-candidates` (default `4`) to `ComputeArgs` and replace the
       hardcoded `top.truncate(4)`.
-- [ ] Add a letter-only layout distance helper in `diversity.rs`
+- [x] Add a letter-only layout distance helper in `diversity.rs`
       (differences in alphabetic placement only; punctuation differences do
       not count).
-- [ ] Select ILS candidates by letter-placement diversity with a minimum
+- [x] Select ILS candidates by letter-placement diversity with a minimum
       distance of `4`, filling from the ranked list only if too few diverse
       rows exist.
-- [ ] Key the `hits` column and rediscovery checks by letter placement so that
+- [x] Key the `hits` column and rediscovery checks by letter placement so that
       punctuation-only siblings no longer look like independent rediscoveries.
-- [ ] Add a punctuation canonicalization step for the final selected layout so
+- [x] Add a punctuation canonicalization step for the final selected layout so
       punctuation order is deterministic and does not create spurious unique
       layouts. Scoring is unchanged.
-- [ ] Keep the top-of-list ordering stable by primary, then final score.
-- [ ] Add unit tests for `letter_distance`, diverse selection, and
+- [x] Keep the top-of-list ordering stable by primary, then final score.
+- [x] Add unit tests for `letter_distance`, diverse selection, and
       punctuation canonicalization.
-- [ ] Document the new flag and the punctuation rule in `shirolyzer/README.md`.
+- [x] Document the new flag and the punctuation rule in `shirolyzer/README.md`.
 
 Suggested commit: `compute: diversify ILS by letter placement`
 

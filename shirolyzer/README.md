@@ -130,6 +130,26 @@ shirolyzer analyze "layout" --config shirolyzer/config/config.fixed.yaml
 shirolyzer compare --config shirolyzer/config/config.fixed.yaml
 ```
 
+### Compute scheduling
+
+`compute` runs random anneals, keeps the best distinct layouts, and then
+refines them with iterated local search (ILS). Useful flags:
+
+- `--runs`, `--iters`, `--ils` — restart count, anneal length, and ILS rounds.
+- `--ils-candidates` (default `4`) — how many top layouts advance to ILS.
+  Candidates are chosen by letter placement diversity (at least four displaced
+  letter keys), so layouts that differ only in punctuation are not treated as
+  independent candidates.
+- `--seed`, `--seed-layout`, `--seed-reference`, `--seed-all-references` —
+  reproduce a run or add explicit starting layouts. Random starts remain the
+  default, and references are not used as warm starts unless requested.
+- `--polish-rounds`, `--polish-candidates` — optional final local polish.
+
+The `hits` column counts independent starts that reached the same letter
+placement, ignoring punctuation. Punctuation is placed canonically in the
+final layout after the letter search, because punctuation positions do not
+affect the primary score.
+
 ### Priority tiers
 
 `priority_list` groups objective terms into ordered tiers. Earlier tiers receive a larger multiplier than later tiers, while omitted terms use their default weight. This makes it possible to prioritize, for example, low SFB/SFT and scissors over rolls without removing lower-priority terms from the objective.
