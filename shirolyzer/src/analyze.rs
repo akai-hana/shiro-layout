@@ -13,6 +13,7 @@ use crate::evaluate::score_layout;
 use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS};
 use crate::model::pair_feature;
 use crate::paths;
+use crate::provenance;
 use crate::redirect::{pattern_for, pattern_key, pattern_label, RedirectTiers};
 use crate::scorer::{Tables, FINGER_SLOTS, SPACE_FINGER};
 
@@ -528,6 +529,19 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             )
         },
     );
+    let primary_provenance = if !args.primary_corpus.is_empty() {
+        provenance::describe_paths(args.primary_corpus)?
+    } else {
+        provenance::describe_entries(&ctx.cfg, "primary")?
+    };
+    let secondary_provenance = if !args.secondary_corpus.is_empty() {
+        provenance::describe_paths(args.secondary_corpus)?
+    } else if !secondary_paths.is_empty() {
+        provenance::describe_entries(&ctx.cfg, "secondary")?
+    } else {
+        Vec::new()
+    };
+
     let primary_score = score_layout(layout, &corpus, &ctx.tables);
     let secondary_score = secondary_corpus
         .as_ref()
@@ -559,6 +573,23 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         ));
     }
     out(String::new());
+    out("== corpus provenance ==".to_string());
+    for (role, entries) in [
+        ("primary", &primary_provenance),
+        ("secondary", &secondary_provenance),
+    ] {
+        for prov in entries {
+            out(format!(
+                "  {:<9} {:<12} {} ({}) sha1={} parser={}",
+                role,
+                prov.label,
+                prov.path.display(),
+                prov.kind,
+                &prov.combined_sha1[..12],
+                prov.parser
+            ));
+        }
+    }
     out("== bigram categories (% of letter bigrams, chosen fingering) ==".to_string());
     for k in [
         "sfb",
@@ -735,6 +766,10 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "primary_corpora": primary_paths,
         "secondary_score": secondary_score,
         "secondary_corpora": secondary_paths,
+        "corpus_provenance": {
+            "primary": primary_provenance.iter().map(provenance::Provenance::to_json).collect::<Vec<_>>(),
+            "secondary": secondary_provenance.iter().map(provenance::Provenance::to_json).collect::<Vec<_>>(),
+        },
         "categories": report.cats,
         "worst_bigrams": report.worst.iter().map(|(c,b,f1,f2,n)| json!([c,b,f1.to_string(),f2.to_string(),n])).collect::<Vec<_>>(),
         "scissors": report.scissors.iter().map(|(w,c,b,f1,f2,n,p)| json!([w,c,b,f1.to_string(),f2.to_string(),n,p])).collect::<Vec<_>>(),

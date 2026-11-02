@@ -79,7 +79,7 @@ Provenance schema (per corpus):
   "weight": 100.0,
   "kind": "parsed",
   "path": "/.../corpora/shai/parsed",
-  "combined_sha1": "…",
+  "combined_sha1": "5f023eb006ba858203e81c9866698eaf390a7a06",
   "parser": "parsed-json-v1",
   "parser_rule": "read letter/bigram/trigram JSON maps; keep single-char, 2-char, and 3-char keys",
   "normalization": "none (pre-parsed counts)",
@@ -88,9 +88,9 @@ Provenance schema (per corpus):
     "letters": 418381828.0,
     "bigrams": 327253737.0,
     "trigrams": 240524895.0,
-    "letter_entries": 27,
-    "bigram_entries": 730,
-    "trigram_entries": 15500
+    "letter_entries": 26,
+    "bigram_entries": 676,
+    "trigram_entries": 15437
   }
 }
 ```
@@ -100,13 +100,13 @@ Tasklist:
 - [x] Create the phase-2 tracking issue and the corpus-provenance issue.
 - [x] Create `analyzer/corpus-provenance` from `analyzer/redirect-tiers`.
 - [x] Add this plan and tasklist.
-- [ ] Extract a shared `sha1_hex` helper and keep `xkb` behavior identical.
-- [ ] Add the provenance descriptor and unit tests.
-- [ ] Emit provenance in the `analyze` text and JSON output.
-- [ ] Add the `--corpus-json` comparison path (optional, comparison only).
-- [ ] Add the offline provenance snapshot test.
-- [ ] Document the fields and the external-comparison boundary.
-- [ ] Run `just build`, `just test`, `just check`, ignored tests, and
+- [x] Extract a shared `sha1_hex` helper and keep `xkb` behavior identical.
+- [x] Add the provenance descriptor and unit tests.
+- [x] Emit provenance in the `analyze` text and JSON output.
+- [x] Add the `--corpus-json` comparison path (optional, comparison only).
+- [x] Add the offline provenance snapshot test.
+- [x] Document the fields and the external-comparison boundary.
+- [x] Run `just build`, `just test`, `just check`, ignored tests, and
       `just dev-tools`.
 - [ ] Merge back to the phase-2 base with `--no-ff` and close #94.
 
