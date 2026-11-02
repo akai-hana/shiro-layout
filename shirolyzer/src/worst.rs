@@ -52,7 +52,7 @@ struct Row {
     ngram: String,
     qwerty: String,
     fingers: String,
-    pattern: &'static str,
+    pattern: String,
     count: f64,
 }
 
@@ -198,7 +198,7 @@ pub fn run(args: WorstArgs) -> Result<()> {
             ngram: ngram(&[ids[0], ids[1]]),
             qwerty: qwerty(&[a, b]),
             fingers: format!("{}-{}", finger_label(f1), finger_label(f2)),
-            pattern: "",
+            pattern: String::new(),
             count,
         });
     }
@@ -211,6 +211,7 @@ pub fn run(args: WorstArgs) -> Result<()> {
         let idx = tri_idx(a, b, c);
         let fs = ctx.tables.tri_f[idx];
         let fs = [fs[0] as usize, fs[1] as usize, fs[2] as usize];
+        let tiers = ctx.cfg.redirect_tiers.as_ref();
         trigrams.push(Row {
             cost: ctx.tables.tri[idx],
             ngram: ngram(&[ids[0], ids[1], ids[2]]),
@@ -221,7 +222,7 @@ pub fn run(args: WorstArgs) -> Result<()> {
                 finger_label(fs[1]),
                 finger_label(fs[2])
             ),
-            pattern: trigram_pattern(fs),
+            pattern: trigram_pattern(fs, tiers).label(tiers),
             count,
         });
     }
