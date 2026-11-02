@@ -68,12 +68,30 @@ struct WorstArgs {
     out: Option<PathBuf>,
 }
 
+fn parse_polish_rounds(v: &str) -> Result<usize, String> {
+    match v.trim().to_ascii_lowercase().as_str() {
+        "unlimited" | "inf" | "infinite" | "infinity" | "max" => Ok(usize::MAX),
+        n => n.parse::<usize>().map_err(|_| {
+            format!(
+                "expected a non-negative integer or \"unlimited\", got {:?}",
+                v
+            )
+        }),
+    }
+}
+
 #[derive(Args)]
 struct ComputeArgs {
     #[arg(long)]
     config: Option<PathBuf>,
     #[arg(long = "seed-layout", alias = "layout", action = clap::ArgAction::Append)]
     seed_layout: Vec<String>,
+    /// Also start from the named layout in the references file (repeatable)
+    #[arg(long = "seed-reference", action = clap::ArgAction::Append)]
+    seed_reference: Vec<String>,
+    /// Also start from every (allowed) layout in the references file
+    #[arg(long = "seed-all-references")]
+    seed_all_references: bool,
     #[arg(long)]
     name: Option<String>,
     #[arg(long = "primary-corpus", action = clap::ArgAction::Append)]
@@ -98,7 +116,9 @@ struct ComputeArgs {
     min_layout_distance: usize,
     #[arg(long = "max-valid", default_value_t = 8)]
     max_valid: usize,
-    #[arg(long = "polish-rounds", default_value_t = 0)]
+    /// Max polish rounds per candidate: a number, "unlimited" (default), or 0 to
+    /// disable.  Polishing always stops early once a round finds no improvement.
+    #[arg(long = "polish-rounds", default_value = "unlimited", value_parser = parse_polish_rounds)]
     polish_rounds: usize,
     #[arg(long = "polish-candidates", default_value_t = 4)]
     polish_candidates: usize,
@@ -108,8 +128,9 @@ struct ComputeArgs {
     seed: Option<u64>,
     #[arg(long = "time-budget")]
     time_budget: Option<String>,
-    #[arg(long, value_enum, default_value = "cpu")]
-    device: compute::Device,
+    /// List every distinct layout from the anneal stage, with its layout string
+    #[arg(long, short = 'v')]
+    verbose: bool,
     #[arg(long)]
     xkb: bool,
     #[arg(long = "xkb-name")]
@@ -147,8 +168,11 @@ struct XkbArgs {
 struct CompareArgs {
     #[arg(long)]
     config: Option<PathBuf>,
-    #[arg(long = "primary-corpus")]
+    #[arg(long = "primary-corpus", conflicts_with = "corpus_json")]
     primary_corpus: Option<String>,
+    /// Read an external letters/bigrams/trigrams JSON bundle (comparison only)
+    #[arg(long = "corpus-json")]
+    corpus_json: Option<PathBuf>,
     #[arg(long)]
     refs: Option<PathBuf>,
 }
@@ -217,6 +241,8 @@ fn main() -> Result<()> {
             compute::run(compute::ComputeArgs {
                 config: args.config.as_deref(),
                 seed_layout: args.seed_layout,
+                seed_reference: args.seed_reference,
+                seed_all_references: args.seed_all_references,
                 name: args.name,
                 primary_corpus: args.primary_corpus,
                 secondary_corpus: args.secondary_corpus,
@@ -234,7 +260,7 @@ fn main() -> Result<()> {
                 append_references: args.append_references,
                 seed: args.seed,
                 time_budget,
-                device: args.device,
+                verbose: args.verbose,
                 xkb: args.xkb,
                 xkb_name: args.xkb_name,
                 out: args.out,
@@ -284,6 +310,7 @@ fn main() -> Result<()> {
         Command::Compare(args) => compare::run(
             args.config.as_deref(),
             args.primary_corpus.as_deref(),
+            args.corpus_json.as_deref(),
             args.refs.as_deref(),
         ),
         Command::Audit(args) => audit::run(audit::AuditArgs {

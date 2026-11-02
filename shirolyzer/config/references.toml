@@ -42,3 +42,108 @@ layout = ";dnpfjoitkrchsmuaygelbqvwxz,./"
 primary_score = 3.521783725
 secondary_score = 3.645483980
 seed = 20261030
+
+[[reference]]
+name = "shiro-571587344"
+layout = "ftrng;uahksdlpcwiomevxqbzj,./y"
+primary_score = 3.568168860
+secondary_score = 3.653876736
+seed = 571587344
+
+[[reference]]
+name = "shiro-571587344-2"
+layout = "ftrng.uahksdlpcwiomevxqbzj/;,y"
+primary_score = 3.568168860
+secondary_score = nan
+seed = 571587344
+
+[[reference]]
+name = "shiro-793812842-2"
+layout = "ftrng.uahksdlpcwiomevxqbzj;/,y"
+primary_score = 3.568168860
+secondary_score = nan
+seed = 793812842
+
+[[reference]]
+name = "shiro-504784386-2"
+layout = "ftrng.uahksdlpcwiomevxqbzj/,;y"
+primary_score = 3.568168860
+secondary_score = nan
+seed = 504784386
+
+[[reference]]
+name = "shiro-504784386-3"
+layout = "ftrng,uahksdlpcwiomevxqbzj;/.y"
+primary_score = 3.568168860
+secondary_score = nan
+seed = 504784386
+
+[[reference]]
+name = "shiro-365801268"
+layout = "ctnhfqura;smldgwekoivzxpb,./jy"
+primary_score = 3.586792824
+secondary_score = 3.695100331
+seed = 365801268
+
+[[reference]]
+name = "shiro-365801268-2"
+layout = "ctnhfqura,smldgwekoivzxpb/;.jy"
+primary_score = 3.586792824
+secondary_score = nan
+seed = 365801268
+
+[[reference]]
+name = "shiro-853791295"
+layout = "phtcgqura;nldsmkewoibxzfv,./jy"
+primary_score = 3.520702297
+secondary_score = 3.726134652
+seed = 853791295
+
+[[reference]]
+name = "shiro-853791295-2"
+layout = "phtcgqura.nldsmkewoibxzfv,/;jy"
+primary_score = 3.520702297
+secondary_score = nan
+seed = 853791295
+
+[[reference]]
+name = "shiro-312481206"
+layout = "mhtcgqura;lndspbewoivxzfk,./jy"
+primary_score = 3.591343816
+secondary_score = 3.712837847
+seed = 312481206
+
+[[reference]]
+name = "shiro-53511846-2"
+layout = "phtcgqura.nldsmkewoibxzfv,;/jy"
+primary_score = 3.520702297
+secondary_score = nan
+seed = 53511846
+
+[[reference]]
+name = "shiro-178845002-2"
+layout = "mhtcgqura,lndspbewoivxzfk;/.jy"
+primary_score = 3.591343816
+secondary_score = nan
+seed = 178845002
+
+[[reference]]
+name = "shiro-837512524"
+layout = "bhtcfqainjrldsmwoupekxgvzy;,./"
+primary_score = 3.625081754
+secondary_score = 3.775129146
+seed = 837512524
+
+[[reference]]
+name = "shiro-837512524-2"
+layout = "bhtcfqainjrldsmwoupekxgvzy./;,"
+primary_score = 3.625081754
+secondary_score = nan
+seed = 837512524
+
+[[reference]]
+name = "shiro-281472432-2"
+layout = "mhtcgqura,lndspbewoivxzfk.;/jy"
+primary_score = 3.591343816
+secondary_score = nan
+seed = 281472432

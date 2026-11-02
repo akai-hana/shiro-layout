@@ -1,0 +1,5 @@
+the current shirolyzer generator computes the following layout:
+
+"gtnrw/uahksdlcpfiomevxqbzj;,.y"
+
+the issue is that "the", the most common english trigram, uses the fingering LI-RR-RP. i don't want the pinky to be used on such a common trigram. i'd like stronger fingers to take care of the most common bigrams/trigrams, and leave the more uncommon ones to weaker fingers. should i modify my config.yaml and edit the finger balance, or is this a change that should be done internally on the codebase? what needs to change?

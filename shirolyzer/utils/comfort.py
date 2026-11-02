@@ -101,6 +101,32 @@ W_REDIRECT_SCALE = 1.0
 W_ROLL_SCALE = 1.0
 W_ALT_SCALE = 1.0
 
+# Configured redirect tiers, most preferred first.  The table is indexed by
+# finger indices (P=0, R=1, M=2, I=3) and holds NaN for unlisted turns.
+REDIRECT_TIERS: tuple[tuple[tuple[int, int, int], ...], ...] = ()
+_REDIRECT_TABLE = np.full((NF, NF, NF), np.nan)
+
+
+def redirect_tier_cost(tier, count):
+    """Base redirect cost for a zero-based tier in a table of ``count`` tiers."""
+    span = max(1, count - 1)
+    return W_REDIRECT + (W_REDIRECT_WEAK - W_REDIRECT) * tier / span
+
+
+def configure_redirect_tiers(tiers):
+    """Install parsed rank-pattern tiers; an empty list restores legacy costs."""
+    global REDIRECT_TIERS, _REDIRECT_TABLE, _TURN_BASE
+    REDIRECT_TIERS = tuple(tuple(tier) for tier in tiers)
+    table = np.full((NF, NF, NF), np.nan)
+    count = len(REDIRECT_TIERS)
+    for tier, patterns in enumerate(REDIRECT_TIERS):
+        cost = redirect_tier_cost(tier, count)
+        for a, b, c in patterns:
+            table[4 - a, 4 - b, 4 - c] = cost
+    _REDIRECT_TABLE = table
+    legacy = np.where(_HASP, W_REDIRECT_WEAK, W_REDIRECT)
+    _TURN_BASE = np.where(np.isfinite(table), table, legacy)
+
 
 def sfb_cost(a, b):
     """Same finger, different keys: 5 / 6 / 8 by row gap, +0.3 if reaching down."""
@@ -356,11 +382,9 @@ def tri_tensor(model, tabs, a=None):
         D1 = d12[None, None, :, :, None]                    # f2-f1
         D2 = d12[None, None, None, :, :]                    # f3-f2
         d1 = np.broadcast_to(D1, cost.shape); d2 = np.broadcast_to(D2, cost.shape)
-        has_p = ((fs[None, None, :, None, None] == 0) | (fs[None, None, None, :, None] == 0)
-                 | (fs[None, None, None, None, :] == 0))
         turn = (d1 * d2 < 0)
         cont = (d1 * d2 > 0)
-        add = np.where(same & turn, np.where(has_p, W_REDIRECT_WEAK, W_REDIRECT), 0.0)
+        add = np.where(same & turn, _TURN_BASE, 0.0)
         add = add + np.where(same & cont, W_CONTINUE, 0.0)
         add = add * W_REDIRECT_SCALE
         # gamma13 strain between key1 and key3
@@ -391,6 +415,7 @@ _D12 = _FS[None, :] - _FS[:, None]          # f2 - f1
 _HASP = ((_FS[:, None, None] == 0) | (_FS[None, :, None] == 0) | (_FS[None, None, :] == 0))
 _TURN = (_D12[:, :, None] * _D12[None, :, :] < 0)     # (f1,f2,f3): d1*d2<0
 _CONT = (_D12[:, :, None] * _D12[None, :, :] > 0)
+_TURN_BASE = np.where(_HASP, W_REDIRECT_WEAK, W_REDIRECT)
 _NE13 = (_FS[:, None, None] != _FS[None, None, :]) & np.ones((1, NF, 1), bool)
 _SAME13F = (_FS[:, None, None] == _FS[None, None, :]) & np.ones((1, NF, 1), bool)
 _F1EQF2 = (_FS[:, None, None] == _FS[None, :, None]) & np.ones((1, 1, NF), bool)
@@ -406,7 +431,7 @@ def tri_many(model, tabs, A, B, C):
     cost = (E[A][:, :, None, None] + E[B][:, None, :, None] + E[C][:, None, None, :]
             + P12[:, :, :, None] + P23[:, None, :, :])
     same = (_SAMEH[A, B] & _SAMEH[B, C])[:, None, None, None]
-    add = (np.where(_TURN, np.where(_HASP, W_REDIRECT_WEAK, W_REDIRECT), 0.0) \
+    add = (np.where(_TURN, _TURN_BASE, 0.0) \
         + np.where(_CONT, W_CONTINUE, 0.0)) * W_REDIRECT_SCALE
     s13 = strain[A[:, None, None], F[None, :, None], C[:, None, None], F[None, None, :]]  # N,f1,f3
     s13 = np.where(np.isfinite(s13), s13, 0.0)

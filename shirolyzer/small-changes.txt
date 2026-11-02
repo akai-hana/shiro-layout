@@ -1,0 +1,3 @@
+- rename compute to generate (in ./shirolyzer compute)
+
+- make render (in ./shirolyzer render) plain as default; remove plain flag.

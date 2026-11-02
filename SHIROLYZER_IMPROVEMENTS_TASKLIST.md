@@ -1,8 +1,10 @@
 # Shirolyzer analyzer improvements tasklist
 
-**Status: phase 1 complete.** Improvements 1 and 2 are implemented and merged
-to `main`. Improvements 3–8 are explicitly deferred so the phase-1 integration
-can land; they can be tracked in a follow-up issue when prioritized.
+**Status: phase 1 complete; phase 2 in progress.** Improvements 1 and 2 are
+implemented and merged to `main`. Improvements 3–8 are tracked by the phase-2
+plan in `research/plans/analyzer-deferred-improvements.md` (issues #93 and #94).
+Improvement 3 is implemented on `analyzer/corpus-provenance`, merged
+into `analyzer/redirect-tiers`, and closed in #94.
 
 Tracking issue: https://github.com/akai-hana/shiro-layout/issues/92
 
@@ -93,14 +95,16 @@ integration reviewable.
 ## Improvement 3 — Corpus provenance
 
 Branch: `analyzer/corpus-provenance`
+Issue: https://github.com/akai-hana/shiro-layout/issues/94
+Plan: `research/plans/analyzer-deferred-improvements.md`
 
-- [ ] Record the parser rule, source hash/version, and normalization in
+- [x] Record the parser rule, source hash/version, and normalization in
       analysis output.
-- [ ] Optionally allow ingesting an external ngram JSON for comparison runs
+- [x] Optionally allow ingesting an external ngram JSON for comparison runs
       only; keep Shiro's native parser and native score.
-- [ ] Add a provenance snapshot test that does not depend on network access.
+- [x] Add a provenance snapshot test that does not depend on network access.
 
-Suggested commit: `analyzer: record corpus provenance in reports`
+Commit: `analyzer: record corpus provenance in reports`
 
 ## Improvement 4 — External-comparison mapping and warnings
 
