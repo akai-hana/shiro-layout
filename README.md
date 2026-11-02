@@ -74,13 +74,11 @@ long-running search; see [`shirolyzer/README.md`](shirolyzer/README.md) for
 shorter experiments and for the meaning of `selected` versus the full
 `valid_layouts` list.
 
-If you use [`just`](https://github.com/casey/just), the common workflows are
+If you use [`just`](https://github.com/casey/just), verification workflows are
 shortcuts:
 
 ```bash
-just compute
-just analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
-just render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+just build
 just test
 just check
 ```
