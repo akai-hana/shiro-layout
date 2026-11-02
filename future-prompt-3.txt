@@ -1,1 +1,0 @@
-does this project really need just recipes? Should i keep them, or stick to only the shirolyzer binary and keep things simpler?

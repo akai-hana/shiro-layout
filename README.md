@@ -67,20 +67,15 @@ Generate a layout and write it to XKB:
 shirolyzer/target/release/shirolyzer compute --name shiro --xkb --xkb-name shiro
 ```
 
-`compute --device cpu` is the default and the only shipped backend;
-`--device gpu` currently falls back to CPU with a warning (see
-`shirolyzer/results/rust/GPU_FEASIBILITY.md`).  A default compute run is a
-long-running search; see [`shirolyzer/README.md`](shirolyzer/README.md) for
+A default compute run is a long-running search; see [`shirolyzer/README.md`](shirolyzer/README.md) for
 shorter experiments and for the meaning of `selected` versus the full
 `valid_layouts` list.
 
-If you use [`just`](https://github.com/casey/just), the common workflows are
+If you use [`just`](https://github.com/casey/just), verification workflows are
 shortcuts:
 
 ```bash
-just compute
-just analyze ";ntgfjoehkrpmscuaydilbqvwxz,./"
-just render ";ntgfjoehkrpmscuaydilbqvwxz,./"
+just build
 just test
 just check
 ```
@@ -135,8 +130,6 @@ research/                 Historical investigation reports and captured sources
   — Python-vs-Rust parity results.
 - [`shirolyzer/results/rust/BENCHMARKS.md`](shirolyzer/results/rust/BENCHMARKS.md)
   — CPU optimization and parallel-seed measurements.
-- [`shirolyzer/results/rust/GPU_FEASIBILITY.md`](shirolyzer/results/rust/GPU_FEASIBILITY.md)
-  — GPU probe, decision, and `--device` fallback.
 - [`shirolyzer/results/rust/TUNING_REPORT.md`](shirolyzer/results/rust/TUNING_REPORT.md)
   — parameter sweeps and final defaults.
 - [`shirolyzer/results/rust/DIVERSITY_REPORT.md`](shirolyzer/results/rust/DIVERSITY_REPORT.md)

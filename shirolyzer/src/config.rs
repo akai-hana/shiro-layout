@@ -11,6 +11,7 @@ use serde_yaml::{Mapping, Value};
 use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NFINGER, NK};
 use crate::model::{missing_parameters, Scales};
 use crate::paths;
+use crate::redirect::{is_turn, RedirectTiers};
 
 pub const PRIORITY_NAMES: [&str; 6] = [
     "sfbs-sfts",
@@ -146,6 +147,7 @@ pub struct Config {
     pub conditions: Vec<Condition>,
     pub conditions_are_default: bool,
     pub priority_list: Vec<Vec<String>>,
+    pub redirect_tiers: Option<RedirectTiers>,
     pub finger_balance: HashMap<char, f64>,
     pub flat_share: HashMap<char, f64>,
     pub hand_restrictions: [Option<usize>; 26],
@@ -160,6 +162,7 @@ impl Config {
             redirect: m["redirects"],
             roll: m["rolls"],
             alt: m["alternation"],
+            redirect_costs: self.redirect_tiers.as_ref().map(RedirectTiers::cost_table),
         }
     }
 
@@ -863,6 +866,95 @@ fn parse_priority(path: &Path, value: Option<&Value>) -> Result<Vec<Vec<String>>
     Ok(out)
 }
 
+fn parse_redirect_pattern(path: &Path, where_: &str, text: &str) -> Result<[u8; 3]> {
+    let parts: Vec<&str> = text.split('-').collect();
+    if parts.len() != 3 {
+        return Err(fail(
+            path,
+            where_,
+            &format!("expected three 1-4 numbers separated by '-', got {text:?}"),
+        ));
+    }
+    let mut pattern = [0u8; 3];
+    for (i, part) in parts.iter().enumerate() {
+        let bytes = part.as_bytes();
+        if bytes.len() != 1 || !(b'1'..=b'4').contains(&bytes[0]) {
+            return Err(fail(
+                path,
+                where_,
+                &format!("expected a finger number from 1 to 4, got {part:?}"),
+            ));
+        }
+        pattern[i] = bytes[0] - b'0';
+    }
+    Ok(pattern)
+}
+
+fn parse_redirect_tiers(path: &Path, value: Option<&Value>) -> Result<Option<RedirectTiers>> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let seq = value
+        .as_sequence()
+        .ok_or_else(|| fail(path, "redirect_tiers", "expected a non-empty list of tiers"))?;
+    if seq.is_empty() {
+        return Err(fail(
+            path,
+            "redirect_tiers",
+            "expected a non-empty list of tiers",
+        ));
+    }
+    let mut seen = HashSet::new();
+    let mut tiers = Vec::new();
+    for (i, item) in seq.iter().enumerate() {
+        let where_i = format!("redirect_tiers[{}]", i);
+        let patterns = item.as_sequence().ok_or_else(|| {
+            fail(
+                path,
+                &where_i,
+                "expected a non-empty list of redirect patterns",
+            )
+        })?;
+        if patterns.is_empty() {
+            return Err(fail(
+                path,
+                &where_i,
+                "expected a non-empty list of redirect patterns",
+            ));
+        }
+        let mut tier = Vec::new();
+        for (j, item) in patterns.iter().enumerate() {
+            let where_j = format!("{}[{}]", where_i, j);
+            let text = as_string(path, &where_j, item)?;
+            let pattern = parse_redirect_pattern(path, &where_j, &text)?;
+            if pattern[0] == pattern[1] && pattern[1] == pattern[2] {
+                return Err(fail(
+                    path,
+                    &where_j,
+                    &format!("{text:?} is an SFT, not a redirect"),
+                ));
+            }
+            if !is_turn(pattern) {
+                return Err(fail(
+                    path,
+                    &where_j,
+                    &format!("{text:?} is not a same-hand direction reversal (for example 1-2-1)"),
+                ));
+            }
+            if !seen.insert(pattern) {
+                return Err(fail(
+                    path,
+                    &where_j,
+                    &format!("duplicate redirect pattern {text:?}"),
+                ));
+            }
+            tier.push(pattern);
+        }
+        tiers.push(tier);
+    }
+    Ok(Some(RedirectTiers::new(tiers)))
+}
+
 fn parse_balance(
     path: &Path,
     value: Option<&Value>,
@@ -1021,7 +1113,11 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         "priority_list",
         "finger_balance",
     ];
-    let known = [required.as_slice(), &["hand_restrictions"]].concat();
+    let known = [
+        required.as_slice(),
+        &["hand_restrictions", "redirect_tiers"],
+    ]
+    .concat();
     for key in root.keys() {
         let name = key.as_str().unwrap_or("?");
         if !known.contains(&name) {
@@ -1180,6 +1276,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let alt_fingers = parse_alt_fingers(&path, get(root, "alt_fingers"))?;
     let conditions = parse_conditions(&path, get(root, "conditions"))?;
     let priority_list = parse_priority(&path, get(root, "priority_list"))?;
+    let redirect_tiers = parse_redirect_tiers(&path, get(root, "redirect_tiers"))?;
     let (finger_balance, flat_share) = parse_balance(&path, get(root, "finger_balance"))?;
     let hand_restrictions = parse_hand_restrictions(&path, get(root, "hand_restrictions"))?;
     let conditions_are_default = match default_conditions() {
@@ -1205,6 +1302,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         conditions,
         conditions_are_default,
         priority_list,
+        redirect_tiers,
         finger_balance,
         flat_share,
         hand_restrictions,
@@ -1347,5 +1445,87 @@ mod cross_hand_tests {
             parse_finger_state(Path::new("config.yaml"), "fingers[0]", &value, Some(0)).unwrap(),
             parse_finger8("LI").unwrap()
         );
+    }
+    fn redirects(yaml: &str) -> Result<Option<RedirectTiers>> {
+        let value: Value = serde_yaml::from_str(yaml).unwrap();
+        parse_redirect_tiers(Path::new("config.yaml"), Some(&value))
+    }
+
+    #[test]
+    fn shipped_redirect_tiers_preserve_order() {
+        let cfg = load(None).unwrap();
+        let tiers = cfg.redirect_tiers.as_ref().expect("redirect tiers");
+        let expected: [&[[u8; 3]]; 5] = [
+            &[[1, 2, 1], [2, 1, 2], [1, 3, 1], [3, 1, 3]],
+            &[[3, 2, 3]],
+            &[[2, 1, 3], [3, 1, 2], [2, 3, 2], [1, 4, 1]],
+            &[[4, 1, 4], [4, 2, 4], [2, 4, 2]],
+            &[[3, 4, 3], [4, 3, 4], [3, 2, 4], [4, 2, 3]],
+        ];
+        assert_eq!(tiers.len(), expected.len());
+        for (tier, patterns) in expected.iter().enumerate() {
+            assert_eq!(tiers.tiers()[tier], patterns.to_vec());
+            for &pattern in patterns.iter() {
+                assert_eq!(tiers.tier_of(pattern), Some(tier));
+            }
+        }
+        for pattern in [
+            [1, 3, 2],
+            [1, 4, 2],
+            [1, 4, 3],
+            [2, 1, 4],
+            [2, 3, 1],
+            [2, 4, 1],
+            [2, 4, 3],
+            [3, 1, 4],
+            [3, 4, 1],
+            [3, 4, 2],
+            [4, 1, 2],
+            [4, 1, 3],
+        ] {
+            assert!(is_turn(pattern));
+            assert_eq!(tiers.tier_of(pattern), None);
+        }
+    }
+
+    #[test]
+    fn redirect_tiers_are_optional() {
+        let parsed = parse_redirect_tiers(Path::new("config.yaml"), None).unwrap();
+        assert!(parsed.is_none());
+    }
+
+    #[test]
+    fn redirect_tiers_accept_the_documented_shape() {
+        let parsed = redirects(
+            r#"
+- ["1-2-1", "2-1-2"]
+- ["3-2-3"]
+"#,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(parsed.tiers()[0], vec![[1, 2, 1], [2, 1, 2]]);
+        assert_eq!(parsed.tiers()[1], vec![[3, 2, 3]]);
+    }
+
+    #[test]
+    fn redirect_tiers_reject_malformed_entries() {
+        for yaml in [
+            "[]",
+            "- []",
+            "- [1, 2, 1]",
+            r#"- ["1-2"]"#,
+            r#"- ["1-2-3-4"]"#,
+            r#"- ["1-2-a"]"#,
+            r#"- ["0-2-1"]"#,
+            r#"- ["5-2-1"]"#,
+            r#"- ["01-2-1"]"#,
+            r#"- ["1-2-1", "1-2-1"]"#,
+            "- [\"1-2-1\"]\n- [\"1-2-1\"]",
+            r#"- ["1-2-3"]"#,
+            r#"- ["2-2-2"]"#,
+        ] {
+            assert!(redirects(yaml).is_err(), "{yaml} should fail");
+        }
     }
 }

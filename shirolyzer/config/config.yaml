@@ -19,7 +19,10 @@
 # --time-budget stays optional because short budgets truncate seeds and ILS.
 # Diversity output also lives in commands/compute.py: 0.002 primary tolerance,
 # 0.005 secondary tolerance, 4 key positions minimum distance, 8 valid layouts.
-# --polish-rounds is opt-in because it continues optimizing near-equal picks.
+# --polish-rounds defaults to unlimited: polishing repeats until a round finds
+# no improvement.  Pass a number to cap it, or 0 to disable polishing.
+# Searches start from random layouts only; add known layouts with
+# --seed-layout, --seed-reference NAME or --seed-all-references.
 general:
   geometry: geometry/ansi.yaml
   # Fingering mode: "flexible" lets the model choose any reachable finger for
@@ -280,7 +283,19 @@ priority_list:
   - sfbs-sfts # sfb/ts are the unavoidable devil
   - [scissors, redirects] # flow disruptions that are bad to have
   - [rolls, alternation] # flow improving niceties
-  # - finger_balance # balance doesn't matter to me
+  - finger_balance # balance doesn't matter that much to me
+
+# Redirect preferences. Tiers are ordered from most preferred (tier 1) to most
+# avoided (last tier). Fingers are numbered per hand: 1=index, 2=middle,
+# 3=ring, 4=pinky. Each entry is a same-hand finger sequence whose first and
+# third fingers differ in direction from the middle (for example 1-2-1).
+# Unlisted same-hand turns keep the legacy redirect cost.
+redirect_tiers:
+  - ["1-2-1", "2-1-2", "1-3-1", "3-1-3"]
+  - ["3-2-3"]
+  - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
+  - ["4-1-4", "4-2-4", "2-4-2"]
+  - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
 
 # Target share of strokes per finger in percent. The calibrated model uses the
 # same target for both hands: P 9%, R 12.5%, M 14%, I 14.5%.
