@@ -43,21 +43,21 @@ fn setup() -> (
 fn reference_trigram_scores() {
     let (_cfg, _geom, tables, corpus) = setup();
     let expected: &[(&str, f64)] = &[
-        ("qwerty", 4.891503775394807),
-        ("colemak", 4.129975780190543),
-        ("colemak-dh", 4.127995621944821),
-        ("canary", 3.968681582771612),
-        ("sturdy", 3.889733868168627),
-        ("gallium", 3.856981334580291),
-        ("semimak", 3.912355900675485),
-        ("shiro", 3.616_314_698_706_01),
-        ("t5-diversity-2", 3.645952537652866),
+        ("qwerty", 4.945100363667683),
+        ("colemak", 4.161659802668337),
+        ("colemak-dh", 4.1601932849635785),
+        ("canary", 4.001729813779553),
+        ("sturdy", 3.9152460321534845),
+        ("gallium", 3.871559718134498),
+        ("semimak", 3.947694742590448),
+        ("shiro", 3.628_766_121_938_924),
+        ("t5-diversity-2", 3.664580151719405),
     ];
     let refs_text = std::fs::read_to_string(shirolyzer::paths::references_file()).unwrap();
     let refs: References = toml::from_str(&refs_text).unwrap();
     let primary = evaluate::score_layout(SHIRO, &corpus, &tables);
     assert!(
-        (primary - 3.616_314_698_706_01).abs() < 1e-9,
+        (primary - 3.628_766_121_938_924).abs() < 1e-9,
         "configured current layout score {primary}"
     );
     let mut worst = 0.0f64;

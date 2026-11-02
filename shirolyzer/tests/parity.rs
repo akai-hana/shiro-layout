@@ -60,7 +60,13 @@ fn tables_have_expected_shape_and_values() {
 #[test]
 fn trigram_categories_are_exclusive_and_repeats_overlap() {
     let (_cfg, geom, tables, corpus) = setup();
-    let pats = shirolyzer::analyze::trigram_patterns(SHIRO, &corpus, &tables, &geom);
+    let pats = shirolyzer::analyze::trigram_patterns(
+        SHIRO,
+        &corpus,
+        &tables,
+        &geom,
+        _cfg.redirect_tiers.as_ref(),
+    );
 
     let sft = pats.get("sft").copied().unwrap_or(0.0);
     let sfb_tri = pats.get("sfb_tri").copied().unwrap_or(0.0);
@@ -88,6 +94,28 @@ fn trigram_categories_are_exclusive_and_repeats_overlap() {
         pats.get("repeat").copied().unwrap_or(0.0) > 0.0,
         "repeat must remain visible as an overlapping diagnostic"
     );
+
+    let tiers = _cfg.redirect_tiers.as_ref().expect("redirect tiers");
+    let mut tier_total = 0.0;
+    for (i, tier) in tiers.tiers().iter().enumerate() {
+        let patterns: f64 = tier
+            .iter()
+            .map(|pattern| {
+                pats.get(&shirolyzer::redirect::pattern_key(*pattern))
+                    .copied()
+                    .unwrap_or(0.0)
+            })
+            .sum();
+        let reported = pats
+            .get(&format!("redirect_tier_{}", i + 1))
+            .copied()
+            .unwrap_or(0.0);
+        assert!((patterns - reported).abs() < 1e-9, "tier {}", i + 1);
+        tier_total += reported;
+    }
+    let unclassified = pats.get("redirect_unclassified").copied().unwrap_or(0.0);
+    let total_redirects = pats.get("total_redirects").copied().unwrap_or(0.0);
+    assert!((tier_total + unclassified - total_redirects).abs() < 1e-9);
 }
 
 #[test]
