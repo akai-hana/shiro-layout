@@ -10,7 +10,8 @@ use unicode_normalization::char::is_combining_mark;
 use unicode_normalization::UnicodeNormalization;
 
 pub const SPACE_INDEX: usize = 26;
-const PARSED_FILES: [&str; 3] = ["letter_freq.json", "bigram_freq.json", "trigram_freq.json"];
+pub(crate) const PARSED_FILES: [&str; 3] =
+    ["letter_freq.json", "bigram_freq.json", "trigram_freq.json"];
 
 #[derive(Clone, Debug, Default)]
 pub struct Corpus {
@@ -153,9 +154,36 @@ impl Corpus {
                 )
             },
         );
-        let letters_raw = letters_raw?;
-        let bigrams_raw = bigrams_raw?;
-        let trigrams_raw = trigrams_raw?;
+        Ok(Self::from_raw_maps(
+            letters_raw?,
+            bigrams_raw?,
+            trigrams_raw?,
+        ))
+    }
+
+    /// Load an external comparison bundle: a JSON object with `letters`,
+    /// `bigrams`, and `trigrams` maps from n-gram strings to counts.
+    pub fn load_external(path: &Path) -> Result<Self> {
+        #[derive(serde::Deserialize)]
+        struct ExternalCorpus {
+            letters: HashMap<String, f64>,
+            bigrams: HashMap<String, f64>,
+            trigrams: HashMap<String, f64>,
+        }
+        let payload: ExternalCorpus = read_json(path)
+            .with_context(|| format!("expected letters/bigrams/trigrams in {}", path.display()))?;
+        Ok(Self::from_raw_maps(
+            payload.letters,
+            payload.bigrams,
+            payload.trigrams,
+        ))
+    }
+
+    fn from_raw_maps(
+        letters_raw: HashMap<String, f64>,
+        bigrams_raw: HashMap<String, f64>,
+        trigrams_raw: HashMap<String, f64>,
+    ) -> Self {
         let mut letters = HashMap::new();
         for (k, v) in letters_raw {
             if let Some(ch) = single_char(&k) {
@@ -176,7 +204,7 @@ impl Corpus {
                 trigrams.insert((chars[0], chars[1], chars[2]), v);
             }
         }
-        Ok(Self::new(letters, bigrams, trigrams))
+        Self::new(letters, bigrams, trigrams)
     }
 
     fn count_text(text: &str) -> Self {
@@ -226,7 +254,7 @@ fn read_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
     serde_json::from_str(&text).with_context(|| format!("invalid JSON in {}", path.display()))
 }
 
-fn parsed_dir(path: &Path) -> Option<PathBuf> {
+pub(crate) fn parsed_dir(path: &Path) -> Option<PathBuf> {
     let path = expand_user(path);
     if path.is_file() {
         let name = path.file_name()?.to_string_lossy();
@@ -247,7 +275,7 @@ fn parsed_dir(path: &Path) -> Option<PathBuf> {
     None
 }
 
-fn source_file(path: &Path) -> Option<PathBuf> {
+pub(crate) fn source_file(path: &Path) -> Option<PathBuf> {
     let path = expand_user(path);
     if path.is_file() {
         return Some(path);
@@ -271,7 +299,7 @@ fn source_file(path: &Path) -> Option<PathBuf> {
     None
 }
 
-fn expand_user(path: &Path) -> PathBuf {
+pub(crate) fn expand_user(path: &Path) -> PathBuf {
     let text = path.to_string_lossy();
     if let Some(rest) = text.strip_prefix("~/") {
         if let Ok(home) = std::env::var("HOME") {
