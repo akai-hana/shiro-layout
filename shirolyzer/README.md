@@ -135,7 +135,8 @@ shirolyzer compare --config shirolyzer/config/config.fixed.yaml
 `compute` runs random anneals, keeps the best distinct layouts, and then
 refines them with iterated local search (ILS). Useful flags:
 
-- `--runs`, `--iters`, `--ils` — restart count, anneal length, and ILS rounds.
+- `--runs` (default `28`), `--iters` (default `200000`), `--ils` (default `8`)
+  — restart count, anneal length, and ILS rounds.
 - `--ils-candidates` (default `4`) — how many top layouts advance to ILS.
   Candidates are chosen by letter placement diversity (at least four displaced
   letter keys), so layouts that differ only in punctuation are not treated as
@@ -156,6 +157,37 @@ The `hits` column counts independent starts that reached the same letter
 placement, ignoring punctuation. Punctuation is placed canonically in the
 final layout after the letter search, because punctuation positions do not
 affect the primary score.
+
+### Measuring variance
+
+`just variance` builds the release binary and runs `compute` once per seed with
+`shirolyzer/utils/compute_variance.py`, then reports the spread of
+`best_primary`, its standard deviation, and the fraction of seeds within
+`--tolerance` of the best result:
+
+```sh
+just variance --seeds 20
+just variance --seeds 20 --runs 200 --iters 25000 --verbose
+```
+
+The script is development tooling only; it does not change the model or any
+baseline. Pass `--start-seed`, `--runs`, `--iters`, `--ils`,
+`--ils-candidates`, `--batch-size`, `--stop-hits`, and
+`--stop-stale-batches` to mirror the `compute` flags.
+
+Measured on seeds `0..19` after the incremental-score fix, all runs reaching
+the same letter placement:
+
+| Budget | Spread | Std. dev. | Success rate |
+| --- | --- | --- | --- |
+| `--runs 28 --iters 200000` (default) | 0.000000000 | 0.000000000 | 100% |
+| `--runs 200 --iters 25000` | 0.000000000 | 0.000000000 | 100% |
+| `--runs 28 --iters 25000` | 0.005378908 | 0.001654132 | 85% |
+
+The default budget already reproduces the same optimum across every seed, and
+the breadth-heavy budget matches it at roughly the same total iteration count.
+Reducing the anneal depth alone is not enough, so the defaults stay at
+`--runs 28 --iters 200000`, and the stopping rules stay disabled by default.
 
 ### Priority tiers
 
