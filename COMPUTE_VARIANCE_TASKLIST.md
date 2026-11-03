@@ -129,22 +129,22 @@ Branch: `compute/rediscovery`
 
 Steps:
 
-- [ ] Add `--stop-hits` (default `0`, disabled), `--stop-stale-batches`
+- [x] Add `--stop-hits` (default `0`, disabled), `--stop-stale-batches`
       (default `0`, disabled), and `--batch-size` (default `8`) to the CLI.
-- [ ] Process random starts in deterministic batches, parallel inside a batch
+- [x] Process random starts in deterministic batches, parallel inside a batch
       and sequential between batches.
-- [ ] Track the best primary and the number of batches since the last strict
+- [x] Track the best primary and the number of batches since the last strict
       improvement.
-- [ ] Stop early when the best letter placement has been independently found
+- [x] Stop early when the best letter placement has been independently found
       by `--stop-hits` starts.
-- [ ] Stop early when the best primary has not improved for
+- [x] Stop early when the best primary has not improved for
       `--stop-stale-batches` consecutive batches.
-- [ ] Keep `--runs` as the hard cap and always run at least one batch.
-- [ ] Record the stop reason and completed batch count in the text and JSON
+- [x] Keep `--runs` as the hard cap and always run at least one batch.
+- [x] Record the stop reason and completed batch count in the text and JSON
       output.
-- [ ] Add tests for the hit-count and stale-batch decisions using synthetic
+- [x] Add tests for the hit-count and stale-batch decisions using synthetic
       result rows.
-- [ ] Verify that the disabled defaults reproduce the current behaviour.
+- [x] Verify that the disabled defaults reproduce the current behaviour.
 
 Suggested commit: `compute: stop after rediscovery or stagnation`
 
