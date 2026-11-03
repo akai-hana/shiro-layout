@@ -155,6 +155,7 @@ pub struct ComputeArgs<'a> {
     pub iters: usize,
     pub ils: usize,
     pub ils_candidates: usize,
+    pub secondary_rounds: Option<usize>,
     pub batch_size: usize,
     pub stop_hits: usize,
     pub stop_stale_batches: usize,
@@ -1198,7 +1199,23 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 .partial_cmp(&b.primary)
                 .unwrap_or(std::cmp::Ordering::Equal)
         });
+        // The same layout often appears several times (an ILS result and its
+        // unchanged polished copy, or punctuation-only siblings).  Optimize each
+        // distinct letter placement once, keeping its best-primary row.
+        let mut kept_layouts: Vec<String> = Vec::new();
+        primary_results.retain(|r| {
+            if kept_layouts
+                .iter()
+                .any(|k| diversity::letter_distance(k, &r.layout) == 0)
+            {
+                false
+            } else {
+                kept_layouts.push(r.layout.clone());
+                true
+            }
+        });
         primary_results.truncate(4);
+        let secondary_rounds = args.secondary_rounds.unwrap_or(args.ils.max(1));
         let score_text = score_limit
             .map(|limit| format!("score ≤ {}", fmt_sig(limit, 6)))
             .unwrap_or_else(|| "score unconstrained".into());
@@ -1208,9 +1225,11 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 "Secondary",
                 None,
                 &format!(
-                    "{} · per-metric budgets {}",
+                    "{} · per-metric budgets {} · {} round{} each",
                     score_text,
-                    if sacrifice.has_metrics() { "on" } else { "off" }
+                    if sacrifice.has_metrics() { "on" } else { "off" },
+                    secondary_rounds,
+                    if secondary_rounds == 1 { "" } else { "s" }
                 )
             )
         );
@@ -1243,7 +1262,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             }
             let mut best_perm = perm.clone();
             let mut best_sec = cur;
-            for _ in 0..args.ils.max(1) {
+            for _ in 0..secondary_rounds {
                 if let Some(t) = args.time_budget {
                     if started.elapsed().as_secs_f64() >= t {
                         break;
@@ -1524,6 +1543,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "completed_polish_rounds": completed_polish_rounds,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
         "ils_candidates": args.ils_candidates,
+        "secondary_rounds": args.secondary_rounds,
         "batch_size": args.batch_size,
         "stop_hits": args.stop_hits,
         "stop_stale_batches": args.stop_stale_batches,

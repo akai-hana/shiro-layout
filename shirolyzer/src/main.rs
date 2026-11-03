@@ -112,6 +112,9 @@ struct ComputeArgs {
     /// Number of diverse top layouts advanced to ILS
     #[arg(long = "ils-candidates", default_value_t = 4)]
     ils_candidates: usize,
+    /// Perturbation rounds per candidate in the secondary phase (default: same as --ils; 0 only scores them)
+    #[arg(long = "secondary-rounds")]
+    secondary_rounds: Option<usize>,
     /// Random starts run per batch; batches are sequential so early stopping can occur between them
     #[arg(long = "batch-size", default_value_t = 8)]
     batch_size: usize,
@@ -265,6 +268,7 @@ fn main() -> Result<()> {
                 iters: args.iters,
                 ils: args.ils,
                 ils_candidates: args.ils_candidates,
+                secondary_rounds: args.secondary_rounds,
                 batch_size: args.batch_size,
                 stop_hits: args.stop_hits,
                 stop_stale_batches: args.stop_stale_batches,
