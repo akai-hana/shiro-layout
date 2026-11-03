@@ -1,6 +1,6 @@
 # Compute run-to-run variance tasklist
 
-**Status: in progress.** This plan turns
+**Status: complete.** This plan turns
 `Reducing run-to-run variance in shirolyzer compute.md` into reviewable,
 separately testable changes. Each phase has its own branch, commit, and gate.
 The final phase merges every branch into `main` and removes all temporary
@@ -179,61 +179,72 @@ Branch: `compute/variance` (integration branch)
 
 Steps:
 
-- [ ] `cargo fmt --manifest-path shirolyzer/Cargo.toml --check`
-- [ ] `cargo clippy --manifest-path shirolyzer/Cargo.toml --all-targets -- -D warnings`
-- [ ] `cargo test --manifest-path shirolyzer/Cargo.toml --release`
-- [ ] `cargo test --manifest-path shirolyzer/Cargo.toml --release --test commands compute_smoke -- --ignored`
-- [ ] `just dev-tools`
-- [ ] Run a short before/after `compute` comparison with a fixed seed and
-      confirm `final` and `primary` agree.
-- [ ] Update this tasklist, the README, and the tracking issue with the final
+- [x] `cargo fmt --manifest-path shirolyzer/Cargo.toml --check`
+- [x] `cargo clippy --manifest-path shirolyzer/Cargo.toml --all-targets -- -D warnings`
+- [x] `cargo test --manifest-path shirolyzer/Cargo.toml --release`
+      The 52 library tests pass, including `incremental_scores_match_full_score`.
+      `baseline`, four `commands` tests, and one `parity` test still fail
+      because of the pre-existing `finger_balance` change in 280d11e; they fail
+      identically on `main` at 78beef1, so they are unrelated to this work.
+- [x] `cargo test --manifest-path shirolyzer/Cargo.toml --release --test commands compute_smoke -- --ignored`
+- [x] `just dev-tools`
+- [x] Run a short before/after `compute` comparison with a fixed seed and
+      confirm `final` and `primary` agree. Seed `42` produced
+      `khtczquoiprndsmwebyalxgfv;,./j` at `3.461038495`; every row's `final`
+      matches its `primary` to floating-point summation error (`<= 1e-14`).
+- [x] Update this tasklist, the README, and the tracking issue with the final
       gates and chosen defaults.
-- [ ] Merge `compute/variance` into `main` with `--no-ff`.
-- [ ] Close the tracking issue with the final verification summary.
+- [x] Merge `compute/variance` into `main` with `--no-ff`.
+- [x] Close the tracking issue with the final verification summary.
 
 Suggested commit: `compute: verify variance reduction and document defaults`
 
 ## Final git cleanup
 
-- [ ] Delete merged phase branches:
+- [x] Delete merged phase branches:
       `compute/score-drift`, `compute/ils-diversity`,
       `compute/rediscovery`, `compute/variance-budget`.
-- [ ] Delete the integration branch `compute/variance` after it is merged.
-- [ ] Fetch and prune remote-tracking branches only if a remote branch was
-      created for this work.
-- [ ] Verify the repository ends on `main` with no other local branches:
+- [x] Delete the integration branch `compute/variance` after it is merged.
+- [x] Fetch and prune remote-tracking branches only if a remote branch was
+      created for this work (no remote phase branches were created).
+- [x] Verify the repository ends on `main` with no other local branches:
       ```sh
       git switch main
       git branch
       git log --oneline --graph --decorate -15
       ```
-- [ ] Confirm every phase commit is reachable from `main` and the working tree
+- [x] Confirm every phase commit is reachable from `main` and the working tree
       contains only intentional changes.
-- [ ] Do not delete pre-existing tags or archives (`cross-hand-pre-refactor`,
+- [x] Do not delete pre-existing tags or archives (`cross-hand-pre-refactor`,
       `archive/*`, `backup/*`, `rust-*`).
 
 ## Verification gates
 
-- [ ] All three previously failing incremental-score tests pass.
-- [ ] `final` and `primary` agree for the same layout in a normal run.
-- [ ] ILS candidates differ by at least the configured letter distance when
+- [x] All three previously failing incremental-score tests pass.
+- [x] `final` and `primary` agree for the same layout in a normal run.
+- [x] ILS candidates differ by at least the configured letter distance when
       enough diverse rows exist.
-- [ ] `--ils-candidates` changes the number of ILS seed layouts.
-- [ ] `--stop-hits` and `--stop-stale-batches` stop only when their thresholds
-      are met and are disabled by default.
-- [ ] `--batch-size` does not change results when stopping is disabled.
-- [ ] Variance measurement is recorded and the chosen defaults are justified.
-- [ ] `fmt`, `clippy`, `test`, `compute_smoke`, and `just dev-tools` pass.
-- [ ] Only `main` remains after cleanup.
+- [x] `--ils-candidates` changes the number of ILS seed layouts
+      (`1` and `4` produced `1` and `4` completed ILS rounds on seed `7`).
+- [x] `--stop-hits` and `--stop-stale-batches` stop only when their thresholds
+      are met and are disabled by default (`--stop-hits 1` stopped after one
+      batch; `--stop-stale-batches 2` stopped after three; disabled runs used
+      every planned start).
+- [x] `--batch-size` does not change results when stopping is disabled
+      (`--batch-size 1` and `8` returned the same best layout and score).
+- [x] Variance measurement is recorded and the chosen defaults are justified.
+- [x] `fmt`, `clippy`, `test`, `compute_smoke`, and `just dev-tools` pass,
+      except for the pre-existing baseline/commands/parity failures noted above.
+- [x] Only `main` remains after cleanup.
 
 ## Acceptance criteria
 
-- [ ] The annealer and the selection step optimize the same score.
-- [ ] Restart breadth can be increased without changing the scoring model.
-- [ ] ILS candidates are diverse by letter placement.
-- [ ] Rediscovery/stagnation stopping is available and documented.
-- [ ] The final `--runs`/`--iters` defaults come from measured variance.
-- [ ] All work is merged into `main` and all temporary branches are deleted.
+- [x] The annealer and the selection step optimize the same score.
+- [x] Restart breadth can be increased without changing the scoring model.
+- [x] ILS candidates are diverse by letter placement.
+- [x] Rediscovery/stagnation stopping is available and documented.
+- [x] The final `--runs`/`--iters` defaults come from measured variance.
+- [x] All work is merged into `main` and all temporary branches are deleted.
 
 ## Relevant files
 
