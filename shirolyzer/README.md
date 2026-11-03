@@ -140,6 +140,13 @@ refines them with iterated local search (ILS). Useful flags:
   Candidates are chosen by letter placement diversity (at least four displaced
   letter keys), so layouts that differ only in punctuation are not treated as
   independent candidates.
+- `--batch-size` (default `8`) — random starts per batch. Batches run in
+  parallel internally and sequentially with each other, which lets the
+  stopping rules below run between batches.
+- `--stop-hits` (default `0`, disabled) — stop once the best letter placement
+  has been independently reached by this many random starts.
+- `--stop-stale-batches` (default `0`, disabled) — stop once the best primary
+  score has not strictly improved for this many consecutive batches.
 - `--seed`, `--seed-layout`, `--seed-reference`, `--seed-all-references` —
   reproduce a run or add explicit starting layouts. Random starts remain the
   default, and references are not used as warm starts unless requested.
