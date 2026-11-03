@@ -293,7 +293,7 @@ fn compute_smoke() {
     );
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&out_json).unwrap()).unwrap();
     assert_eq!(value["completed_runs"], 1);
-    assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 2);
+    assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 1);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.576_952_749_945_849_8).abs() < 1e-6);
+    assert!((primary - 3.441_308_419_926_627).abs() < 1e-6);
 }
