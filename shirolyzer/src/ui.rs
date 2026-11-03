@@ -102,11 +102,9 @@ impl Style {
 }
 
 pub fn bar_string(done: usize, total: usize, width: usize) -> String {
-    let filled = if total == 0 {
-        width
-    } else {
-        (done.min(total) * width) / total
-    };
+    let filled = (done.min(total) * width)
+        .checked_div(total)
+        .unwrap_or(width);
     format!("{}{}", "█".repeat(filled), "░".repeat(width - filled))
 }
 
@@ -238,9 +236,9 @@ pub fn short_name(name: &str) -> String {
 
 /// Compact count: 200000 -> `200k`, 1000000 -> `1M`.
 pub fn compact(n: usize) -> String {
-    if n >= 1_000_000 && n % 1_000_000 == 0 {
+    if n >= 1_000_000 && n.is_multiple_of(1_000_000) {
         format!("{}M", n / 1_000_000)
-    } else if n >= 1_000 && n % 1_000 == 0 {
+    } else if n >= 1_000 && n.is_multiple_of(1_000) {
         format!("{}k", n / 1_000)
     } else {
         n.to_string()

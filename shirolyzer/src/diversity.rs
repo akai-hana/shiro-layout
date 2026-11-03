@@ -34,6 +34,53 @@ pub fn layout_distance(a: &str, b: &str) -> usize {
     a.chars().zip(b.chars()).filter(|(x, y)| x != y).count()
 }
 
+/// Letter-only layout identity: punctuation placement does not change it.
+pub fn letter_signature(layout: &str) -> String {
+    layout.chars().filter(|c| c.is_ascii_alphabetic()).collect()
+}
+
+/// Count positions where the letter placement differs. Punctuation-only
+/// differences are ignored.
+pub fn letter_distance(a: &str, b: &str) -> usize {
+    a.chars()
+        .zip(b.chars())
+        .filter(|(x, y)| x != y && (x.is_ascii_alphabetic() || y.is_ascii_alphabetic()))
+        .count()
+}
+
+/// Pick the highest-ranked rows that differ by at least `min_letter_distance`
+/// letter positions. If the list is too small, fill from remaining rows whose
+/// letter signature is not already present.
+pub fn select_diverse_layouts(rows: &[Row], count: usize, min_letter_distance: usize) -> Vec<Row> {
+    let mut selected: Vec<Row> = Vec::new();
+    for row in rows {
+        if selected.len() >= count {
+            break;
+        }
+        if selected
+            .iter()
+            .all(|kept| letter_distance(&row.layout, &kept.layout) >= min_letter_distance)
+        {
+            selected.push(row.clone());
+        }
+    }
+    if selected.len() < count {
+        for row in rows {
+            if selected.len() >= count {
+                break;
+            }
+            let signature = letter_signature(&row.layout);
+            if !selected
+                .iter()
+                .any(|kept| letter_signature(&kept.layout) == signature)
+            {
+                selected.push(row.clone());
+            }
+        }
+    }
+    selected
+}
+
 /// Collapse duplicate layouts, keeping the best primary and secondary values.
 pub fn merge_results(results: &[Row]) -> Vec<Row> {
     let mut by_layout: HashMap<String, Row> = HashMap::new();
@@ -158,4 +205,42 @@ pub fn format_valid_layouts(rows: &[Row], status: &str, truncated: bool) -> Vec<
         lines.push("  additional comparable layouts omitted".to_string());
     }
     lines
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn row(layout: &str) -> Row {
+        Row::new("test", 1.0, None, layout)
+    }
+
+    #[test]
+    fn letter_distance_ignores_punctuation() {
+        let a = "abcdefghijklmnopqrstuvwxyz;,./";
+        let b = "abcdefghijklmnopqrstuvwxyz,./;";
+        assert_eq!(letter_distance(a, b), 0);
+        assert_eq!(letter_distance(a, a), 0);
+    }
+
+    #[test]
+    fn letter_distance_counts_displaced_letters() {
+        let a = "abcdefghijklmnopqrstuvwxyz;,./";
+        let b = "bacdefghijklmnopqrstuvwxyz;,./";
+        assert_eq!(letter_distance(a, b), 2);
+    }
+
+    #[test]
+    fn select_diverse_skips_near_duplicates() {
+        let rows = vec![
+            row("abcdefghijklmnopqrstuvwxyz;,./"),
+            row("abcdefghijklmnopqrstuvwxyz,./;"),
+            row("bacdefghijklmnopqrstuvwxyz;,./"),
+            row("zyxwvutsrqponmlkjihgfedcba;,./"),
+        ];
+        let picked = select_diverse_layouts(&rows, 2, 4);
+        assert_eq!(picked.len(), 2);
+        assert_eq!(picked[0].layout, rows[0].layout);
+        assert_eq!(picked[1].layout, rows[3].layout);
+    }
 }

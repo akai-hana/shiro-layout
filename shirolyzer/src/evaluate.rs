@@ -301,6 +301,16 @@ impl<'a> Evaluator<'a> {
     }
 }
 
+/// Put the four punctuation items on the punctuation slots in canonical
+/// left-to-right order. Letter placement and the score are unchanged.
+pub fn canonical_punctuation(perm: &mut [usize]) {
+    let mut slots: Vec<usize> = perm[N_LETTERS..].to_vec();
+    slots.sort_unstable();
+    for (item, slot) in (N_LETTERS..N_ITEMS).zip(slots) {
+        perm[item] = slot;
+    }
+}
+
 /// Item-to-slot permutation in layout order.  Items 0..26 are letters a-z and
 /// items 26..30 are non-letter positions, assigned in order of appearance.
 /// The actual non-letter characters do not affect scoring; `layout_str` emits
@@ -352,4 +362,19 @@ pub fn flat_share_from_config(cfg: &crate::config::Config) -> [f64; 4] {
         *cfg.flat_share.get(&'M').unwrap_or(&0.28),
         *cfg.flat_share.get(&'I').unwrap_or(&0.29),
     ]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn canonical_punctuation_sorts_slots_without_moving_letters() {
+        let mut perm: Vec<usize> = (0..N_ITEMS).collect();
+        let letters = perm[..N_LETTERS].to_vec();
+        perm[N_LETTERS..].copy_from_slice(&[29, 26, 28, 27]);
+        canonical_punctuation(&mut perm);
+        assert_eq!(&perm[..N_LETTERS], &letters[..]);
+        assert_eq!(&perm[N_LETTERS..], &[26, 27, 28, 29]);
+    }
 }

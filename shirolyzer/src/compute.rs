@@ -16,7 +16,7 @@ use crate::config::Sacrifice;
 use crate::context::{self, Context};
 use crate::corpus::Corpus;
 use crate::diversity::{self, Row};
-use crate::evaluate::{flat_share_from_config, perm_of, Evaluator};
+use crate::evaluate::{canonical_punctuation, flat_share_from_config, perm_of, Evaluator};
 use crate::geometry::Geometry;
 use crate::paths;
 use crate::redirect::RedirectTiers;
@@ -25,6 +25,8 @@ use crate::scorer::Tables;
 use crate::search;
 use crate::ui;
 use crate::xkb;
+
+const ILS_MIN_LETTER_DISTANCE: usize = 4;
 
 pub fn parse_budget(value: &str) -> Result<f64> {
     let value = value.trim().to_lowercase();
@@ -152,6 +154,10 @@ pub struct ComputeArgs<'a> {
     pub runs: usize,
     pub iters: usize,
     pub ils: usize,
+    pub ils_candidates: usize,
+    pub batch_size: usize,
+    pub stop_hits: usize,
+    pub stop_stale_batches: usize,
     pub valid_tolerance: f64,
     pub secondary_tolerance: f64,
     pub min_layout_distance: usize,
@@ -211,6 +217,7 @@ fn optimize_seed(
     perm = p;
     let (p, s) = search::quench(ev, delta_tables, &perm, s, rng);
     perm = p;
+    canonical_punctuation(&mut perm);
     let layout = ev.layout_str(&perm);
     let primary = ev.score(&perm);
     Row {
@@ -277,6 +284,7 @@ fn optimize_ils_row(
             best_s = cs;
         }
     }
+    canonical_punctuation(&mut best);
     let layout = ev.layout_str(&best);
     let primary = ev.score(&best);
     Ok(IlsOutcome {
@@ -359,6 +367,7 @@ fn optimize_polish_row(
             break;
         }
     }
+    canonical_punctuation(&mut best);
     let layout = ev.layout_str(&best);
     let primary = ev.score(&best);
     let secondary = secondary_ev.map(|s| s.score(&best));
@@ -445,6 +454,82 @@ fn print_summary(
     }
     if valid_truncated {
         println!("{}", ui.dim("additional comparable layouts omitted"));
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn count_rediscoveries(results: &[Row], layout: &str) -> usize {
+    let signature = diversity::letter_signature(layout);
+    results
+        .iter()
+        .filter(|r| {
+            r.start.starts_with("rand") && diversity::letter_signature(&r.layout) == signature
+        })
+        .count()
+}
+
+fn bump_stale(previous: Option<f64>, current: f64, stale: usize) -> usize {
+    match previous {
+        Some(prev) if current < prev - 1e-12 => 0,
+        Some(_) => stale + 1,
+        None => 0,
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn run_seed_batch(
+    ev: &Evaluator<'_>,
+    delta_tables: &search::DeltaTables,
+    seeds: &[(String, Vec<usize>)],
+    index_offset: usize,
+    seed: u64,
+    iters: usize,
+    time_budget: Option<f64>,
+    started: Instant,
+    progress: &ui::Progress,
+) -> Vec<Row> {
+    let parallel = time_budget.is_none() && seeds.len() > 1;
+    if parallel {
+        seeds
+            .par_iter()
+            .enumerate()
+            .map(|(i, (name, start))| {
+                let index = index_offset + i;
+                let mut rng = seed_rng(seed, index);
+                let row = optimize_seed(
+                    ev,
+                    delta_tables,
+                    &mut rng,
+                    name,
+                    start,
+                    iters,
+                    seed_anneal(seed, index),
+                );
+                progress.tick();
+                row
+            })
+            .collect()
+    } else {
+        let mut rows = Vec::with_capacity(seeds.len());
+        for (i, (name, start)) in seeds.iter().enumerate() {
+            if !rows.is_empty() && time_budget.is_some_and(|b| started.elapsed().as_secs_f64() >= b)
+            {
+                break;
+            }
+            let index = index_offset + i;
+            let mut rng = seed_rng(seed, index);
+            rows.push(optimize_seed(
+                ev,
+                delta_tables,
+                &mut rng,
+                name,
+                start,
+                iters,
+                seed_anneal(seed, index),
+            ));
+            progress.tick();
+        }
+        rows
     }
 }
 
@@ -588,14 +673,8 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             seeds.push((format!("user{}", i), perm));
         }
     }
-    for s in 0..args.runs {
-        let mut start_rng = ChaCha8Rng::seed_from_u64(seed + 1000 + s as u64);
-        let perm = primary_ev
-            .constrained_shuffle(&mut start_rng)
-            .map_err(anyhow::Error::msg)?;
-        seeds.push((format!("rand{}", seed + 1000 + s as u64), perm));
-    }
 
+    let planned_starts = seeds.len() + args.runs;
     let mut results: Vec<Row> = Vec::new();
     let mut best_primary: Option<Row> = None;
     println!(
@@ -603,7 +682,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         ui.bold(&format!(
             "shirolyzer compute · seed {} · {} starts · {} iters · {} ILS · polish {}",
             seed,
-            seeds.len(),
+            planned_starts,
             ui::compact(args.iters),
             args.ils,
             match args.polish_rounds {
@@ -614,67 +693,100 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         ))
     );
     println!();
-    let anneal_progress = ui::Progress::new("Anneal", seeds.len());
-    let parallel = args.time_budget.is_none() && seeds.len() > 1;
-    let mut seed_rows: Vec<Row> = if parallel {
-        seeds
-            .par_iter()
-            .enumerate()
-            .map(|(index, (name, start))| {
-                let mut rng = seed_rng(seed, index);
-                let row = optimize_seed(
-                    &primary_ev,
-                    &delta_tables,
-                    &mut rng,
-                    name,
-                    start,
-                    args.iters,
-                    seed_anneal(seed, index),
-                );
-                anneal_progress.tick();
-                row
-            })
-            .collect()
-    } else {
-        let mut rows = Vec::with_capacity(seeds.len());
-        for (index, (name, start)) in seeds.iter().enumerate() {
-            if let Some(budget) = args.time_budget {
-                if !rows.is_empty() && started.elapsed().as_secs_f64() >= budget {
-                    anneal_progress.finish();
-                    println!("{}", ui.dim("time budget reached; saving best so far"));
+
+    let anneal_progress = ui::Progress::new("Anneal", planned_starts);
+    let batch_size = args.batch_size.max(1);
+    let mut batches: Vec<Vec<(String, Vec<usize>)>> = Vec::new();
+    let fixed_batches = usize::from(!seeds.is_empty());
+    if !seeds.is_empty() {
+        batches.push(std::mem::take(&mut seeds));
+    }
+    let mut random_index = 0usize;
+    while random_index < args.runs {
+        let end = (random_index + batch_size).min(args.runs);
+        let mut batch = Vec::with_capacity(end - random_index);
+        for s in random_index..end {
+            let mut start_rng = ChaCha8Rng::seed_from_u64(seed + 1000 + s as u64);
+            let perm = primary_ev
+                .constrained_shuffle(&mut start_rng)
+                .map_err(anyhow::Error::msg)?;
+            batch.push((format!("rand{}", seed + 1000 + s as u64), perm));
+        }
+        batches.push(batch);
+        random_index = end;
+    }
+
+    let mut completed_batches = 0usize;
+    let mut stop_reason: Option<String> = None;
+    let mut stale_batches = 0usize;
+    let mut last_best: Option<f64> = None;
+    let mut index_offset = 0usize;
+    for (batch_index, batch) in batches.iter().enumerate() {
+        if !results.is_empty()
+            && args
+                .time_budget
+                .is_some_and(|b| started.elapsed().as_secs_f64() >= b)
+        {
+            stop_reason = Some("time budget".to_string());
+            println!("{}", ui.dim("time budget reached; saving best so far"));
+            break;
+        }
+        let rows = run_seed_batch(
+            &primary_ev,
+            &delta_tables,
+            batch,
+            index_offset,
+            seed,
+            args.iters,
+            args.time_budget,
+            started,
+            &anneal_progress,
+        );
+        let got = rows.len();
+        index_offset += got;
+        completed_batches += 1;
+        for row in rows {
+            completed_runs += 1;
+            completed_iterations += args.iters;
+            if best_primary
+                .as_ref()
+                .map(|b| row.primary < b.primary)
+                .unwrap_or(true)
+            {
+                best_primary = Some(row.clone());
+            }
+            results.push(row);
+        }
+        if got < batch.len() {
+            stop_reason = Some("time budget".to_string());
+            println!("{}", ui.dim("time budget reached; saving best so far"));
+            break;
+        }
+        if batch_index + 1 < batches.len() && batch_index >= fixed_batches {
+            if let Some(best) = best_primary.as_ref() {
+                let rediscoveries = count_rediscoveries(&results, &best.layout);
+                if args.stop_hits > 0 && rediscoveries >= args.stop_hits {
+                    stop_reason = Some(format!("rediscovered by {} starts", rediscoveries));
+                    break;
+                }
+                let current = best.primary;
+                stale_batches = bump_stale(last_best, current, stale_batches);
+                last_best = Some(current);
+                if args.stop_stale_batches > 0 && stale_batches >= args.stop_stale_batches {
+                    stop_reason = Some(format!(
+                        "no primary improvement for {} batches",
+                        stale_batches
+                    ));
                     break;
                 }
             }
-            let mut rng = seed_rng(seed, index);
-            rows.push(optimize_seed(
-                &primary_ev,
-                &delta_tables,
-                &mut rng,
-                name,
-                start,
-                args.iters,
-                seed_anneal(seed, index),
-            ));
-            anneal_progress.tick();
         }
-        rows
-    };
-    anneal_progress.finish();
-    for row in seed_rows.drain(..) {
-        completed_runs += 1;
-        completed_iterations += args.iters;
-        if best_primary
-            .as_ref()
-            .map(|b| row.primary < b.primary)
-            .unwrap_or(true)
-        {
-            best_primary = Some(row.clone());
-        }
-        results.push(row);
     }
+    anneal_progress.finish();
     if results.is_empty() {
         return Err(anyhow!("no completed runs"));
     }
+    let stop_reason = stop_reason.unwrap_or_else(|| "completed planned starts".to_string());
 
     let mut uniq: std::collections::HashMap<String, Row> = std::collections::HashMap::new();
     for row in &results {
@@ -701,12 +813,14 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             })
     });
     let ranked = top.clone();
-    top.truncate(4);
+    top = diversity::select_diverse_layouts(&ranked, args.ils_candidates, ILS_MIN_LETTER_DISTANCE);
 
     // ---- Anneal summary -------------------------------------------------
-    let mut hits: std::collections::HashMap<&str, usize> = std::collections::HashMap::new();
+    let mut hits: std::collections::HashMap<String, usize> = std::collections::HashMap::new();
     for row in &results {
-        *hits.entry(row.layout.as_str()).or_insert(0) += 1;
+        *hits
+            .entry(diversity::letter_signature(&row.layout))
+            .or_insert(0) += 1;
     }
     let total_starts = results.len();
     println!(
@@ -752,7 +866,9 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             ui::short_name(&r.start),
             r.final_score,
             r.primary,
-            hits.get(r.layout.as_str()).copied().unwrap_or(1),
+            hits.get(&diversity::letter_signature(&r.layout))
+                .copied()
+                .unwrap_or(1),
             if args.verbose {
                 format!("  {}", r.layout)
             } else {
@@ -1156,6 +1272,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                     best_sec = cand_s;
                 }
             }
+            canonical_punctuation(&mut best_perm);
             let lay = primary_ev.layout_str(&best_perm);
             let pri = primary_ev.score(&best_perm);
             let sec = secondary_ev.score(&best_perm);
@@ -1332,6 +1449,10 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             completed_runs, completed_iterations, completed_ils_rounds, completed_secondary_rounds
         ),
         format!(
+            "completed_batches={} stop_reason={}",
+            completed_batches, stop_reason
+        ),
+        format!(
             "best_primary: primary={:.9} {}",
             best_primary.primary, best_primary.layout
         ),
@@ -1395,11 +1516,17 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "elapsed_seconds": started.elapsed().as_secs_f64(),
         "time_budget_seconds": args.time_budget,
         "completed_runs": completed_runs,
+        "completed_batches": completed_batches,
+        "stop_reason": stop_reason,
         "completed_iterations": completed_iterations,
         "completed_ils_rounds": completed_ils_rounds,
         "completed_secondary_rounds": completed_secondary_rounds,
         "completed_polish_rounds": completed_polish_rounds,
         "runs": args.runs, "iters": args.iters, "ils": args.ils,
+        "ils_candidates": args.ils_candidates,
+        "batch_size": args.batch_size,
+        "stop_hits": args.stop_hits,
+        "stop_stale_batches": args.stop_stale_batches,
         "polish_rounds": if args.polish_rounds == usize::MAX { serde_json::Value::Null } else { serde_json::json!(args.polish_rounds) },
         "polish_candidates": args.polish_candidates,
         "valid_tolerance": args.valid_tolerance,
@@ -1471,4 +1598,35 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         ui.bold(&format!("{:.0}s", started.elapsed().as_secs_f64()))
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn row(start: &str, layout: &str) -> Row {
+        Row::new(start, 1.0, None, layout)
+    }
+
+    #[test]
+    fn rediscovery_counts_random_letter_matches_only() {
+        let results = vec![
+            row("rand1", "abcdefghijklmnopqrstuvwxyz;,./"),
+            row("rand2", "abcdefghijklmnopqrstuvwxyz,./;"),
+            row("user0", "abcdefghijklmnopqrstuvwxyz./,;"),
+            row("rand3", "bacdefghijklmnopqrstuvwxyz;,./"),
+        ];
+        assert_eq!(
+            count_rediscoveries(&results, "abcdefghijklmnopqrstuvwxyz;,./"),
+            2
+        );
+    }
+
+    #[test]
+    fn stale_batches_reset_on_improvement() {
+        assert_eq!(bump_stale(None, 3.5, 0), 0);
+        assert_eq!(bump_stale(Some(3.5), 3.5, 0), 1);
+        assert_eq!(bump_stale(Some(3.5), 3.5, 2), 3);
+        assert_eq!(bump_stale(Some(3.5), 3.4, 2), 0);
+    }
 }
