@@ -22,12 +22,34 @@ pub const PRIORITY_NAMES: [&str; 6] = [
     "finger_balance",
 ];
 
-pub const DEFAULT_PRIORITY: &[&[&str]] = &[
-    &["sfbs-sfts"],
-    &["scissors", "redirects"],
-    &["rolls", "alternation"],
-    &["finger_balance"],
-];
+/// Weight of every priority term for a tier list.  With N tiers, tier t
+/// (0 = highest) is multiplied by `1 + 0.5 * (N - t - 1)`.  The list is always
+/// applied as written: there is no special "default" ordering.  To weight all
+/// terms equally, put them in a single tier.  Terms missing from the list are
+/// switched off (multiplier 0.0).
+pub fn priority_weights(priority_list: &[Vec<String>]) -> HashMap<String, f64> {
+    let mut out: HashMap<String, f64> = PRIORITY_NAMES
+        .iter()
+        .map(|n| (n.to_string(), 0.0))
+        .collect();
+    let len = priority_list.len();
+    for (tier, names) in priority_list.iter().enumerate() {
+        let scale = 1.0 + 0.5 * (len - tier - 1) as f64;
+        for name in names {
+            out.insert(name.clone(), scale);
+        }
+    }
+    out
+}
+
+/// Priority terms that a tier list leaves out (and therefore disables).
+pub fn omitted_priorities(priority_list: &[Vec<String>]) -> Vec<&'static str> {
+    PRIORITY_NAMES
+        .iter()
+        .copied()
+        .filter(|name| !priority_list.iter().flatten().any(|n| n == name))
+        .collect()
+}
 
 #[derive(Clone, Debug)]
 pub struct CorpusEntry {
@@ -172,30 +194,18 @@ impl Config {
     }
 
     pub fn priority_multipliers(&self) -> HashMap<String, f64> {
-        let mut out: HashMap<String, f64> = PRIORITY_NAMES
+        priority_weights(&self.priority_list)
+    }
+
+    /// `sfbs-sfts ×3.0 · scissors ×2.5 · ...` in tier order, for display.
+    pub fn priority_summary(&self) -> String {
+        let weights = self.priority_multipliers();
+        self.priority_list
             .iter()
-            .map(|n| (n.to_string(), 0.0))
-            .collect();
-        let is_default = self.priority_list.len() == DEFAULT_PRIORITY.len()
-            && self
-                .priority_list
-                .iter()
-                .zip(DEFAULT_PRIORITY)
-                .all(|(a, b)| a.len() == b.len() && a.iter().zip(*b).all(|(x, y)| x == y));
-        if is_default {
-            for value in out.values_mut() {
-                *value = 1.0;
-            }
-            return out;
-        }
-        let len = self.priority_list.len();
-        for (tier, names) in self.priority_list.iter().enumerate() {
-            let scale = 1.0 + 0.5 * (len - tier - 1) as f64;
-            for name in names {
-                out.insert(name.clone(), scale);
-            }
-        }
-        out
+            .flatten()
+            .map(|name| format!("{name} ×{:.1}", weights[name]))
+            .collect::<Vec<_>>()
+            .join(" · ")
     }
 
     pub fn corpus_path(&self, entry: &CorpusEntry) -> PathBuf {
@@ -1323,6 +1333,53 @@ pub fn build_model(cfg: &Config) -> Result<crate::model::Model> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn tiers(yaml: &str) -> Vec<Vec<String>> {
+        let value: Value = serde_yaml::from_str(yaml).unwrap();
+        parse_priority(Path::new("config.yaml"), Some(&value)).unwrap()
+    }
+
+    #[test]
+    fn priority_tiers_are_weighted_from_the_top() {
+        let list = tiers("[sfbs-sfts, scissors, redirects, [rolls, finger_balance], alternation]");
+        let w = priority_weights(&list);
+        assert_eq!(w["sfbs-sfts"], 3.0);
+        assert_eq!(w["scissors"], 2.5);
+        assert_eq!(w["redirects"], 2.0);
+        assert_eq!(w["rolls"], 1.5);
+        assert_eq!(w["finger_balance"], 1.5);
+        assert_eq!(w["alternation"], 1.0);
+        assert!(omitted_priorities(&list).is_empty());
+    }
+
+    #[test]
+    fn the_old_default_ordering_is_no_longer_a_silent_no_op() {
+        // This exact list used to be special-cased as "unweighted".
+        let list =
+            tiers("[sfbs-sfts, [scissors, redirects], [rolls, alternation], finger_balance]");
+        let w = priority_weights(&list);
+        assert_eq!(w["sfbs-sfts"], 2.5);
+        assert_eq!(w["scissors"], 2.0);
+        assert_eq!(w["redirects"], 2.0);
+        assert_eq!(w["rolls"], 1.5);
+        assert_eq!(w["alternation"], 1.5);
+        assert_eq!(w["finger_balance"], 1.0);
+    }
+
+    #[test]
+    fn a_single_tier_weights_everything_equally() {
+        let list = tiers("[[sfbs-sfts, scissors, redirects, rolls, alternation, finger_balance]]");
+        assert!(priority_weights(&list).values().all(|v| *v == 1.0));
+    }
+
+    #[test]
+    fn omitted_priorities_are_switched_off_and_reported() {
+        let list = tiers("[sfbs-sfts, [scissors, redirects], [rolls, alternation]]");
+        let w = priority_weights(&list);
+        assert_eq!(w["finger_balance"], 0.0);
+        assert_eq!(w["sfbs-sfts"], 2.0);
+        assert_eq!(omitted_priorities(&list), vec!["finger_balance"]);
+    }
 
     fn restrictions(yaml: &str) -> Result<[Option<usize>; 26]> {
         let value: Value = serde_yaml::from_str(yaml).unwrap();

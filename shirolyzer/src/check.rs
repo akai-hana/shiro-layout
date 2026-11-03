@@ -63,7 +63,7 @@ fn collect(ctx: &Context, corpus_path: &Path) -> Result<Value> {
         .parameters_path
         .file_name()
         .and_then(|s| s.to_str())
-        .unwrap_or("pattern_parameters_A_all.json")
+        .unwrap_or("calibrated.json")
         .to_string();
     let mut refs = serde_json::Map::new();
     for entry in references::load_references(None)? {

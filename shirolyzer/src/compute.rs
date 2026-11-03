@@ -693,6 +693,20 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             }
         ))
     );
+    println!(
+        "{}",
+        ui.dim(&format!("priority  {}", ctx.cfg.priority_summary()))
+    );
+    let omitted = crate::config::omitted_priorities(&ctx.cfg.priority_list);
+    if !omitted.is_empty() {
+        println!(
+            "{}",
+            ui.yellow(&format!(
+                "priority  omitted from priority_list (switched off): {}",
+                omitted.join(", ")
+            ))
+        );
+    }
     println!();
 
     let anneal_progress = ui::Progress::new("Anneal", planned_starts);

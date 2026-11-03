@@ -19,12 +19,6 @@ PRIORITY_NAMES = (
     "sfbs-sfts", "scissors", "redirects", "rolls", "alternation",
     "finger_balance",
 )
-DEFAULT_PRIORITY = [
-    ["sfbs-sfts"],
-    ["scissors", "redirects"],
-    ["rolls", "alternation"],
-    ["finger_balance"],
-]
 DEFAULT_CONDITIONS = [
     {"type": "scissors", "distance": "full", "reverse": True,
      "fingers": ["LP", "LR", "LM", "RM", "RR", "RP"], "allow": False},
@@ -105,9 +99,9 @@ class Config:
         return self.conditions == DEFAULT_CONDITIONS
 
     def priority_multipliers(self) -> dict[str, float]:
-        if self.priority_list == DEFAULT_PRIORITY:
-            return {name: 1.0 for name in PRIORITY_NAMES}
-        scales = {name: 1.0 for name in PRIORITY_NAMES}
+        # The list is always applied as written (no special "default" order).
+        # Put every term in one tier to weight them all equally.
+        scales = {name: 0.0 for name in PRIORITY_NAMES}
         for tier, names in enumerate(self.priority_list):
             scale = 1.0 + 0.5 * (len(self.priority_list) - tier - 1)
             for name in names:
