@@ -112,6 +112,15 @@ struct ComputeArgs {
     /// Number of diverse top layouts advanced to ILS
     #[arg(long = "ils-candidates", default_value_t = 4)]
     ils_candidates: usize,
+    /// Random starts run per batch; batches are sequential so early stopping can occur between them
+    #[arg(long = "batch-size", default_value_t = 8)]
+    batch_size: usize,
+    /// Stop after the best letter placement is found by this many random starts (0 disables)
+    #[arg(long = "stop-hits", default_value_t = 0)]
+    stop_hits: usize,
+    /// Stop after this many consecutive batches without a primary improvement (0 disables)
+    #[arg(long = "stop-stale-batches", default_value_t = 0)]
+    stop_stale_batches: usize,
     #[arg(long = "valid-tolerance", default_value_t = 0.002)]
     valid_tolerance: f64,
     #[arg(long = "secondary-tolerance", default_value_t = 0.005)]
@@ -256,6 +265,9 @@ fn main() -> Result<()> {
                 iters: args.iters,
                 ils: args.ils,
                 ils_candidates: args.ils_candidates,
+                batch_size: args.batch_size,
+                stop_hits: args.stop_hits,
+                stop_stale_batches: args.stop_stale_batches,
                 valid_tolerance: args.valid_tolerance,
                 secondary_tolerance: args.secondary_tolerance,
                 min_layout_distance: args.min_layout_distance,
