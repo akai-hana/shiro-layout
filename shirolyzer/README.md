@@ -12,8 +12,21 @@
 
 ### Quick anchors
 
-- [a](#a)
-    - [b](#b)
+- [Introduction](#introduction)
+    - [About 白ライザー](#about-白ライザー)
+- [Generation](#generation)
+    - [Corpora](#corpora)
+    - [Primary sacrifice](#primary-sacrifice)
+    - [Alt-fingers & Context](#alt-fingers--context)
+    - [Compute scheduling](#compute-scheduling)
+    - [Polishing](#polishing)
+    - [Terminal output](#terminal-output)
+    - [Measuring variance](#measuring-variance)
+    - [Priority tiers](#priority-tiers)
+    - [Redirect tiers](#redirect-tiers)
+    - [Conditions](#conditions)
+- [Analysis](#analysis)
+    - [Corpus provenance](#corpus-provenance)
 
 ---
 
@@ -132,8 +145,9 @@ shirolyzer compare --config shirolyzer/config/config.fixed.yaml
 
 ### Compute scheduling
 
-`compute` runs random anneals, keeps the best distinct layouts, and then
-refines them with iterated local search (ILS). Useful flags:
+`compute` runs random anneals, keeps the best distinct layouts, refines them
+with iterated local search (ILS), and then polishes the near-equal winners.
+Useful flags:
 
 - `--runs` (default `28`), `--iters` (default `200000`), `--ils` (default `8`)
   — restart count, anneal length, and ILS rounds.
@@ -148,15 +162,75 @@ refines them with iterated local search (ILS). Useful flags:
   has been independently reached by this many random starts.
 - `--stop-stale-batches` (default `0`, disabled) — stop once the best primary
   score has not strictly improved for this many consecutive batches.
-- `--seed`, `--seed-layout`, `--seed-reference`, `--seed-all-references` —
-  reproduce a run or add explicit starting layouts. Random starts remain the
-  default, and references are not used as warm starts unless requested.
-- `--polish-rounds`, `--polish-candidates` — optional final local polish.
+- `--time-budget` (for example `90s`, `5m`, `1h`) — stop starting new work after
+  this long and report the best result so far. Runs under a time budget execute
+  sequentially instead of in parallel.
+- `--valid-tolerance` (default `0.002`), `--secondary-tolerance` (default
+  `0.005`), `--min-layout-distance` (default `4`), `--max-valid` (default `8`)
+  — how near-equal, diverse layouts are collected into the valid-layout report.
+- `--seed` — reproduce a run. Without it a seed is generated and printed in the
+  header.
+- `--verbose` / `-v` — list every distinct layout from the anneal stage with its
+  layout string instead of only the top eight.
+
+#### Starting layouts
+
+Searches start from random layouts only. Known layouts are never used as warm
+starts unless you ask for them:
+
+- `--seed-layout "<30 characters>"` — start from a layout you provide (repeatable).
+- `--seed-reference NAME` — start from a named entry in the references file
+  (repeatable; an unknown name is an error).
+- `--seed-all-references` — start from every reference that satisfies the
+  configured hand restrictions.
+
+Seed layouts that violate `hand_restrictions` are skipped with a warning. The
+references file is still used to name and de-duplicate results.
 
 The `hits` column counts independent starts that reached the same letter
 placement, ignoring punctuation. Punctuation is placed canonically in the
 final layout after the letter search, because punctuation positions do not
 affect the primary score.
+
+### Polishing
+
+Polishing is on by default. Each round perturbs the best layout found so far,
+then quenches, anneals, and quenches again. It repeats until a round fails to
+strictly improve the layout, so the number of rounds adapts to the layout
+instead of being fixed:
+
+- `--polish-rounds` (default `unlimited`) — maximum rounds per candidate. Pass a
+  number to cap it, or `0` to disable polishing. Polishing always stops early
+  once a round finds nothing better, so `rounds=1` in the output means the first
+  round found no improvement.
+- `--polish-candidates` (default `4`) — how many layouts are polished. They are
+  selected with the same tolerance and diversity rules as the valid-layout
+  report.
+
+### Terminal output
+
+`compute` prints one section per stage:
+
+- **Anneal** — the best distinct layouts sorted by primary score, with the number
+  of starts that reached each (`hits`). `final` is the score the search tracked
+  while annealing and `primary` is the score recomputed from scratch for the
+  same layout; the two are expected to match.
+- **ILS** — each candidate's score before and after, and the gain.
+- **Polish** — before/after scores and the rounds used per candidate.
+- **Secondary** — candidates scored against the secondary corpora within the
+  primary sacrifice budget (only when secondary corpora are configured).
+- **Best layout** — the selected layout drawn with the same staggered geometry as
+  `render`, plus any other valid layouts alongside it.
+
+The footer lists the result files (`results/compute_*.{txt,json}`), the
+`results/latest` layout pointer, any layouts appended to the references file
+(named from `--name`, default `shiro`, plus the seed), and the elapsed time.
+Use `--append-references PATH` to write new references somewhere else.
+
+Progress bars are drawn on stderr, and only when it is a terminal. Color is used
+only when stdout is a terminal; set `NO_COLOR=1` to turn it off. Piped or
+redirected output is plain text, and the files written to `results/` are always
+plain.
 
 ### Measuring variance
 
@@ -170,8 +244,9 @@ just variance --seeds 20
 just variance --seeds 20 --runs 200 --iters 25000 --verbose
 ```
 
-The script is development tooling only; it does not change the model or any
-baseline. Pass `--start-seed`, `--runs`, `--iters`, `--ils`,
+The script uses only the Python standard library. The recipe runs
+`.venv/bin/python` by default; set `PYTHON=python3` to use another interpreter.
+It is development tooling only and does not change the model or any baseline. Pass `--start-seed`, `--runs`, `--iters`, `--ils`,
 `--ils-candidates`, `--batch-size`, `--stop-hits`, and
 `--stop-stale-batches` to mirror the `compute` flags.
 
@@ -217,7 +292,7 @@ Condition rules are evaluated from top to bottom; the first matching rule wins. 
 The shipped condition list is a built-in default and stays disabled because the fitted model already implements those native rules. Editing the list enables the conditions engine for the edited list; the built-in defaults are kept in `src/config.rs` (and `utils/config.py`) so a config that still matches them stays disabled.
 
 ## Analysis
-> Details about shirolyzer's layout generation
+> Details about shirolyzer's layout analysis
 
 The **shirolyzer** analyzer uses the same configuration, geometry, model, and fingering rules as the generator. It reports:
 
