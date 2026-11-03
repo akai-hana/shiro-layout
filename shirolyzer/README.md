@@ -22,11 +22,14 @@
     - [Polishing](#polishing)
     - [Terminal output](#terminal-output)
     - [Measuring variance](#measuring-variance)
+    - [Model parameters](#model-parameters)
     - [Priority tiers](#priority-tiers)
     - [Redirect tiers](#redirect-tiers)
     - [Conditions](#conditions)
 - [Analysis](#analysis)
     - [Corpus provenance](#corpus-provenance)
+- [Development](#development)
+    - [Tests and the reference model](#tests-and-the-reference-model)
 
 ---
 
@@ -168,6 +171,8 @@ Useful flags:
 - `--valid-tolerance` (default `0.002`), `--secondary-tolerance` (default
   `0.005`), `--min-layout-distance` (default `4`), `--max-valid` (default `8`)
   — how near-equal, diverse layouts are collected into the valid-layout report.
+- `--secondary-rounds` (default: same as `--ils`) — perturbation rounds per
+  candidate in the secondary phase. `0` only scores the candidates.
 - `--seed` — reproduce a run. Without it a seed is generated and printed in the
   header.
 - `--verbose` / `-v` — list every distinct layout from the anneal stage with its
@@ -218,7 +223,9 @@ instead of being fixed:
 - **ILS** — each candidate's score before and after, and the gain.
 - **Polish** — before/after scores and the rounds used per candidate.
 - **Secondary** — candidates scored against the secondary corpora within the
-  primary sacrifice budget (only when secondary corpora are configured).
+  primary sacrifice budget (only when secondary corpora are configured). Each
+  distinct letter placement is optimized once: an ILS result and its unchanged
+  polished copy, or layouts that differ only in punctuation, are not repeated.
 - **Best layout** — the selected layout drawn with the same staggered geometry as
   `render`, plus any other valid layouts alongside it.
 
@@ -250,8 +257,9 @@ It is development tooling only and does not change the model or any baseline. Pa
 `--ils-candidates`, `--batch-size`, `--stop-hits`, and
 `--stop-stale-batches` to mirror the `compute` flags.
 
-Measured on seeds `0..19` after the incremental-score fix, all runs reaching
-the same letter placement:
+Measured on seeds `0..19` after the incremental-score fix (and before the
+priority tiers were weighted and `shiro.json` was added), all runs reaching the
+same letter placement. Re-run `just variance` after changing the objective:
 
 | Budget | Spread | Std. dev. | Success rate |
 | --- | --- | --- | --- |
@@ -264,9 +272,47 @@ the breadth-heavy budget matches it at roughly the same total iteration count.
 Reducing the anneal depth alone is not enough, so the defaults stay at
 `--runs 28 --iters 200000`, and the stopping rules stay disabled by default.
 
+### Model parameters
+
+The scoring model's coefficients live in `shirolyzer/config/model/`:
+
+- `calibrated.json` — the fitted and audited reference model. The score baseline,
+  `check-baseline`, `audit` and the tests are tied to this file, so don't edit it
+  by hand; refit it with the tools in `shirolyzer/fitting/`.
+- `shiro.json` — what `config.yaml` actually uses: the calibrated model plus
+  personal roll preferences. Roll rewards are per finger pair and direction
+  (`r_MI`, `r_RM_in`, `r_RM_out`, `r_PR_in`, `r_PR_out`); `shiro.json` rewards
+  middle-index rolls more than ring-middle ones.
+- `fit_seed_A.json` and `anchor_pairs.json` — starting point and anchors for
+  refitting.
+
+Point `model.parameters_file` in the config at the file to use. To make your own
+variant, copy `calibrated.json` and change the numbers you care about.
+
 ### Priority tiers
 
-`priority_list` groups objective terms into ordered tiers. Earlier tiers receive a larger multiplier than later tiers, while omitted terms use their default weight. This makes it possible to prioritize, for example, low SFB/SFT and scissors over rolls without removing lower-priority terms from the objective.
+`priority_list` groups objective terms into ordered tiers, most important first.
+With N tiers, tier t (0 = highest) is multiplied by `1 + 0.5 * (N - t - 1)`, so
+earlier tiers weigh more. Terms: `sfbs-sfts`, `scissors`, `redirects`, `rolls`,
+`alternation`, `finger_balance`.
+
+```yaml
+priority_list:
+  - sfbs-sfts                # x3.0
+  - scissors                 # x2.5
+  - redirects                # x2.0
+  - [rolls, finger_balance]  # x1.5  (tiers can hold several terms)
+  - alternation              # x1.0
+```
+
+- The list is always applied as written. To weight every term equally, put them
+  all in a single tier.
+- A term left out of the list is switched off (multiplier 0), and `compute`
+  prints a warning when that happens.
+- The effective multipliers are printed at the top of every `compute` run.
+- Tiers scale a whole category. How bad an individual pattern is within it (for
+  example harmless versus severe scissors, or which redirects are worst) comes
+  from the model's cost curves, the `conditions` list and `redirect_tiers`.
 
 ### Redirect tiers
 
@@ -309,6 +355,22 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 `analyze` records a `corpus_provenance` block for the primary and secondary corpora. Each entry names the resolved path, corpus kind, configured weight, per-file SHA-1 and combined hash, parser rule id, normalization rule, and n-gram totals. The text report prints a compact summary; `--out-json` contains the full record. Provenance is observational and never changes a score.
 
 `compare` can read an external comparison bundle with `--corpus-json FILE`. The file is a single JSON object with `letters`, `bigrams`, and `trigrams` maps from n-gram strings to counts. This is a comparison-only input: it does not replace the native parser, and the config corpora still drive generation and the shipped baseline.
+
+## Development
+
+### Tests and the reference model
+
+`just check` runs the tests, `cargo fmt --check` and `clippy`. The regression
+baselines (`config/score_baseline.json`, the expected scores in `tests/`) measure
+a fixed reference model, not your live `config.yaml`. The tests build their
+config from `tests/fixtures/config.reference.yaml`, a frozen copy that uses
+`model/calibrated.json`, with cross-hand rules and hand restrictions stripped at
+test time.
+
+Editing `config.yaml`, `shiro.json` or the priority tiers therefore never breaks
+the suite. Only change the fixture, and regenerate the baselines
+(`shirolyzer check-baseline --write`), when you deliberately change what the
+reference model measures.
 
 ---
 

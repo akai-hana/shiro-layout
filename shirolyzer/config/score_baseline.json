@@ -4,7 +4,7 @@
     "passed": 166,
     "total": 166
   },
-  "model": "pattern_parameters_A_all.json",
+  "model": "calibrated.json",
   "references": {
     "canary": {
       "bigram": 2.2812344178249186,

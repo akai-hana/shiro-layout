@@ -34,7 +34,7 @@ general:
     finger_balance: 1%
 
 model:
-  parameters_file: model/pattern_parameters_A_all.json
+  parameters_file: model/shiro.json
   disallow_reverse_scissors: [MR]
 
 fingermap: |
@@ -58,10 +58,20 @@ conditions:
 
 # Tiered priority list.
 # High to low, most to least important in consideration.
+# Items grouped together share a tier. With N tiers, tier t (0 = highest) is
+# multiplied by 1 + 0.5 * (N - t - 1).  The list is always applied as written:
+# to weight every term equally, put them all in a single tier.  A term left out
+# of the list is switched off entirely (multiplier 0).  The effective
+# multipliers are printed at the top of every `compute` run.
+#
+# Avoid, worst first: SFBs/SFTs, then scissors, then redirects.
+# Seek: rolls together with finger strength (finger_balance), then alternation.
 priority_list:
-  - sfbs-sfts # sfb/ts are the unavoidable devil
-  - [scissors, redirects] # flow disruptions that are bad to have
-  - [rolls, alternation] # flow improving niceties
+  - sfbs-sfts # same-finger bigrams/trigrams: the unavoidable devil
+  - scissors # awkward stretches; harmless ones already cost nothing
+  - redirects # flow breakers, worst to least bad (see redirect_tiers)
+  - [rolls, finger_balance] # comfortable rolls, carried by the strong fingers
+  - alternation # nice to have, one tier below rolls
 
 # Redirect preferences. Tiers are ordered from most preferred (tier 1) to most
 # avoided (last tier). Fingers are numbered per hand: 1=index, 2=middle,
