@@ -1,3 +1,4 @@
+#![recursion_limit = "256"]
 #![allow(clippy::needless_range_loop, clippy::type_complexity)]
 
 pub mod analyze;
