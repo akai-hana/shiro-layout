@@ -20,7 +20,16 @@ pub fn reference_config() -> PathBuf {
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join("config.reference.yaml");
 
-            let source = shirolyzer::paths::config_dir().join("config.yaml");
+            // The reference model is frozen in tests/fixtures/config.reference.yaml
+            // so edits to the live config.yaml (priorities, fingermap, rules)
+            // cannot silently change what the regression baselines measure.
+            let fixture = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/fixtures/config.reference.yaml");
+            let source = if fixture.is_file() {
+                fixture
+            } else {
+                shirolyzer::paths::config_dir().join("config.yaml")
+            };
             let text = std::fs::read_to_string(&source).unwrap();
             let mut value: Value = serde_yaml::from_str(&text).unwrap();
             if let Some(root) = value.as_mapping_mut() {
