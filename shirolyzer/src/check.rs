@@ -162,7 +162,9 @@ pub fn run(args: CheckArgs) -> Result<()> {
         "baseline OK: audit {}/{}, {} references",
         actual["audit"]["passed"],
         actual["audit"]["total"],
-        actual["references"]
+        // Count the references the baseline covers, not every layout in
+        // references.toml (compute appends new ones after each run).
+        expected["references"]
             .as_object()
             .map(|m| m.len())
             .unwrap_or(0)
