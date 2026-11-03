@@ -154,18 +154,22 @@ Branch: `compute/variance-budget`
 
 Steps:
 
-- [ ] Add a small development helper (Python is acceptable because it is
+- [x] Add a small development helper (Python is acceptable because it is
       tooling only) that runs `compute` once per seed and reports the spread of
       `best_primary`.
-- [ ] Add a `just variance` recipe that builds the release binary, runs the
+- [x] Add a `just variance` recipe that builds the release binary, runs the
       helper, and prints min/max/mean/standard deviation/success rate.
-- [ ] Run the harness with the pre-change budget and a breadth-heavy budget
+- [x] Run the harness with the pre-change budget and a breadth-heavy budget
       (`--runs 200 --iters 25000`) after Phase 1 is merged.
-- [ ] Compare the spread and pick the new documented defaults for `--runs`,
+- [x] Compare the spread and pick the new documented defaults for `--runs`,
       `--iters`, and, if useful, `--stop-hits`/`--stop-stale-batches`.
-- [ ] Record the measurement command, seed range, spread, and decision in the
+      Seeds `0..19` gave zero spread for both `28x200000` and `200x25000`, so
+      the defaults stay `--runs 28 --iters 200000` and stopping stays disabled.
+      A `28x25000` control had a spread of `0.005378908`, so anneal depth still
+      matters on its own.
+- [x] Record the measurement command, seed range, spread, and decision in the
       tracking issue and in `shirolyzer/README.md`.
-- [ ] Do not change baselines or fitted scores as part of this phase.
+- [x] Do not change baselines or fitted scores as part of this phase.
 
 Suggested commit: `compute: measure variance and choose defaults`
 

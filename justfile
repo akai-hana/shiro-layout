@@ -16,6 +16,10 @@ build:
 test:
     cargo test --manifest-path {{manifest}} --release
 
+# Measure compute run-to-run variance across seeds
+variance *ARGS: build
+    {{python}} shirolyzer/utils/compute_variance.py {{ARGS}}
+
 # Verify the retained Python development tools still import
 dev-tools:
     {{python}} -m compileall -q shirolyzer corpora
