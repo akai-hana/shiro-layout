@@ -336,9 +336,9 @@
    "bi",
    [
     "U",
-    "MR"
+    "M"
    ],
-   "MI"
+   "MR"
   ],
   "family": "UM",
   "note": "",
@@ -351,9 +351,9 @@
    "bi",
    [
     "M",
-    "RM"
+    "U"
    ],
-   "IM"
+   "RM"
   ],
   "family": "UM",
   "note": "",
@@ -1273,9 +1273,9 @@
    [
     "K",
     "J",
-    "RMR"
+    "M"
    ],
-   "RMI"
+   "RMR"
   ],
   "family": "R8_KJM",
   "note": "",
@@ -1289,9 +1289,9 @@
    [
     "F",
     "J",
-    "IMR"
+    "M"
    ],
-   "IMI"
+   "IMR"
   ],
   "family": "R8_FJM",
   "note": "",
@@ -1616,7 +1616,7 @@
     "U",
     "H"
    ],
-   "MI"
+   "RMLI"
   ],
   "family": "R9_U",
   "note": "",
@@ -2428,7 +2428,7 @@
     "Y",
     "U"
    ],
-   "MR"
+   "LIRM"
   ],
   "family": "R12_YU",
   "note": "",
@@ -2443,7 +2443,7 @@
     "U",
     "Y"
    ],
-   "RM"
+   "RMLI"
   ],
   "family": "R12_YU",
   "note": "",
