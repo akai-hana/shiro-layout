@@ -367,10 +367,33 @@ finger_balance:
 ```
 
 `finger_balance_source` selects which fingering supplies the load used by the
-balance penalty. The default, `chosen`, uses the same context-dependent
-trigram-DP fingers that `analyze` reports. `default` uses the physical
-fingermap only. The penalty is off whenever `finger_balance` is absent from
+balance penalty. The penalty is off whenever `finger_balance` is absent from
 `priority_list`, regardless of this setting.
+
+- `chosen` (default): run the same context-dependent trigram DP used by
+  `analyze`, then accumulate the fingers it actually selected. It respects
+  `alt_fingers` allow/block rules, geometry reachability, and the selected
+  fingering mode. It does not bypass those rules and does not invent a
+  fingering just to improve balance.
+- `default`: accumulate each letter's corpus frequency on the physical key's
+  fixed fingermap finger. Alternative and context-dependent fingerings are
+  ignored.
+
+For example, place `H` on a key whose physical fingermap finger is `RR`, and
+allow the left-index alternative:
+
+```yaml
+alt_fingers:
+  - {ngram: [H], fingers: [LI], mode: allow}
+```
+
+With `finger_balance_source: default`, every `H` press contributes to `RR`.
+With `chosen`, the DP follows the allowed rule and those same `H` presses
+contribute to `LI`. If the rule is removed, blocked, or the alternative is
+unreachable, `chosen` falls back to the permitted fingering (the physical
+fingermap when no alternative is available); `default` is unchanged either
+way. The regression tests in `src/search.rs` pin this difference and verify
+that both modes respect the same allow/block and reachability rules.
 
 `finger_strength` (optional) adds a constant cost to every press by selected
 fingers. Bare `P`/`R`/`M`/`I` apply to both hands; explicit `LP`/`LR`/... tokens
