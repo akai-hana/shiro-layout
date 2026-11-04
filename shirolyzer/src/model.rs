@@ -13,6 +13,7 @@ use crate::geometry::{
 };
 use crate::redirect::{redirect_cost, RedirectCostTable};
 use crate::roll::RollCreditTable;
+use crate::scissor::ScissorTierTable;
 
 pub const PARAM_NAMES: [&str; 47] = [
     "e_dn",
@@ -180,6 +181,7 @@ pub struct Scales {
     pub alt: f64,
     pub redirect_costs: Option<RedirectCostTable>,
     pub roll_credits: Option<RollCreditTable>,
+    pub scissor_tiers: Option<ScissorTierTable>,
 }
 
 impl Default for Scales {
@@ -192,6 +194,7 @@ impl Default for Scales {
             alt: 1.0,
             redirect_costs: None,
             roll_credits: None,
+            scissor_tiers: None,
         }
     }
 }
@@ -213,6 +216,9 @@ pub struct ModelTables {
     pub t2: Vec<f64>,
     pub strain: Vec<f64>,
     pub parts: Parts,
+    /// Severity band for each directed finger pair, or `u8::MAX` when the pair
+    /// is not a scissor.
+    pub scissor_band: Vec<u8>,
 }
 
 pub struct Model {
@@ -547,8 +553,9 @@ impl Model {
 
     fn tables_impl(&self, geom: &Geometry, ignore_reach: bool) -> ModelTables {
         let (e, nd) = self.key_cost_impl(geom, ignore_reach);
-        let (strain, parts) = self.pair_parts(geom, &nd);
+        let (mut strain, mut parts) = self.pair_parts(geom, &nd);
         let size = NK * NF * NK * NF;
+        let mut scissor_band = vec![u8::MAX; size];
         let mut pt = vec![0.0; size];
         let mut t2 = vec![0.0; size];
         for a in 0..NK {
@@ -563,6 +570,31 @@ impl Model {
                             + parts.roll[i]
                             + parts.leap[i]
                             + parts.shift[i];
+                        let scissor_like = pf.same_hand && pf.diff_f && pf.g > 0.25;
+                        if scissor_like {
+                            let base_cost = e[e_idx(a, fa)]
+                                + e[e_idx(b, fb)]
+                                + tot
+                                + crate::scissor::SCISSOR_STRAIN_OFFSET;
+                            let band = crate::scissor::band(base_cost);
+                            let mult = self
+                                .scales
+                                .scissor_tiers
+                                .as_ref()
+                                .map(|table| table.multiplier_for_band(band))
+                                .unwrap_or(1.0);
+                            scissor_band[i] = band as u8;
+                            parts.vert[i] *= mult;
+                            parts.cross[i] *= mult;
+                            parts.spread[i] *= mult;
+                            strain[i] *= mult;
+                            tot = parts.vert[i]
+                                + parts.cross[i]
+                                + parts.spread[i]
+                                + parts.roll[i]
+                                + parts.leap[i]
+                                + parts.shift[i];
+                        }
                         if tot > PAIR_CAP {
                             tot = PAIR_CAP;
                         }
@@ -595,6 +627,7 @@ impl Model {
             t2,
             strain,
             parts,
+            scissor_band,
         }
     }
 

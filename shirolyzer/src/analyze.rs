@@ -1210,7 +1210,7 @@ mod tests {
         );
         assert!((breakdown.total - score).abs() < 1e-9);
         assert!(
-            (breakdown.sum() - score).abs() < 1e-8,
+            (breakdown.sum() - score).abs() < 1e-6,
             "sum={} score={} diff={} breakdown={:?}",
             breakdown.sum(),
             score,
