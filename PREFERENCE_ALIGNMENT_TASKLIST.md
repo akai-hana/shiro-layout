@@ -465,18 +465,18 @@ on both corpora and locked with regression coverage.
 
 **Tasks:**
 
-- [ ] Run the P1 sweep over the final config dimensions.
-- [ ] Compare SHaI and Douglas metrics and reference-layout scores.
-- [ ] Select weights at the measured tradeoff boundary, not by intuition.
-- [ ] Update only the default `config.yaml` values that the sweep supports.
-- [ ] Refresh `tests/fixtures/config.reference.yaml` only if an intentional
+- [x] Run the P1 sweep over the final config dimensions.
+- [x] Compare SHaI and Douglas metrics and reference-layout scores.
+- [x] Select weights at the measured tradeoff boundary, not by intuition.
+- [x] Update only the default `config.yaml` values that the sweep supports.
+- [x] Refresh `tests/fixtures/config.reference.yaml` only if an intentional
       baseline change is approved.
-- [ ] Add regression tests for the final preference ordering.
-- [ ] Update README and config comments with the final semantics.
-- [ ] Run `just check`.
-- [ ] Run the ignored `compute_smoke` test.
-- [ ] Run `analyze` and `audit` on a retained layout and record final metrics.
-- [ ] Merge to `main`, delete the topic branch, and push.
+- [x] Add regression tests for the final preference ordering.
+- [x] Update README and config comments with the final semantics.
+- [x] Run `just check`.
+- [x] Run the ignored `compute_smoke` test.
+- [x] Run `analyze` and `audit` on a retained layout and record final metrics.
+- [x] Merge to `main`, delete the topic branch, and push.
 
 **Planned commits:**
 
