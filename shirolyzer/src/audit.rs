@@ -7,6 +7,7 @@ use anyhow::Result;
 use serde::Deserialize;
 use serde_json::{json, Value};
 
+use crate::config::AltMode;
 use crate::context::Context;
 use crate::geometry::{
     finger_index, finger_token, key_index, parse_finger8, FINGERS, KEYS, NF, NFINGER,
@@ -149,23 +150,7 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                 .collect();
             let want = expected_fp(&keys, r.data[2].as_str().unwrap_or(""));
             if typ == "bi" {
-                let a = key(keys[0]);
-                let b = key(keys[1]);
-                let pm = penalty(ctx, &keys);
-                let mut cand: Vec<(f64, String)> = Vec::new();
-                for fa in 0..NF {
-                    for fb in 0..NF {
-                        let c = t2(ctx, a, fa, b, fb);
-                        if c.is_finite() {
-                            cand.push((c + pm[fa * NF + fb], fp(&[fa, fb])));
-                        }
-                    }
-                }
-                cand.sort_by(|x, y| {
-                    x.0.partial_cmp(&y.0)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                        .then_with(|| x.1.cmp(&y.1))
-                });
+                let cand = probe_rows(ctx, &keys);
                 let tgt = cand.iter().find(|(_, f)| *f == want).map(|(c, _)| *c);
                 let Some(ct) = tgt else {
                     return (
@@ -195,28 +180,7 @@ pub fn eval_ruling(ctx: &Context, r: &Ruling) -> (f64, bool, String) {
                     ),
                 )
             } else {
-                let ids: Vec<usize> = keys.iter().map(|k| key(k)).collect();
-                let mut vals = block(ctx, &ids);
-                let pm = penalty(ctx, &keys);
-                for (i, v) in vals.iter_mut().enumerate() {
-                    *v += pm[i];
-                }
-                let mut cand: Vec<(f64, String)> = Vec::new();
-                for f1 in 0..NF {
-                    for f2 in 0..NF {
-                        for f3 in 0..NF {
-                            let c = vals[(f1 * NF + f2) * NF + f3];
-                            if c.is_finite() {
-                                cand.push((c, fp(&[f1, f2, f3])));
-                            }
-                        }
-                    }
-                }
-                cand.sort_by(|x, y| {
-                    x.0.partial_cmp(&y.0)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                        .then_with(|| x.1.cmp(&y.1))
-                });
+                let cand = probe_rows(ctx, &keys);
                 let tgt = cand.iter().find(|(_, f)| *f == want).map(|(c, _)| *c);
                 let Some(ct) = tgt else {
                     return (
@@ -549,6 +513,38 @@ fn probe_rows(ctx: &Context, names: &[&str]) -> Vec<(f64, String)> {
         )
     };
     let pm = penalty(ctx, names);
+    if let Some(unrestricted) = &ctx.tables.unrestricted {
+        let costs_unrestricted = if ids.len() == 2 {
+            ctx.model.bi_many(unrestricted, &[ids[0]], &[ids[1]])
+        } else {
+            ctx.model
+                .tri_many(&ctx.geom, unrestricted, &[ids[0]], &[ids[1]], &[ids[2]])
+        };
+        let chars: Vec<char> = names
+            .iter()
+            .map(|name| name.chars().next().unwrap())
+            .collect();
+        let explicit = ctx.gates.explicit_fingers(&chars);
+        for (i, value) in t.iter_mut().enumerate() {
+            if value.is_finite() || !pm[i].is_finite() {
+                continue;
+            }
+            let mut fingers = [0usize; 3];
+            let mut rem = i;
+            for pos in (0..ids.len()).rev() {
+                fingers[pos] = rem % NF;
+                rem /= NF;
+            }
+            let unreachable =
+                (0..ids.len()).any(|pos| !ctx.geom.is_reachable(ids[pos], fingers[pos]));
+            let allowed = (0..ids.len()).all(|pos| {
+                ctx.geom.is_reachable(ids[pos], fingers[pos]) || explicit[pos][fingers[pos]]
+            });
+            if unreachable && allowed {
+                *value = costs_unrestricted[i];
+            }
+        }
+    }
     for (i, v) in t.iter_mut().enumerate() {
         *v += pm[i] + PRESS * ids.len() as f64;
     }
@@ -574,6 +570,16 @@ fn probe_rows(ctx: &Context, names: &[&str]) -> Vec<(f64, String)> {
 
 fn best(ctx: &Context, names: &[&str]) -> String {
     probe_rows(ctx, names)[0].1.clone()
+}
+
+fn has_alt_rule(ctx: &Context, keys: &[char], fingers: &[&str], mode: AltMode) -> bool {
+    let fingers: Vec<usize> = fingers
+        .iter()
+        .map(|finger| parse_finger8(finger).unwrap())
+        .collect();
+    ctx.cfg.alt_fingers.iter().any(|rule| {
+        rule.keys.as_slice() == keys && rule.fingers.as_slice() == fingers && rule.mode == mode
+    })
 }
 
 pub fn collect(
@@ -624,6 +630,7 @@ pub fn collect(
         ("M-J-I yea", "MJI"),
         ("H-T-J exp", "HTJ"),
         ("H-W-J ext", "HWJ"),
+        ("H-L", "HL"),
         ("I-U-J age", "IUJ"),
         ("N-L-J equ", "NLJ"),
         ("V-G-J ble", "VGJ"),
@@ -638,6 +645,9 @@ pub fn collect(
         ("A-X", "AX"),
         ("U-J", "UJ"),
         ("U-H", "UH"),
+        ("M-I", "MI"),
+        ("X-F", "XF"),
+        ("X-S", "XS"),
         ("X-W", "XW"),
         ("S-W", "SW"),
         ("W-X-F wxf", "WXF"),
@@ -738,13 +748,13 @@ pub fn collect(
         top["OL"].clone()
     );
     chk!(
-        "K-J-M = ring/middle/index",
-        top["KJM"] == expected_fp(&["K", "J", "M"], "RMI"),
+        "K-J-M = ring/middle/ring",
+        top["KJM"] == expected_fp(&["K", "J", "M"], "RMR"),
         top["KJM"].clone()
     );
     chk!(
-        "F-J-M = index/middle/index",
-        top["FJM"] == expected_fp(&["F", "J", "M"], "IMI"),
+        "F-J-M = index/middle/ring",
+        top["FJM"] == expected_fp(&["F", "J", "M"], "IMR"),
         top["FJM"].clone()
     );
     let lo = probe_rows(ctx, &["L", "O"]);
@@ -776,6 +786,57 @@ pub fn collect(
         &top["IUJ"][4..6] != "RM",
         top["IUJ"].clone()
     );
+    if has_alt_rule(ctx, &['H'], &["LI"], AltMode::Permit) {
+        chk!(
+            "H picks LI in left context",
+            top["HTJ"].starts_with("LI"),
+            top["HTJ"].clone()
+        );
+        chk!(
+            "H keeps RI in right context",
+            top["HL"].starts_with("RI"),
+            top["HL"].clone()
+        );
+    }
+    if has_alt_rule(ctx, &['Y'], &["LI"], AltMode::Allow)
+        && has_alt_rule(ctx, &['Y'], &["RM"], AltMode::Allow)
+    {
+        chk!(
+            "Y prefers LI over RM",
+            top["YU"].starts_with("LI") && top["UY"].ends_with("LI"),
+            format!("YU {} / UY {}", top["YU"], top["UY"])
+        );
+        chk!(
+            "Y does not freely use LM",
+            !top["YU"].contains("LM") && !top["UY"].contains("LM"),
+            format!("YU {} / UY {}", top["YU"], top["UY"])
+        );
+    }
+    if has_alt_rule(ctx, &['M'], &["RR"], AltMode::Permit)
+        && has_alt_rule(ctx, &['M'], &["RM"], AltMode::Block)
+    {
+        let m_tokens: Vec<(&str, &str)> = vec![
+            ("MI", &top["MI"][..2]),
+            ("MJ", &top["MJ"][..2]),
+            ("KJM", &top["KJM"][4..6]),
+            ("FJM", &top["FJM"][4..6]),
+        ];
+        let uses_rm = m_tokens.iter().any(|(_, finger)| *finger == "RM");
+        let uses_rr = m_tokens.iter().any(|(_, finger)| *finger == "RR");
+        chk!("M never uses RM", !uses_rm, format!("{:?}", m_tokens));
+        chk!(
+            "M uses RR where preferable",
+            uses_rr,
+            format!("MJ {} / FJM {}", top["MJ"], top["FJM"])
+        );
+    }
+    if has_alt_rule(ctx, &['X'], &["LM"], AltMode::Block) {
+        chk!(
+            "X prefers LR with LI available",
+            top["XF"].starts_with("LR") && top["XS"].starts_with("LI"),
+            format!("XF {} / XS {}", top["XF"], top["XS"])
+        );
+    }
     chk!(
         "V-G-J forces V/G index",
         top["VGJ"].starts_with(&expected_fp(&["V", "G"], "II")),
@@ -1373,6 +1434,40 @@ mod tests {
             conditions,
             tables,
         }
+    }
+
+    #[test]
+    fn live_config_pins_h_y_m_x_finger_preferences() {
+        let ctx = Context::load(None).unwrap().calibration().unwrap();
+        assert!(has_alt_rule(&ctx, &['H'], &["LI"], AltMode::Permit));
+        assert!(!has_alt_rule(&ctx, &['H'], &["LI"], AltMode::Allow));
+        assert!(has_alt_rule(&ctx, &['Y'], &["LI"], AltMode::Allow));
+        assert!(has_alt_rule(&ctx, &['Y'], &["RM"], AltMode::Allow));
+        assert!(!has_alt_rule(&ctx, &['Y'], &["LM"], AltMode::Allow));
+        assert!(has_alt_rule(&ctx, &['M'], &["RR"], AltMode::Permit));
+        assert!(has_alt_rule(&ctx, &['M'], &["RM"], AltMode::Block));
+        assert!(has_alt_rule(&ctx, &['X'], &["LM"], AltMode::Block));
+
+        assert!(probe_rows(&ctx, &["H", "T", "J"])[0].1.starts_with("LI"));
+        assert!(probe_rows(&ctx, &["H", "L"])[0].1.starts_with("RI"));
+        assert!(probe_rows(&ctx, &["Y", "U"])[0].1.starts_with("LI"));
+        assert!(!probe_rows(&ctx, &["Y", "U"])[0].1.contains("LM"));
+        assert!(!probe_rows(&ctx, &["U", "Y"])[0].1.contains("LM"));
+
+        for keys in [
+            &["M", "I"][..],
+            &["M", "J"][..],
+            &["K", "J", "M"][..],
+            &["F", "J", "M"][..],
+        ] {
+            let row = probe_rows(&ctx, keys)[0].1.clone();
+            let m = keys.iter().position(|key| *key == "M").unwrap();
+            assert_ne!(&row[m * 2..m * 2 + 2], "RM");
+        }
+        assert!(probe_rows(&ctx, &["M", "J"])[0].1.starts_with("RR"));
+        assert!(probe_rows(&ctx, &["K", "J", "M"])[0].1.ends_with("RR"));
+        assert!(probe_rows(&ctx, &["X", "F"])[0].1.starts_with("LR"));
+        assert!(probe_rows(&ctx, &["X", "S"])[0].1.starts_with("LI"));
     }
 
     #[test]

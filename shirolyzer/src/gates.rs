@@ -99,7 +99,7 @@ impl Gates {
         let mut out = vec![[false; NF]; keys.len()];
         for m in self.active_matches(keys) {
             let rule = &self.rules[m.rule_idx];
-            if rule.mode != AltMode::Allow {
+            if !matches!(rule.mode, AltMode::Allow | AltMode::Permit) {
                 continue;
             }
             for (offset, &finger) in rule.fingers.iter().enumerate() {
@@ -124,6 +124,7 @@ impl Gates {
         let matches = self.active_matches(keys);
 
         let mut allow_groups: Vec<(usize, usize, Vec<usize>)> = Vec::new();
+        let mut permit_rules: Vec<(usize, usize, usize)> = Vec::new();
         let mut block_rules: Vec<(usize, usize, usize)> = Vec::new();
         for m in matches {
             match self.rules[m.rule_idx].mode {
@@ -137,6 +138,7 @@ impl Gates {
                         allow_groups.push((m.start, m.len, vec![m.rule_idx]));
                     }
                 }
+                AltMode::Permit => permit_rules.push((m.start, m.len, m.rule_idx)),
                 AltMode::Block => block_rules.push((m.start, m.len, m.rule_idx)),
             }
         }
@@ -177,6 +179,10 @@ impl Gates {
                         && group
                             .iter()
                             .any(|&rule_idx| self.rules[rule_idx].fingers[pos - *start] == finger)
+                }) || permit_rules.iter().any(|(start, len, rule_idx)| {
+                    pos >= *start
+                        && pos < *start + *len
+                        && self.rules[*rule_idx].fingers[pos - *start] == finger
                 });
                 if !licensed {
                     *value = f64::INFINITY;
