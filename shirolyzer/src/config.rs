@@ -207,7 +207,16 @@ impl Config {
         Scales {
             sfb: m["sfbs-sfts"],
             scissor: m["scissors"],
-            redirect: m["redirects"] * self.redirect_scale,
+            redirect: m["redirects"]
+                * if self
+                    .redirect_tiers
+                    .as_ref()
+                    .is_some_and(RedirectTiers::has_weights)
+                {
+                    1.0
+                } else {
+                    self.redirect_scale
+                },
             roll: m["rolls"],
             alt: m["alternation"],
             redirect_costs: self.redirect_tiers.as_ref().map(RedirectTiers::cost_table),
@@ -232,7 +241,14 @@ impl Config {
             .iter()
             .flatten()
             .map(|name| {
-                if name == "redirects" && self.redirect_scale != 1.0 {
+                if name == "redirects"
+                    && self
+                        .redirect_tiers
+                        .as_ref()
+                        .is_some_and(RedirectTiers::has_weights)
+                {
+                    format!("{name} ×{:.1} (per-tier weights)", weights[name])
+                } else if name == "redirects" && self.redirect_scale != 1.0 {
                     format!(
                         "{name} ×{:.1} (tier ×{:.1} · redirect_scale ×{})",
                         weights[name] * self.redirect_scale,
@@ -1005,6 +1021,59 @@ fn parse_redirect_tiers(path: &Path, value: Option<&Value>) -> Result<Option<Red
     Ok(Some(RedirectTiers::new(tiers)))
 }
 
+fn parse_redirect_tier_weights(
+    path: &Path,
+    value: Option<&Value>,
+    tier_count: Option<usize>,
+) -> Result<Option<Vec<f64>>> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let Some(tier_count) = tier_count else {
+        return Err(fail(
+            path,
+            "redirect_tier_weights",
+            "requires redirect_tiers",
+        ));
+    };
+    let seq = value.as_sequence().ok_or_else(|| {
+        fail(
+            path,
+            "redirect_tier_weights",
+            "expected one non-negative number per redirect tier",
+        )
+    })?;
+    if seq.len() != tier_count {
+        return Err(fail(
+            path,
+            "redirect_tier_weights",
+            &format!(
+                "expected {tier_count} weights (one per redirect tier), got {}",
+                seq.len()
+            ),
+        ));
+    }
+    let mut weights = Vec::with_capacity(seq.len());
+    for (i, item) in seq.iter().enumerate() {
+        let weight = as_number(
+            path,
+            &format!("redirect_tier_weights[{i}]"),
+            item,
+            Some(0.0),
+            None,
+        )?;
+        weights.push(weight);
+    }
+    if weights.windows(2).any(|pair| pair[0] >= pair[1]) {
+        return Err(fail(
+            path,
+            "redirect_tier_weights",
+            "must increase strictly from the best tier to the worst",
+        ));
+    }
+    Ok(Some(weights))
+}
+
 fn parse_roll_pair(path: &Path, where_: &str, text: &str) -> Result<[u8; 2]> {
     let parts: Vec<&str> = text.split('-').collect();
     if parts.len() != 2 {
@@ -1377,6 +1446,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         &[
             "hand_restrictions",
             "redirect_tiers",
+            "redirect_tier_weights",
             "redirect_scale",
             "roll_tiers",
             "scissor_tiers",
@@ -1543,7 +1613,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     let alt_fingers = parse_alt_fingers(&path, get(root, "alt_fingers"))?;
     let conditions = parse_conditions(&path, get(root, "conditions"))?;
     let priority_list = parse_priority(&path, get(root, "priority_list"))?;
-    let redirect_tiers = parse_redirect_tiers(&path, get(root, "redirect_tiers"))?;
+    let mut redirect_tiers = parse_redirect_tiers(&path, get(root, "redirect_tiers"))?;
     let redirect_scale = match get(root, "redirect_scale") {
         Some(value) => as_number(&path, "redirect_scale", value, Some(0.0), None)?,
         None => 1.0,
@@ -1554,6 +1624,24 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
             "redirect_scale",
             "must be greater than 0 (to switch redirects off, leave them out of priority_list)",
         ));
+    }
+    let redirect_tier_weights = parse_redirect_tier_weights(
+        &path,
+        get(root, "redirect_tier_weights"),
+        redirect_tiers.as_ref().map(RedirectTiers::len),
+    )?;
+    if let Some(weights) = redirect_tier_weights {
+        if get(root, "redirect_scale").is_some() {
+            return Err(fail(
+                &path,
+                "redirect_tier_weights",
+                "cannot be combined with redirect_scale; use one or the other",
+            ));
+        }
+        let tiers = redirect_tiers
+            .take()
+            .expect("weights parser requires redirect tiers");
+        redirect_tiers = Some(RedirectTiers::with_weights(tiers.tiers().to_vec(), weights));
     }
     let roll_tiers = parse_roll_tiers(&path, get(root, "roll_tiers"))?;
     let scissor_tiers = parse_scissor_tiers(&path, get(root, "scissor_tiers"))?;
@@ -1844,6 +1932,32 @@ mod cross_hand_tests {
     }
 
     #[test]
+    fn redirect_weights_are_optional_and_must_match_tiers() {
+        let tiers = redirects("- [\"1-2-1\"]\n- [\"3-2-3\"]").unwrap();
+        let parse = |yaml: &str| {
+            let value: Value = serde_yaml::from_str(yaml).unwrap();
+            parse_redirect_tier_weights(
+                Path::new("config.yaml"),
+                Some(&value),
+                tiers.as_ref().map(RedirectTiers::len),
+            )
+        };
+        assert_eq!(parse("[0, 0.5]").unwrap(), Some(vec![0.0, 0.5]));
+        for bad in [
+            "[]",
+            "[0]",
+            "[0, 0.5, 1]",
+            "[-1, 0.5]",
+            "[1, 0.5]",
+            "[0, x]",
+        ] {
+            assert!(parse(bad).is_err(), "{bad} should fail");
+        }
+        let value: Value = serde_yaml::from_str("[0, 0.5]").unwrap();
+        assert!(parse_redirect_tier_weights(Path::new("config.yaml"), Some(&value), None).is_err());
+    }
+
+    #[test]
     fn redirect_tiers_reject_malformed_entries() {
         for yaml in [
             "[]",
@@ -2050,7 +2164,9 @@ mod cross_hand_tests {
         let path = dir.join(format!("c{}.yaml", extra.len()));
         let mut text: String = text
             .lines()
-            .filter(|l| !l.starts_with("redirect_scale:"))
+            .filter(|l| {
+                !l.starts_with("redirect_scale:") && !l.starts_with("redirect_tier_weights:")
+            })
             .collect::<Vec<_>>()
             .join("\n");
         text.push('\n');
@@ -2060,14 +2176,24 @@ mod cross_hand_tests {
     }
 
     #[test]
-    fn shipped_config_sets_roll_tiers_and_redirect_scale() {
+    fn redirect_weights_cannot_be_combined_with_redirect_scale() {
+        assert!(config_with(
+            "redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]\nredirect_scale: 1.5\n"
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn shipped_config_sets_roll_tiers_and_redirect_weights() {
         let cfg = load(None).unwrap();
         let rolls = cfg.roll_tiers.as_ref().expect("roll tiers");
         assert_eq!(rolls.tiers(), &[vec![[1, 2], [2, 1]]]);
-        assert_eq!(cfg.redirect_scale, 3.0);
+        let tiers = cfg.redirect_tiers.as_ref().expect("redirect tiers");
+        assert_eq!(tiers.weights(), Some(&[0.0, 0.01, 2.0, 3.5, 5.0][..]));
+        assert_eq!(tiers.fallback(), Some(5.0));
         let weights = cfg.priority_multipliers();
-        assert_eq!(cfg.scales().redirect, weights["redirects"] * 3.0);
-        assert!(cfg.priority_summary().contains("redirect_scale ×3"));
+        assert_eq!(cfg.scales().redirect, weights["redirects"]);
+        assert!(cfg.priority_summary().contains("per-tier weights"));
     }
 
     #[test]

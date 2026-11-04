@@ -1,0 +1,9 @@
+- name: redirect-floor
+  overrides:
+    redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
+- name: redirect-limited
+  overrides:
+    redirect_tier_weights: [0.0, 0.01, 4.0, 4.5, 5.0]
+- name: redirect-soft
+  overrides:
+    redirect_tier_weights: [0.0, 0.03, 0.7, 2.0, 3.2]
