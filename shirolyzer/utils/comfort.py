@@ -50,11 +50,11 @@ PARAMS = {
     "lam_spread": (1.00, 0.0, 3.0, "lat"),
     "w_spread":  (1.00, 0.0, 2.0, "lat"),
     # rolls / leaps
-    "r_MI":      (-0.275, -0.8, 0.2, "roll"),
-    "r_RM_in":   (-0.35, -0.8, 0.2, "roll"),     # ring -> middle
+    "r_MI":      (-0.275, -0.8, 0.2, "roll"),    # index <-> middle: tie
+    "r_RM_in":   (-0.45, -0.8, 0.2, "roll"),     # ring -> middle (slightly good)
     "r_RM_out":  (-0.20, -0.8, 0.2, "roll"),     # middle -> ring
-    "r_PR_out":  (-0.14, -0.8, 0.2, "roll"),     # ring -> pinky  (good)
-    "r_PR_in":   (0.06, -0.4, 0.8, "roll"),      # pinky -> ring  (awkward)
+    "r_PR_out":  (-0.05, -0.8, 0.2, "roll"),     # ring -> pinky
+    "r_PR_in":   (-0.40, -0.8, 0.2, "roll"),     # pinky -> ring  (good)
     "leap2":     (0.15, 0.0, 1.5, "roll"),
     "leap3":     (0.35, 0.0, 2.0, "roll"),
     "leap_P":    (0.15, 0.0, 1.5, "roll"),
