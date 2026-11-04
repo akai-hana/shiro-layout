@@ -357,16 +357,16 @@ no explicit severity tiers comparable to `redirect_tiers`.
 
 **Tasks:**
 
-- [ ] Audit the current scissor cost sources: lateral spread, direction,
+- [x] Audit the current scissor cost sources: lateral spread, direction,
       full-span conditions, reverse-scissor restrictions, and hard blocks.
-- [ ] Define named severity bands from most to least comfortable.
-- [ ] Add a `scissor_tiers`-style configuration or severity-band multipliers.
-- [ ] Weight the worst scissor band at approximately the SFB/SFT priority.
-- [ ] Make each milder band progressively cheaper than SFBs.
-- [ ] Preserve hard impossibilities for full-span M/R and other blocked forms.
-- [ ] Report scissor counts and costs per band in `analyze`.
-- [ ] Add ordering tests for representative scissor pairs.
-- [ ] Run reference-layout comparisons before accepting the new weights.
+- [x] Define named severity bands from most to least comfortable.
+- [x] Add a `scissor_tiers`-style configuration or severity-band multipliers.
+- [x] Weight the worst scissor band at approximately the SFB/SFT priority.
+- [x] Make each milder band progressively cheaper than SFBs.
+- [x] Preserve hard impossibilities for full-span M/R and other blocked forms.
+- [x] Report scissor counts and costs per band in `analyze`.
+- [x] Add ordering tests for representative scissor pairs.
+- [x] Run reference-layout comparisons before accepting the new weights.
 
 **Planned commits:**
 

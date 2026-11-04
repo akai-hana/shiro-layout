@@ -13,6 +13,7 @@ use crate::model::{missing_parameters, Scales};
 use crate::paths;
 use crate::redirect::{is_turn, RedirectTiers};
 use crate::roll::{is_adjacent, RollTiers};
+use crate::scissor::{ScissorTiers, SCISSOR_BANDS};
 
 pub const PRIORITY_NAMES: [&str; 6] = [
     "sfbs-sfts",
@@ -192,6 +193,7 @@ pub struct Config {
     /// `redirects` priority tier (1.0 = no change).
     pub redirect_scale: f64,
     pub roll_tiers: Option<RollTiers>,
+    pub scissor_tiers: Option<ScissorTiers>,
     pub finger_balance: HashMap<char, f64>,
     pub flat_share: HashMap<char, f64>,
     pub finger_strength: [f64; NF],
@@ -210,6 +212,7 @@ impl Config {
             alt: m["alternation"],
             redirect_costs: self.redirect_tiers.as_ref().map(RedirectTiers::cost_table),
             roll_credits: self.roll_tiers.as_ref().map(RollTiers::credit_table),
+            scissor_tiers: self.scissor_tiers.as_ref().map(ScissorTiers::table),
         }
     }
 
@@ -1288,6 +1291,70 @@ fn default_conditions() -> Result<Value> {
     serde_yaml::from_str(DEFAULT_CONDITIONS_YAML).context("default conditions")
 }
 
+fn parse_scissor_tiers(path: &Path, value: Option<&Value>) -> Result<Option<ScissorTiers>> {
+    let Some(value) = value else {
+        return Ok(None);
+    };
+    let seq = value
+        .as_sequence()
+        .ok_or_else(|| fail(path, "scissor_tiers", "expected a non-empty list of bands"))?;
+    if seq.is_empty() {
+        return Err(fail(
+            path,
+            "scissor_tiers",
+            "expected a non-empty list of bands",
+        ));
+    }
+    let mut multipliers = [1.0; 4];
+    let mut seen = [false; 4];
+    for (i, item) in seq.iter().enumerate() {
+        let where_i = format!("scissor_tiers[{}]", i);
+        let map = as_mapping(path, &where_i, item)?;
+        for key in map.keys() {
+            let name = key.as_str().unwrap_or("?");
+            if !["band", "multiplier"].contains(&name) {
+                return Err(fail(
+                    path,
+                    &where_i,
+                    &format!("unknown field {name:?}; expected band or multiplier"),
+                ));
+            }
+        }
+        let name = as_string(
+            path,
+            &format!("{where_i}.band"),
+            get(map, "band").ok_or_else(|| fail(path, &where_i, "missing band"))?,
+        )?;
+        let band = SCISSOR_BANDS
+            .iter()
+            .position(|candidate| *candidate == name)
+            .ok_or_else(|| {
+                fail(
+                    path,
+                    &format!("{where_i}.band"),
+                    &format!("unknown band {name:?}; expected one of {:?}", SCISSOR_BANDS),
+                )
+            })?;
+        if seen[band] {
+            return Err(fail(
+                path,
+                &format!("{where_i}.band"),
+                &format!("duplicate scissor band {name:?}"),
+            ));
+        }
+        let multiplier = as_number(
+            path,
+            &format!("{where_i}.multiplier"),
+            get(map, "multiplier").ok_or_else(|| fail(path, &where_i, "missing multiplier"))?,
+            Some(0.0),
+            None,
+        )?;
+        multipliers[band] = multiplier;
+        seen[band] = true;
+    }
+    Ok(Some(ScissorTiers::new(multipliers)))
+}
+
 pub fn load(path: Option<&Path>) -> Result<Config> {
     let path = path
         .map(Path::to_path_buf)
@@ -1312,6 +1379,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
             "redirect_tiers",
             "redirect_scale",
             "roll_tiers",
+            "scissor_tiers",
             "finger_strength",
             "finger_balance_source",
         ],
@@ -1488,6 +1556,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         ));
     }
     let roll_tiers = parse_roll_tiers(&path, get(root, "roll_tiers"))?;
+    let scissor_tiers = parse_scissor_tiers(&path, get(root, "scissor_tiers"))?;
     let (finger_balance, flat_share) = parse_balance(&path, get(root, "finger_balance"))?;
     let finger_strength = parse_finger_strength(&path, get(root, "finger_strength"))?;
     let balance_source = parse_balance_source(&path, get(root, "finger_balance_source"))?;
@@ -1518,6 +1587,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         redirect_tiers,
         redirect_scale,
         roll_tiers,
+        scissor_tiers,
         finger_balance,
         flat_share,
         finger_strength,
@@ -1852,6 +1922,82 @@ mod cross_hand_tests {
         assert_eq!(table.credit([2, 1]), None);
         cfg.roll_tiers = None;
         assert!(cfg.scales().roll_credits.is_none());
+    }
+
+    fn scissors(yaml: &str) -> Result<Option<ScissorTiers>> {
+        let value: Value = serde_yaml::from_str(yaml).unwrap();
+        parse_scissor_tiers(Path::new("config.yaml"), Some(&value))
+    }
+
+    #[test]
+    fn scissor_tiers_are_optional() {
+        let parsed = parse_scissor_tiers(Path::new("config.yaml"), None).unwrap();
+        assert!(parsed.is_none());
+    }
+
+    #[test]
+    fn scissor_tiers_accept_the_documented_shape() {
+        let parsed = scissors(
+            r#"
+- {band: mild, multiplier: 0.5}
+- {band: moderate, multiplier: 0.75}
+- {band: severe, multiplier: 1.0}
+- {band: extreme, multiplier: 0.1}
+"#,
+        )
+        .unwrap()
+        .unwrap();
+        assert_eq!(parsed.multipliers(), [0.5, 0.75, 1.0, 0.1]);
+    }
+
+    #[test]
+    fn scissor_tiers_may_leave_bands_at_the_default() {
+        let parsed = scissors(r#"- {band: mild, multiplier: 0.5}"#)
+            .unwrap()
+            .unwrap();
+        assert_eq!(parsed.multipliers(), [0.5, 1.0, 1.0, 1.0]);
+    }
+
+    #[test]
+    fn scissor_tiers_reject_malformed_entries() {
+        for yaml in [
+            "[]",
+            "- mild",
+            "- {band: mild}",
+            "- {multiplier: 0.5}",
+            "- {band: tiny, multiplier: 0.5}",
+            "- {band: mild, multiplier: -0.1}",
+            "- {band: mild, multiplier: lots}",
+            "- {band: mild, multiplier: 0.5, extra: 1}",
+            "- {band: mild, multiplier: 0.5}\n- {band: mild, multiplier: 0.5}",
+        ] {
+            assert!(scissors(yaml).is_err(), "{yaml} should fail");
+        }
+    }
+
+    #[test]
+    fn scissor_tiers_reach_the_model_scales() {
+        let mut cfg = load(None).unwrap();
+        cfg.scissor_tiers = scissors(
+            r#"
+- {band: mild, multiplier: 0.5}
+- {band: moderate, multiplier: 0.75}
+- {band: severe, multiplier: 1.0}
+- {band: extreme, multiplier: 0.1}
+"#,
+        )
+        .unwrap();
+        let table = cfg.scales().scissor_tiers.expect("scissor tiers");
+        assert_eq!(table.multipliers(), [0.5, 0.75, 1.0, 0.1]);
+        cfg.scissor_tiers = None;
+        assert!(cfg.scales().scissor_tiers.is_none());
+    }
+
+    #[test]
+    fn shipped_config_sets_scissor_tiers() {
+        let cfg = load(None).unwrap();
+        let tiers = cfg.scissor_tiers.as_ref().expect("scissor tiers");
+        assert_eq!(tiers.multipliers(), [0.5, 0.75, 1.0, 0.12]);
     }
 
     #[test]
