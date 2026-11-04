@@ -147,3 +147,17 @@ layout = "mhtcgqura,lndspbewoivxzfk.;/jy"
 primary_score = 3.591343816
 secondary_score = nan
 seed = 281472432
+
+[[reference]]
+name = "shiro-560136193"
+layout = "pdrmv;koifnsltcgehuabxqzwy,./j"
+primary_score = 4.033667862
+secondary_score = 4.204350063
+seed = 560136193
+
+[[reference]]
+name = "shiro-513360791"
+layout = "mpslkqyoiftndrcwehuavbxzg;,./j"
+primary_score = 4.016235467
+secondary_score = 4.339497489
+seed = 513360791
