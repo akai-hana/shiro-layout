@@ -27,6 +27,7 @@ pub struct Tables {
     pub big_f: Vec<u8>,
     pub tri_f: Vec<[u8; 3]>,
     pub model: ModelTables,
+    pub unrestricted: Option<ModelTables>,
 }
 
 #[inline]
@@ -67,7 +68,7 @@ impl Tables {
         let mt_unrestricted = if fixed {
             None
         } else if gates.rules.iter().any(|rule| {
-            rule.mode == AltMode::Allow
+            matches!(rule.mode, AltMode::Allow | AltMode::Permit)
                 && rule.keys.iter().zip(&rule.fingers).any(|(&key, &finger)| {
                     let k = key_index(&key.to_string()).unwrap_or(0);
                     !geom.is_reachable(k, finger)
@@ -352,6 +353,7 @@ impl Tables {
             big_f,
             tri_f,
             model: mt,
+            unrestricted: mt_unrestricted,
         })
     }
 
