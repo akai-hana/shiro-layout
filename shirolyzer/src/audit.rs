@@ -963,8 +963,9 @@ pub fn collect(
         }
     );
     chk!(
-        "U->J, U->H middle on U",
-        top["UJ"] == expected_fp(&["U", "J"], "MI") && top["UH"] == expected_fp(&["U", "H"], "MI"),
+        "U->J middle, U->H left index",
+        top["UJ"] == expected_fp(&["U", "J"], "MI")
+            && top["UH"] == expected_fp(&["U", "H"], "RMLI"),
         format!("{} {}", top["UJ"], top["UH"])
     );
     chk!(
@@ -989,8 +990,8 @@ pub fn collect(
     );
     chk!(
         "YU and RT/TR ring-middle / middle-ring on both hands",
-        top["YU"] == expected_fp(&["Y", "U"], "MR")
-            && top["UY"] == expected_fp(&["U", "Y"], "RM")
+        top["YU"] == expected_fp(&["Y", "U"], "LIRM")
+            && top["UY"] == expected_fp(&["U", "Y"], "RMLI")
             && best(ctx, &["R", "T"]) == expected_fp(&["R", "T"], "RM")
             && best(ctx, &["T", "R"]) == expected_fp(&["T", "R"], "MR"),
         format!(
@@ -1468,6 +1469,16 @@ mod tests {
         assert!(probe_rows(&ctx, &["K", "J", "M"])[0].1.ends_with("RR"));
         assert!(probe_rows(&ctx, &["X", "F"])[0].1.starts_with("LR"));
         assert!(probe_rows(&ctx, &["X", "S"])[0].1.starts_with("LI"));
+    }
+
+    #[test]
+    fn live_config_pins_yu_and_uh_ruling_corrections() {
+        let ctx = Context::load(None).unwrap().calibration().unwrap();
+        assert_eq!(probe_rows(&ctx, &["Y", "U"])[0].1, "LIRM");
+        assert_eq!(probe_rows(&ctx, &["U", "Y"])[0].1, "RMLI");
+        assert_eq!(probe_rows(&ctx, &["U", "H"])[0].1, "RMLI");
+        assert_ne!(probe_rows(&ctx, &["U", "H"])[0].1, "RMRI");
+        assert_eq!(probe_rows(&ctx, &["H", "U"])[0].1, "RIRM");
     }
 
     #[test]
