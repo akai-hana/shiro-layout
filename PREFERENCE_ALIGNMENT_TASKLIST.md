@@ -318,18 +318,18 @@ W/D and A/S, and the preference magnitude should depend on finger weakness.
 
 **Tasks:**
 
-- [ ] Audit the semantics of `r_MI`, `r_RM_in`, `r_RM_out`, `r_PR_in`,
+- [x] Audit the semantics of `r_MI`, `r_RM_in`, `r_RM_out`, `r_PR_in`,
       `r_PR_out`, and `m_*` before changing values.
-- [ ] Define a direction-bias function that scales with finger weakness.
-- [ ] Force index↔middle direction costs to tie.
-- [ ] Make ring→middle slightly preferred over middle→ring.
-- [ ] Make pinky→ring strongly preferred over ring→pinky.
-- [ ] Invert W/D so W→D is slightly preferred over D→W.
-- [ ] Ensure the W:LI + D:LM alternative makes W/D direction-insensitive.
-- [ ] Invert A/S so A→S is preferred over S→A.
-- [ ] Measure the final A/S ratio with P1; do not assume the current nearly
+- [x] Define a direction-bias function that scales with finger weakness.
+- [x] Force index↔middle direction costs to tie.
+- [x] Make ring→middle slightly preferred over middle→ring.
+- [x] Make pinky→ring strongly preferred over ring→pinky.
+- [x] Invert W/D so W→D is slightly preferred over D→W.
+- [x] Ensure the W:LI + D:LM alternative makes W/D direction-insensitive.
+- [x] Invert A/S so A→S is preferred over S→A.
+- [x] Measure the final A/S ratio with P1; do not assume the current nearly
       double gap is correct.
-- [ ] Reconcile direction bias with `roll_tiers` so unlisted pairs retain the
+- [x] Reconcile direction bias with `roll_tiers` so unlisted pairs retain the
       intended model weights.
 
 **Planned commits:**
