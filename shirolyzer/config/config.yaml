@@ -329,7 +329,9 @@ redirect_scale: 3.0
 # "2-1" is middle then index.  Only neighbouring fingers can roll.  With N
 # tiers, tier t (0 = highest) earns a roll credit of -0.60 * (N - t) / N per
 # pair, scaled by the `rolls` priority.  Listed pairs replace the model's own
-# roll weight (r_MI, r_RM_*, r_PR_*); unlisted pairs keep it.
+# roll weight (r_MI, r_RM_*, r_PR_*); unlisted pairs keep it.  The model's
+# unlisted bias grows with the weaker finger: index<->middle is a tie,
+# ring->middle is slightly preferred, and pinky->ring is strongly preferred.
 roll_tiers:
   - ["1-2", "2-1"]
 

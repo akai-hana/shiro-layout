@@ -347,6 +347,7 @@ roll_tiers:
 
 - With N tiers, tier t (0 = highest) earns a roll credit of `-0.60 * (N - t) / N` per pair, so a single tier earns the full `-0.60`. The credit still fades with key distance and is multiplied by the `rolls` priority.
 - A listed pair replaces the model's own weight for that pair and direction (`r_MI`, `r_RM_in`, `r_RM_out`, `r_PR_in`, `r_PR_out`). Unlisted pairs keep the model's weight, and the calibrated model is unchanged when `roll_tiers` is absent.
+- The unlisted direction bias scales with the weaker finger: index<->middle is a tie, ring->middle is slightly preferred over middle->ring, and pinky->ring is strongly preferred over ring->pinky.
 - This is a per-pair preference, not a redirect penalty: a redirect such as `1-2-1` still collects the credit of each pair it contains. To avoid redirects, use `redirect_tiers` and `redirect_scale`.
 - `analyze` reports the share of letter bigrams in each tier and each pair (`roll_tier_N` and `roll_A_B` in the JSON).
 
