@@ -22,11 +22,15 @@
     - [Polishing](#polishing)
     - [Terminal output](#terminal-output)
     - [Measuring variance](#measuring-variance)
+    - [Model parameters](#model-parameters)
     - [Priority tiers](#priority-tiers)
     - [Redirect tiers](#redirect-tiers)
+    - [Roll tiers](#roll-tiers)
     - [Conditions](#conditions)
 - [Analysis](#analysis)
     - [Corpus provenance](#corpus-provenance)
+- [Development](#development)
+    - [Tests and the reference model](#tests-and-the-reference-model)
 
 ---
 
@@ -168,6 +172,8 @@ Useful flags:
 - `--valid-tolerance` (default `0.002`), `--secondary-tolerance` (default
   `0.005`), `--min-layout-distance` (default `4`), `--max-valid` (default `8`)
   — how near-equal, diverse layouts are collected into the valid-layout report.
+- `--secondary-rounds` (default: same as `--ils`) — perturbation rounds per
+  candidate in the secondary phase. `0` only scores the candidates.
 - `--seed` — reproduce a run. Without it a seed is generated and printed in the
   header.
 - `--verbose` / `-v` — list every distinct layout from the anneal stage with its
@@ -218,7 +224,9 @@ instead of being fixed:
 - **ILS** — each candidate's score before and after, and the gain.
 - **Polish** — before/after scores and the rounds used per candidate.
 - **Secondary** — candidates scored against the secondary corpora within the
-  primary sacrifice budget (only when secondary corpora are configured).
+  primary sacrifice budget (only when secondary corpora are configured). Each
+  distinct letter placement is optimized once: an ILS result and its unchanged
+  polished copy, or layouts that differ only in punctuation, are not repeated.
 - **Best layout** — the selected layout drawn with the same staggered geometry as
   `render`, plus any other valid layouts alongside it.
 
@@ -250,8 +258,9 @@ It is development tooling only and does not change the model or any baseline. Pa
 `--ils-candidates`, `--batch-size`, `--stop-hits`, and
 `--stop-stale-batches` to mirror the `compute` flags.
 
-Measured on seeds `0..19` after the incremental-score fix, all runs reaching
-the same letter placement:
+Measured on seeds `0..19` after the incremental-score fix (and before the
+priority tiers were weighted), all runs reaching the
+same letter placement. Re-run `just variance` after changing the objective:
 
 | Budget | Spread | Std. dev. | Success rate |
 | --- | --- | --- | --- |
@@ -259,14 +268,53 @@ the same letter placement:
 | `--runs 200 --iters 25000` | 0.000000000 | 0.000000000 | 100% |
 | `--runs 28 --iters 25000` | 0.005378908 | 0.001654132 | 85% |
 
+With the shipped config (weighted priority tiers, `roll_tiers`, `redirect_scale: 3.0`),
+seeds `0..3` at the default budget all reach the same layout; re-run
+`just variance --seeds 20` to confirm on more seeds.
+
 The default budget already reproduces the same optimum across every seed, and
 the breadth-heavy budget matches it at roughly the same total iteration count.
 Reducing the anneal depth alone is not enough, so the defaults stay at
 `--runs 28 --iters 200000`, and the stopping rules stay disabled by default.
 
+### Model parameters
+
+The scoring model's coefficients live in `shirolyzer/config/model/`:
+
+- `calibrated.json` — the fitted and audited reference model. The score baseline,
+  `check-baseline`, `audit` and the tests are tied to this file, so don't edit it
+  by hand; refit it with the tools in `shirolyzer/fitting/`.
+- `fit_seed_A.json` and `anchor_pairs.json` — starting point and anchors for
+  refitting.
+
+Point `model.parameters_file` in the config at the file to use. To make your own
+variant, copy `calibrated.json` and change the numbers you care about. Roll
+preferences don't need a parameter file: use [`roll_tiers`](#roll-tiers).
+
 ### Priority tiers
 
-`priority_list` groups objective terms into ordered tiers. Earlier tiers receive a larger multiplier than later tiers, while omitted terms use their default weight. This makes it possible to prioritize, for example, low SFB/SFT and scissors over rolls without removing lower-priority terms from the objective.
+`priority_list` groups objective terms into ordered tiers, most important first.
+With N tiers, tier t (0 = highest) is multiplied by `1 + 0.5 * (N - t - 1)`, so
+earlier tiers weigh more. Terms: `sfbs-sfts`, `scissors`, `redirects`, `rolls`,
+`alternation`, `finger_balance`.
+
+```yaml
+priority_list:
+  - sfbs-sfts                # x3.0
+  - scissors                 # x2.5
+  - redirects                # x2.0
+  - [rolls, finger_balance]  # x1.5  (tiers can hold several terms)
+  - alternation              # x1.0
+```
+
+- The list is always applied as written. To weight every term equally, put them
+  all in a single tier.
+- A term left out of the list is switched off (multiplier 0), and `compute`
+  prints a warning when that happens.
+- The effective multipliers are printed at the top of every `compute` run.
+- Tiers scale a whole category. How bad an individual pattern is within it (for
+  example harmless versus severe scissors, or which redirects are worst) comes
+  from the model's cost curves, the `conditions` list and `redirect_tiers`.
 
 ### Redirect tiers
 
@@ -282,6 +330,23 @@ redirect_tiers:
 ```
 
 Tier costs are spaced automatically between the calibrated `W_REDIRECT` and `W_REDIRECT_WEAK` endpoints, so tier 1 is the cheapest and the last tier is the most expensive. Same-hand turns that are not listed keep the legacy cost (pinky involved means the weak value, otherwise the regular value). Calibration and audit always use the legacy fitted curve, independent of this preference layer.
+
+`redirect_scale` (optional, default `1.0`) multiplies every redirect cost on top of the `redirects` priority tier; `compute` prints the effective weight at the top of a run. Redirect costs are small next to the roll and alternation rewards, so with the tier weights alone the best layouts carry roughly 5.5% of trigrams as redirects. `redirect_scale: 3.0` brings that to roughly 2.5%. Raise it to avoid redirects harder, lower it to accept more. It must be greater than 0.
+
+### Roll tiers
+
+`roll_tiers` ranks directed same-hand finger pairs from the most to the least rewarded roll. A pair is `"from-to"` in the same per-hand numbering as the redirect tiers (`1=index`, `2=middle`, `3=ring`, `4=pinky`), so `"1-2"` is index then middle and `"2-1"` is middle then index. Only neighbouring fingers can roll.
+
+```yaml
+roll_tiers:
+  - ["1-2"]            # index -> middle: the most rewarded roll
+  - ["2-1", "3-2"]     # middle -> index and ring -> middle
+```
+
+- With N tiers, tier t (0 = highest) earns a roll credit of `-0.60 * (N - t) / N` per pair, so a single tier earns the full `-0.60`. The credit still fades with key distance and is multiplied by the `rolls` priority.
+- A listed pair replaces the model's own weight for that pair and direction (`r_MI`, `r_RM_in`, `r_RM_out`, `r_PR_in`, `r_PR_out`). Unlisted pairs keep the model's weight, and the calibrated model is unchanged when `roll_tiers` is absent.
+- This is a per-pair preference, not a redirect penalty: a redirect such as `1-2-1` still collects the credit of each pair it contains. To avoid redirects, use `redirect_tiers` and `redirect_scale`.
+- `analyze` reports the share of letter bigrams in each tier and each pair (`roll_tier_N` and `roll_A_B` in the JSON).
 
 ### Conditions
 
@@ -299,6 +364,7 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 - bigram categories such as SFBs, scissors, and stretches;
 - trigram patterns including rolls, redirects, alternation, true same-finger trigrams (Sft), and adjacent same-finger trigrams (Sfb/BadSfb lumped); repeated-character trigrams are also reported as an overlapping `repeat` diagnostic;
 - when `redirect_tiers` is configured, per-tier and per-pattern redirect percentages plus `redirect_unclassified` for unlisted turns; the older `redirect`/`redirect_weak` categories remain as deprecated overlapping diagnostics;
+- when `roll_tiers` is configured, the share of letter bigrams in each roll tier and pair; the six directed pair shares (`roll_1_2` ... `roll_4_3`) are always in the JSON;
 - per-finger usage against the configured finger-balance targets;
 - the pattern-model score, including priority-tier weighting.
 
@@ -309,6 +375,22 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 `analyze` records a `corpus_provenance` block for the primary and secondary corpora. Each entry names the resolved path, corpus kind, configured weight, per-file SHA-1 and combined hash, parser rule id, normalization rule, and n-gram totals. The text report prints a compact summary; `--out-json` contains the full record. Provenance is observational and never changes a score.
 
 `compare` can read an external comparison bundle with `--corpus-json FILE`. The file is a single JSON object with `letters`, `bigrams`, and `trigrams` maps from n-gram strings to counts. This is a comparison-only input: it does not replace the native parser, and the config corpora still drive generation and the shipped baseline.
+
+## Development
+
+### Tests and the reference model
+
+`just check` runs the tests, `cargo fmt --check` and `clippy`. The regression
+baselines (`config/score_baseline.json`, the expected scores in `tests/`) measure
+a fixed reference model, not your live `config.yaml`. The tests build their
+config from `tests/fixtures/config.reference.yaml`, a frozen copy that uses
+`model/calibrated.json`, with cross-hand rules and hand restrictions stripped at
+test time.
+
+Editing `config.yaml` or the priority tiers therefore never breaks
+the suite. Only change the fixture, and regenerate the baselines
+(`shirolyzer check-baseline --write`), when you deliberately change what the
+reference model measures.
 
 ---
 

@@ -19,12 +19,6 @@ PRIORITY_NAMES = (
     "sfbs-sfts", "scissors", "redirects", "rolls", "alternation",
     "finger_balance",
 )
-DEFAULT_PRIORITY = [
-    ["sfbs-sfts"],
-    ["scissors", "redirects"],
-    ["rolls", "alternation"],
-    ["finger_balance"],
-]
 DEFAULT_CONDITIONS = [
     {"type": "scissors", "distance": "full", "reverse": True,
      "fingers": ["LP", "LR", "LM", "RM", "RR", "RP"], "allow": False},
@@ -68,6 +62,8 @@ class Config:
     primary_corpus: list[dict]
     secondary_corpus: list[dict]
     redirect_tiers: list[list[tuple[int, int, int]]] = field(default_factory=list)
+    roll_tiers: list[list[tuple[int, int]]] = field(default_factory=list)
+    redirect_scale: float = 1.0
 
     @property
     def physical_layout(self) -> str:
@@ -105,9 +101,9 @@ class Config:
         return self.conditions == DEFAULT_CONDITIONS
 
     def priority_multipliers(self) -> dict[str, float]:
-        if self.priority_list == DEFAULT_PRIORITY:
-            return {name: 1.0 for name in PRIORITY_NAMES}
-        scales = {name: 1.0 for name in PRIORITY_NAMES}
+        # The list is always applied as written (no special "default" order).
+        # Put every term in one tier to weight them all equally.
+        scales = {name: 0.0 for name in PRIORITY_NAMES}
         for tier, names in enumerate(self.priority_list):
             scale = 1.0 + 0.5 * (len(self.priority_list) - tier - 1)
             for name in names:
@@ -385,6 +381,47 @@ def _parse_redirect_tiers(path: Path, value: Any) -> list[list[tuple[int, int, i
     return out
 
 
+def _parse_roll_tiers(path: Path, value: Any) -> list[list[tuple[int, int]]]:
+    if value is None:
+        return []
+    if not isinstance(value, list) or not value:
+        _fail(path, "roll_tiers", "expected a non-empty list of tiers")
+    out, seen = [], set()
+    for i, item in enumerate(value):
+        where_i = f"roll_tiers[{i}]"
+        if not isinstance(item, list) or not item:
+            _fail(path, where_i, "expected a non-empty list of roll pairs")
+        tier = []
+        for j, pair_text in enumerate(item):
+            where_j = f"{where_i}[{j}]"
+            if not isinstance(pair_text, str):
+                _fail(path, where_j, f"expected a roll pair string, got {pair_text!r}")
+            parts = pair_text.split("-")
+            if len(parts) != 2:
+                _fail(path, where_j,
+                      f"expected two 1-4 numbers separated by '-', got {pair_text!r}")
+            pair = []
+            for part in parts:
+                if len(part) != 1 or part not in "1234":
+                    _fail(path, where_j,
+                          f"expected a finger number from 1 to 4, got {part!r}")
+                pair.append(int(part))
+            a, b = pair
+            if a == b:
+                _fail(path, where_j, f"{pair_text!r} is an SFB, not a roll")
+            if abs(a - b) != 1:
+                _fail(path, where_j,
+                      f"{pair_text!r} is not a roll between neighbouring fingers "
+                      "(for example 1-2)")
+            key = (a, b)
+            if key in seen:
+                _fail(path, where_j, f"duplicate roll pair {pair_text!r}")
+            seen.add(key)
+            tier.append(key)
+        out.append(tier)
+    return out
+
+
 def _parse_balance(path: Path, value: Any) -> tuple[dict[str, float], dict[str, float]]:
     data = _as_mapping(path, "finger_balance", value)
     allowed = {h + f for h in "LR" for f in FINGERS} | set(FINGERS)
@@ -430,7 +467,7 @@ def load(path=None) -> Config:
     raw = _as_mapping(path, "root", raw)
     required = {"general", "model", "fingermap", "alt_fingers", "conditions",
                 "priority_list", "finger_balance"}
-    known = required | {"redirect_tiers"}
+    known = required | {"redirect_tiers", "redirect_scale", "roll_tiers"}
     unknown = set(raw) - known
     if unknown:
         _fail(path, "root", f"unknown section(s): {sorted(unknown)}")
@@ -479,6 +516,11 @@ def load(path=None) -> Config:
     conditions = _parse_conditions(path, raw["conditions"])
     priority = _parse_priority(path, raw["priority_list"])
     redirect_tiers = _parse_redirect_tiers(path, raw.get("redirect_tiers"))
+    roll_tiers = _parse_roll_tiers(path, raw.get("roll_tiers"))
+    redirect_scale = _number(path, "redirect_scale", raw.get("redirect_scale", 1.0), minimum=0.0)
+    if redirect_scale <= 0.0:
+        _fail(path, "redirect_scale",
+              "must be greater than 0 (to switch redirects off, leave them out of priority_list)")
     balance, flat = _parse_balance(path, raw["finger_balance"])
 
     general = dict(general)
@@ -488,6 +530,7 @@ def load(path=None) -> Config:
                  fingermap=fingermap, finger_tokens=finger_tokens,
                  alt_fingers=alt_fingers, conditions=conditions,
                  priority_list=priority, redirect_tiers=redirect_tiers,
+                 roll_tiers=roll_tiers, redirect_scale=redirect_scale,
                  finger_balance=balance, flat_share=flat,
                  primary_corpus=primary, secondary_corpus=secondary)
     return cfg
@@ -507,10 +550,11 @@ def apply(cfg: Config | None = None) -> Config:
     scales = cfg.priority_multipliers()
     cg.W_SFB_SCALE = scales["sfbs-sfts"]
     cg.W_SCISSOR_SCALE = scales["scissors"]
-    cg.W_REDIRECT_SCALE = scales["redirects"]
+    cg.W_REDIRECT_SCALE = scales["redirects"] * cfg.redirect_scale
     cg.W_ROLL_SCALE = scales["rolls"]
     cg.W_ALT_SCALE = scales["alternation"]
     cg.configure_redirect_tiers(cfg.redirect_tiers)
+    cg.configure_roll_tiers(cfg.roll_tiers)
     _STATE.active = cfg
     return cfg
 

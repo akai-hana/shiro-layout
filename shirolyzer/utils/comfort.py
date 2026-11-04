@@ -92,6 +92,7 @@ W_REPEAT, W_REPEAT_SWAP = 0.6, 0.5
 W_REDIRECT, W_REDIRECT_WEAK, W_CONTINUE = 0.30, 1.80, -0.10
 W_SFS_1U, W_SFS_FAR = 2.50, 3.50
 ROLL_D0, ROLL_D1 = 1.25, 1.0       # roll reward fades between dist 1.25..2.25
+W_ROLL_TIER_BEST = -0.60           # roll credit of tier 1 in roll_tiers
 
 # Objective scales.  They are 1.0 for the shipped priority list; a config that
 # reorders priorities changes them without touching the calibrated model.
@@ -126,6 +127,32 @@ def configure_redirect_tiers(tiers):
     _REDIRECT_TABLE = table
     legacy = np.where(_HASP, W_REDIRECT_WEAK, W_REDIRECT)
     _TURN_BASE = np.where(np.isfinite(table), table, legacy)
+
+
+# Configured roll tiers, most preferred first.  The table is indexed by
+# (from, to) finger kinds (P=0, R=1, M=2, I=3) and holds NaN for unlisted pairs,
+# which keep the model's own r_* weight.
+ROLL_TIERS: tuple[tuple[tuple[int, int], ...], ...] = ()
+_ROLL_TABLE = np.full((NF, NF), np.nan)
+
+
+def roll_tier_credit(tier, count):
+    """Roll credit for a zero-based tier in a table of ``count`` tiers."""
+    count = max(1, count)
+    return W_ROLL_TIER_BEST * (count - min(tier, count - 1)) / count
+
+
+def configure_roll_tiers(tiers):
+    """Install parsed rank-pair tiers; an empty list restores the model weights."""
+    global ROLL_TIERS, _ROLL_TABLE
+    ROLL_TIERS = tuple(tuple(tier) for tier in tiers)
+    table = np.full((NF, NF), np.nan)
+    count = len(ROLL_TIERS)
+    for tier, pairs in enumerate(ROLL_TIERS):
+        credit = roll_tier_credit(tier, count)
+        for a, b in pairs:
+            table[4 - a, 4 - b] = credit
+    _ROLL_TABLE = table
 
 
 def sfb_cost(a, b):
@@ -281,6 +308,8 @@ class Model:
         rw = np.where((lo_f == 1) & (hi_f == 2) & (d < 0), self.p("r_RM_out"), rw)
         rw = np.where((lo_f == 0) & (hi_f == 1) & (d > 0), self.p("r_PR_in"), rw)
         rw = np.where((lo_f == 0) & (hi_f == 1) & (d < 0), self.p("r_PR_out"), rw)
+        tier_rw = _ROLL_TABLE[P["fa"], P["fb"]]
+        rw = np.where((nadj == 1) & np.isfinite(tier_rw), tier_rw, rw)
         fade = np.clip(1.0 - np.maximum(P["dist"] - ROLL_D0, 0) / ROLL_D1, 0.0, 1.0)
         supp = np.where(deficit > 0.2, 0.25, 1.0)
         roll = np.where(nadj == 1, rw * fade * supp, 0.0)

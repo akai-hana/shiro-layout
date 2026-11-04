@@ -14,7 +14,7 @@ python3 -c "import shirolyzer.fitting, shirolyzer.utils.fitlib, shirolyzer.utils
 ```
 
 Inputs are read from `shirolyzer/config/model/`. The shipped coefficients are
-in `pattern_parameters_A_all.json`; `fit_seed_A.json` is the starting point for
+in `calibrated.json`; `fit_seed_A.json` is the starting point for
 a fresh fit. Outputs are written to `shirolyzer/results/fitting/`; set
 `SHIRO_FITTING_DIR` to use another directory. Intermediate files in that
 directory take precedence over the shipped model files, so interrupted runs can
@@ -39,5 +39,5 @@ python3 -m shirolyzer.fitting.ablate Aall A all
 
 `fit2.py` contains the cutting-plane fitting loop and is imported by the other
 tools. After a successful fit, review the resulting parameters before copying
-them to `shirolyzer/config/model/pattern_parameters_A_all.json` and regenerating
+them to `shirolyzer/config/model/calibrated.json` and regenerating
 the baseline.
