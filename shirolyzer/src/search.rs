@@ -873,19 +873,24 @@ mod tests {
 
     pub(super) fn setup() -> (crate::config::Config, crate::evaluate::Evaluator<'static>) {
         let cfg = crate::config::load(None).expect("config");
+        let ev = evaluator_for(&cfg);
+        (cfg, ev)
+    }
+
+    fn evaluator_for(cfg: &crate::config::Config) -> crate::evaluate::Evaluator<'static> {
         let geom = crate::geometry::Geometry::new();
-        let model = crate::config::build_model(&cfg).expect("model");
-        let gates = crate::gates::Gates::from_config(&cfg);
-        let conds = crate::conditions::Conditions::from_config(&cfg, &geom);
+        let model = crate::config::build_model(cfg).expect("model");
+        let gates = crate::gates::Gates::from_config(cfg);
+        let conds = crate::conditions::Conditions::from_config(cfg, &geom);
         let tables =
-            crate::scorer::Tables::build(&model, &geom, &cfg, &gates, &conds).expect("tables");
+            crate::scorer::Tables::build(&model, &geom, cfg, &gates, &conds).expect("tables");
         let paths: Vec<std::path::PathBuf> = cfg
             .primary_corpus
             .iter()
             .map(|e| cfg.corpus_path(e))
             .collect();
         let corpus = crate::corpus::load_many(&paths).expect("corpus");
-        let flat = flat_share_from_config(&cfg);
+        let flat = flat_share_from_config(cfg);
         let (w_balance, w_hand) = cfg.balance_weights();
         let mut ev = crate::evaluate::Evaluator::new(
             Box::leak(Box::new(corpus)),
@@ -898,7 +903,7 @@ mod tests {
         )
         .expect("evaluator");
         ev.set_balance_source(cfg.balance_source);
-        (cfg, ev)
+        ev
     }
 
     const TEST_LAYOUT: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
@@ -1071,6 +1076,42 @@ mod tests {
             assert!((st.score() - before).abs() < 1e-12);
             assert_eq!(st.perm, perm);
         }
+    }
+
+    #[test]
+    fn chosen_balance_follows_allowed_alt_finger_while_default_uses_fingermap() {
+        let (mut allow_cfg, _) = setup();
+        let li = crate::geometry::parse_finger8("LI").expect("LI");
+        allow_cfg.alt_fingers = vec![crate::config::AltRule {
+            keys: vec!['H'],
+            fingers: vec![li],
+            mode: crate::config::AltMode::Allow,
+        }];
+        let mut plain_cfg = allow_cfg.clone();
+        plain_cfg.alt_fingers.clear();
+
+        let allow_ev = evaluator_for(&allow_cfg);
+        let plain_ev = evaluator_for(&plain_cfg);
+        let perm = crate::evaluate::perm_of(TEST_LAYOUT, &allow_cfg.punctuation).expect("perm");
+        let chosen_with = allow_ev.usage_from_perm(&perm);
+        let chosen_without = plain_ev.usage_from_perm(&perm);
+        let default_with = allow_ev.default_usage(&perm);
+        let default_without = plain_ev.default_usage(&perm);
+
+        assert_eq!(default_with, default_without);
+        assert_ne!(chosen_with, chosen_without);
+
+        let h_slot = perm[(b'h' - b'a') as usize];
+        let h_default = allow_ev.default_finger[h_slot];
+        assert_ne!(h_default, li);
+        let li_hand = crate::geometry::finger_hand(li);
+        let li_kind = crate::geometry::finger_kind(li);
+        let default_hand = crate::geometry::finger_hand(h_default);
+        let default_kind = crate::geometry::finger_kind(h_default);
+        assert!(chosen_with[li_hand][li_kind] > chosen_without[li_hand][li_kind]);
+        assert!(
+            chosen_with[default_hand][default_kind] < chosen_without[default_hand][default_kind]
+        );
     }
 
     #[test]
