@@ -61,6 +61,13 @@ impl Tables {
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
         let chars: Vec<char> = (0..NK).map(key_char).collect();
         let fixed = cfg.fingering == FingeringMode::Fixed;
+        let strength_cost = |f: usize| {
+            if f < NF {
+                model.finger_strength[f]
+            } else {
+                0.0
+            }
+        };
 
         // Explicit allow rules may name fingers that geometry marks as
         // unreachable.  In that case we need a second table with reachability
@@ -114,8 +121,11 @@ impl Tables {
                     for fa in fa_range.clone() {
                         for fb in fb_range.clone() {
                             let penalty = pm[fa * NF + fb];
-                            let mut c =
-                                mt.t2[crate::model::pt_idx(a, fa, b, fb)] + 2.0 * PRESS + penalty;
+                            let mut c = mt.t2[crate::model::pt_idx(a, fa, b, fb)]
+                                + 2.0 * PRESS
+                                + penalty
+                                + strength_cost(fa)
+                                + strength_cost(fb);
                             if let (Some(mtu), Some(explicit)) = (&mt_unrestricted, &explicit) {
                                 if c.is_infinite() && penalty.is_finite() {
                                     let unreachable =
@@ -125,7 +135,9 @@ impl Tables {
                                     if unreachable && allowed {
                                         c = mtu.t2[crate::model::pt_idx(a, fa, b, fb)]
                                             + 2.0 * PRESS
-                                            + penalty;
+                                            + penalty
+                                            + strength_cost(fa)
+                                            + strength_cost(fb);
                                     }
                                 }
                             }
@@ -206,7 +218,12 @@ impl Tables {
                                 for f3 in f3_range.clone() {
                                     let idx = (f1 * NF + f2) * NF + f3;
                                     let penalty = pm[idx];
-                                    let mut value = costs[idx] + 3.0 * PRESS + penalty;
+                                    let mut value = costs[idx]
+                                        + 3.0 * PRESS
+                                        + penalty
+                                        + strength_cost(f1)
+                                        + strength_cost(f2)
+                                        + strength_cost(f3);
                                     if let (Some(cu), Some(explicit)) =
                                         (&costs_unrestricted, &explicit)
                                     {
@@ -221,7 +238,12 @@ impl Tables {
                                                 geom.is_reachable(keys[pos], f) || explicit[pos][f]
                                             });
                                             if unreachable && allowed {
-                                                value = cu[idx] + 3.0 * PRESS + penalty;
+                                                value = cu[idx]
+                                                    + 3.0 * PRESS
+                                                    + penalty
+                                                    + strength_cost(f1)
+                                                    + strength_cost(f2)
+                                                    + strength_cost(f3);
                                             }
                                         }
                                     }
@@ -245,7 +267,7 @@ impl Tables {
                 argmin_same_hand_finger(geom, a, &e_with_press[a * NF..(a + 1) * NF])
             };
             let ea = mt.e[crate::model::e_idx(a, f)];
-            let value = ea + PRESS + SPACE_EFFORT + W_ALT;
+            let value = ea + PRESS + SPACE_EFFORT + W_ALT + strength_cost(f);
             big[big_idx(a, SPACE_ID)] = value;
             big_f[big_idx(a, SPACE_ID)] = (f * FINGER_SLOTS + SPACE_FINGER) as u8;
             big[big_idx(SPACE_ID, a)] = value;
@@ -295,7 +317,9 @@ impl Tables {
                                     if x == SPACE_ID {
                                         cost += SPACE_EFFORT;
                                     } else {
-                                        cost += mt.e[crate::model::e_idx(x, fs[pos])] + PRESS;
+                                        cost += mt.e[crate::model::e_idx(x, fs[pos])]
+                                            + PRESS
+                                            + strength_cost(fs[pos]);
                                     }
                                 }
                                 for (p, q) in [(0usize, 1usize), (1, 2)] {
