@@ -71,6 +71,7 @@ impl CorpusEntry {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum AltMode {
     Allow,
+    Permit,
     Block,
 }
 
@@ -643,12 +644,13 @@ fn parse_alt_fingers(path: &Path, value: Option<&Value>) -> Result<Vec<AltRule>>
         )?;
         let mode = match mode_text.as_str() {
             "allow" => AltMode::Allow,
+            "permit" | "license" => AltMode::Permit,
             "block" => AltMode::Block,
             _ => {
                 return Err(fail(
                     path,
                     &format!("{}.mode", where_i),
-                    "expected allow or block",
+                    "expected allow, permit, or block",
                 ))
             }
         };

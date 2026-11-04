@@ -221,6 +221,8 @@ struct CheckArgs {
     corpus: Option<PathBuf>,
     #[arg(long)]
     config: Option<PathBuf>,
+    #[arg(long)]
+    rulings: Option<PathBuf>,
     #[arg(long, default_value_t = 1e-9)]
     tolerance: f64,
     #[arg(long)]
@@ -347,6 +349,7 @@ fn main() -> Result<()> {
             baseline: args.baseline.as_deref(),
             corpus: args.corpus.as_deref(),
             config: args.config.as_deref(),
+            rulings: args.rulings.as_deref(),
             tolerance: args.tolerance,
             write: args.write,
         }),

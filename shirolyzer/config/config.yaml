@@ -87,8 +87,18 @@ hand_restrictions:
 # afterwards as fallbacks.  The target key keeps the finger from the old gate.
 # Unigram block entries preserve the old "only in this context" restriction.
 alt_fingers:
-  - {ngram: [H], fingers: [LI], mode: allow}
-  - {ngram: [Y], fingers: [LM], mode: allow}
+  # H may use either index finger.  "permit" licenses left index without
+  # excluding the physical right index, so geometry and context choose.
+  - {ngram: [H], fingers: [LI], mode: permit}
+  # Y may use left index or right middle.  Left index is listed first, so it
+  # is preferred; right middle remains a fallback with the standard penalty.
+  - {ngram: [Y], fingers: [LI], mode: allow}
+  - {ngram: [Y], fingers: [RM], mode: allow}
+  # M uses right index or right ring, never right middle.  Geometry does not
+  # list right ring on M, so "permit" licenses that reach without excluding
+  # right index when context makes it cheaper.
+  - {ngram: [M], fingers: [RR], mode: permit}
+  - {ngram: [M], fingers: [RM], mode: block}
   # Explicit cross-hand alts may name fingers that geometry marks unreachable;
   # reachability is ignored for these rules and the normal travel weights still
   # decide their cost.
