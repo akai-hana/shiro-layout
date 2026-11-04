@@ -91,6 +91,7 @@ pub struct ScoreBreakdown {
     pub trigram_continue: f64,
     pub trigram_scissor: f64,
     pub trigram_sfs: f64,
+    pub finger_strength: f64,
     pub gate_penalty: f64,
     pub space: f64,
     pub total: f64,
@@ -114,6 +115,7 @@ impl ScoreBreakdown {
             + self.trigram_continue
             + self.trigram_scissor
             + self.trigram_sfs
+            + self.finger_strength
             + self.gate_penalty
             + self.space
     }
@@ -136,6 +138,7 @@ impl ScoreBreakdown {
             &mut self.trigram_continue,
             &mut self.trigram_scissor,
             &mut self.trigram_sfs,
+            &mut self.finger_strength,
             &mut self.gate_penalty,
             &mut self.space,
             &mut self.total,
@@ -162,6 +165,7 @@ impl ScoreBreakdown {
             "trigram_continue": self.trigram_continue,
             "trigram_scissor": self.trigram_scissor,
             "trigram_sfs": self.trigram_sfs,
+            "finger_strength": self.finger_strength,
             "gate_penalty": self.gate_penalty,
             "space": self.space,
             "total": self.total,
@@ -328,6 +332,13 @@ pub fn score_breakdown(
         let fs = [enc[0] as usize, enc[1] as usize, enc[2] as usize];
         denom += count;
         out.total += tables.tri[crate::scorer::tri_idx(k0, k1, k2)] * count;
+        out.finger_strength += keys
+            .iter()
+            .zip(fs)
+            .filter(|(key, _)| **key != SPACE_ID)
+            .map(|(_, finger)| model.finger_strength[finger])
+            .sum::<f64>()
+            * count;
         if keys.contains(&SPACE_ID) {
             add_space_terms(&mut out, &mt, keys, fs, count);
             continue;
@@ -922,6 +933,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         ("trigram_continue", breakdown.trigram_continue),
         ("trigram_scissor", breakdown.trigram_scissor),
         ("trigram_sfs", breakdown.trigram_sfs),
+        ("finger_strength", breakdown.finger_strength),
         ("gate_penalty", breakdown.gate_penalty),
         ("space", breakdown.space),
         ("sum", breakdown.sum()),
@@ -1218,6 +1230,41 @@ mod tests {
             breakdown.sum() - score,
             breakdown
         );
+    }
+
+    #[test]
+    fn finger_strength_term_is_corpus_weighted_and_geometry_independent() {
+        let ctx = crate::context::Context::load(None).expect("context");
+        let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
+        let layout = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+        let breakdown = super::score_breakdown(
+            layout,
+            &corpus,
+            &ctx.tables,
+            &ctx.model,
+            &ctx.geom,
+            &ctx.gates,
+            &ctx.conditions,
+        );
+        let m = super::keymap(layout);
+        let mut expected = 0.0;
+        let mut total = 0.0;
+        for (ids, &count) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
+            let (Some(a), Some(b), Some(c)) = (m[ids[0]], m[ids[1]], m[ids[2]]) else {
+                continue;
+            };
+            let keys = [a, b, c];
+            let fingers = ctx.tables.tri_f[crate::scorer::tri_idx(a, b, c)];
+            for (key, finger) in keys.into_iter().zip(fingers) {
+                if key != crate::scorer::SPACE_ID {
+                    expected += ctx.model.finger_strength[finger as usize] * count;
+                }
+            }
+            total += count;
+        }
+        expected /= total;
+        assert!(breakdown.finger_strength > 0.0);
+        assert!((breakdown.finger_strength - expected).abs() < 1e-12);
     }
 
     #[test]
