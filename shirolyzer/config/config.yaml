@@ -90,6 +90,8 @@ alt_fingers:
   # H may use either index finger.  "permit" licenses left index without
   # excluding the physical right index, so geometry and context choose.
   - {ngram: [H], fingers: [LI], mode: permit}
+  # U->H uses left index: the old right-index form is uncomfortable.
+  - {ngram: [U, H], fingers: [RM, LI], mode: allow}
   # Y may use left index or right middle.  Left index is listed first, so it
   # is preferred; right middle remains a fallback with the standard penalty.
   - {ngram: [Y], fingers: [LI], mode: allow}
