@@ -427,19 +427,19 @@ comfortable motions, with balance only as a guardrail.
 
 **Tasks:**
 
-- [ ] Add a frequency-weighted finger-strength objective using top-letter,
+- [x] Add a frequency-weighted finger-strength objective using top-letter,
       top-bigram, and top-trigram frequency.
-- [ ] Keep geometry separate from strength; do not encode strength into travel
+- [x] Keep geometry separate from strength; do not encode strength into travel
       costs.
-- [ ] Use the same strength vector for both hands.
-- [ ] Calibrate strength values with P1. Expected anatomical ordering:
+- [x] Use the same strength vector for both hands.
+- [x] Calibrate strength values with P1. Expected anatomical ordering:
       index/middle strongest, ring weaker, pinky weakest.
-- [ ] Demote `finger_balance` to a lower priority tier or tie-breaker weight.
-- [ ] Add a balance guardrail so the optimizer cannot ignore a finger entirely.
-- [ ] Report top-25 letters and their finger assignments in `analyze`.
-- [ ] Report top bigrams/trigrams and their roll/redirect/scissor quality.
-- [ ] Verify that frequent n-grams prefer perfect rolls and avoid redirects.
-- [ ] Add tests for the frequency-weighted objective and balance guardrail.
+- [x] Demote `finger_balance` to a lower priority tier or tie-breaker weight.
+- [x] Add a balance guardrail so the optimizer cannot ignore a finger entirely.
+- [x] Report top-25 letters and their finger assignments in `analyze`.
+- [x] Report top bigrams/trigrams and their roll/redirect/scissor quality.
+- [x] Verify that frequent n-grams prefer perfect rolls and avoid redirects.
+- [x] Add tests for the frequency-weighted objective and balance guardrail.
 
 **Planned commits:**
 
