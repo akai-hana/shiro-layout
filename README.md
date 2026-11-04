@@ -1,9 +1,8 @@
 # shiro【白】
 
-Shiro is a 30-key alternate keyboard layout designed around
-context-dependent fingering.  This repository contains **shirolyzer**, the
-analyzer and generator used to evaluate and iterate the layout, plus the
-XKB symbols and installer needed to try a generated arrangement on X11.
+Shiro is an alternate keyboard layout designed around context-dependent fingering.
+
+This repository also contains the **shirolyzer**, an analyzer and generator developed primarily to generate and analysis iterate this layout.
 
 ## What is here
 
