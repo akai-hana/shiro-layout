@@ -34,7 +34,7 @@ general:
     finger_balance: 1%
 
 model:
-  parameters_file: model/shiro.json
+  parameters_file: model/calibrated.json
   disallow_reverse_scissors: [MR]
 
 fingermap: |
@@ -84,6 +84,22 @@ redirect_tiers:
   - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
   - ["4-1-4", "4-2-4", "2-4-2"]
   - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
+
+# Extra multiplier on every redirect cost, on top of the `redirects` priority
+# tier (1.0 = none).  The tier weights alone leave redirects cheap next to the
+# roll and alternation rewards, and the best layouts then carry about 5.5% of
+# trigrams as redirects; 3.0 brings that down to about 2.5% (stable up to 3.5).
+redirect_scale: 3.0
+
+# Roll preferences.  Tiers run from most preferred (tier 1) to least preferred.
+# Each entry is a directed same-hand finger pair "from-to" using per-hand
+# ranks: 1=index, 2=middle, 3=ring, 4=pinky, so "1-2" is index then middle and
+# "2-1" is middle then index.  Only neighbouring fingers can roll.  With N
+# tiers, tier t (0 = highest) earns a roll credit of -0.60 * (N - t) / N per
+# pair, scaled by the `rolls` priority.  Listed pairs replace the model's own
+# roll weight (r_MI, r_RM_*, r_PR_*); unlisted pairs keep it.
+roll_tiers:
+  - ["1-2", "2-1"]
 
 # Target share of strokes per finger in percent. The calibrated model uses the
 # same target for both hands: P 9%, R 12.5%, M 14%, I 14.5%.

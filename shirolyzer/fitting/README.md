@@ -14,8 +14,7 @@ python3 -c "import shirolyzer.fitting, shirolyzer.utils.fitlib, shirolyzer.utils
 ```
 
 Inputs are read from `shirolyzer/config/model/`. The shipped coefficients are
-in `calibrated.json` (`shiro.json` is a personal variant of it and is not
-produced by these tools); `fit_seed_A.json` is the starting point for
+in `calibrated.json`; `fit_seed_A.json` is the starting point for
 a fresh fit. Outputs are written to `shirolyzer/results/fitting/`; set
 `SHIRO_FITTING_DIR` to use another directory. Intermediate files in that
 directory take precedence over the shipped model files, so interrupted runs can
