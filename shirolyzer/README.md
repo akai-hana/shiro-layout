@@ -302,11 +302,11 @@ earlier tiers weigh more. Terms: `sfbs-sfts`, `scissors`, `redirects`, `rolls`,
 
 ```yaml
 priority_list:
-  - sfbs-sfts                # x3.0
-  - scissors                 # x2.5
-  - redirects                # x2.0
-  - [rolls, finger_balance]  # x1.5  (tiers can hold several terms)
-  - alternation              # x1.0
+  - sfbs-sfts                  # x3.0
+  - scissors                   # x2.5
+  - redirects                  # x2.0
+  - rolls                      # x1.5
+  - [alternation, finger_balance]  # x1.0  (tiers can hold several terms)
 ```
 
 - The list is always applied as written. To weight every term equally, put them
@@ -420,9 +420,10 @@ fingermap when no alternative is available); `default` is unchanged either
 way. The regression tests in `src/search.rs` pin this difference and verify
 that both modes respect the same allow/block and reachability rules.
 
-`finger_strength` (optional) adds a constant cost to every press by selected
-fingers. Bare `P`/`R`/`M`/`I` apply to both hands; explicit `LP`/`LR`/... tokens
-override one hand. Values are non-negative and default to 0:
+`finger_strength` adds a frequency-weighted cost to each corpus trigram for the
+fingers the DP selects. Bare `P`/`R`/`M`/`I` apply to both hands; explicit
+`LP`/`LR`/... tokens override one hand. Values are non-negative and default to
+0:
 
 ```yaml
 finger_strength:
@@ -443,6 +444,44 @@ geometry term, and `analyze` reports the strength contribution separately in
 `finger_balance` is demoted to a tie-breaker tier. It is not a primary goal,
 but a guardrail keeps every finger from being ignored: usage below half of its
 configured target receives an additional penalty.
+
+### Preference calibration
+
+The final weights were checked with the P1 sweep across SHaI and Douglas using
+three seeds per variant:
+
+```sh
+python3 shirolyzer/utils/preference_sweep.py \
+  --variants shirolyzer/config/preference_variants.yaml \
+  --seeds 3 --runs 4 --iters 60000 --ils 2 --ils-candidates 2 \
+  --secondary-rounds 1 --polish-rounds 1
+```
+
+Mean results on the selected layouts:
+
+| Variant | SFB/SFT | Redirects | Mild scissors | Strength |
+|---------|--------:|----------:|--------------:|---------:|
+| shipped (`P .45/R .25/M .10/I .05`) | 6.689 | 2.202% | 0.174 | 0.179 |
+| `strength-low` | 6.685 | 1.766% | 0.245 | 0.131 |
+| `strength-index` | 6.685 | 1.840% | 0.245 | 0.153 |
+| `strength-high` | 6.686 | 1.649% | 0.237 | 0.250 |
+| `redirect-soft` | 6.693 | 2.698% | 0.121 | 0.178 |
+| `redirect-steep` | 6.680 | 1.315% | 0.249 | 0.184 |
+| `scissor-extreme-mid` | 6.691 | 2.229% | 0.201 | 0.176 |
+| `roll-ring-middle` | 6.686 | 1.923% | 0.216 | 0.181 |
+
+The shipped vector sits on the measured boundary: every variant that lowered
+redirects paid for it with a higher mild-scissor cost, which has higher
+priority. Softening redirect weights lowered scissor cost but raised the
+redirect rate by about 0.5 percentage points, undoing the P7 floor. No variant
+improved a higher-priority metric without regressing another, so the calibrated
+values are retained and pinned by tests.
+
+Final check on the retained `shiro` layout
+(`;ntgfjoehkrpmscuaydilbqvwxz,./`): primary `4.533725491`, secondary
+`4.549689230`, SFB/SFT `6.693%`, redirects `2.579%`, rolls `45.016%`, mild
+scissor cost `0.140`, frequency-weighted strength `0.182`; `audit` passes
+`166/166` rulings.
 
 ### Conditions
 
