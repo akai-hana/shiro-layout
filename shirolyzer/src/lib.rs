@@ -17,6 +17,7 @@ pub mod geometry;
 pub mod hash;
 pub mod model;
 pub mod paths;
+pub mod preferences;
 pub mod provenance;
 pub mod redirect;
 pub mod references;
