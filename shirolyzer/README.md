@@ -348,6 +348,45 @@ roll_tiers:
 - This is a per-pair preference, not a redirect penalty: a redirect such as `1-2-1` still collects the credit of each pair it contains. To avoid redirects, use `redirect_tiers` and `redirect_scale`.
 - `analyze` reports the share of letter bigrams in each tier and each pair (`roll_tier_N` and `roll_A_B` in the JSON).
 
+### Finger load and strength
+
+`finger_balance` sets the target share of strokes for each finger. The shipped
+target is P 9%, R 12.5%, M 14%, I 14.5% on both hands:
+
+```yaml
+finger_balance:
+  LP: 9
+  LR: 12.5
+  LM: 14
+  LI: 14.5
+  RP: 9
+  RR: 12.5
+  RM: 14
+  RI: 14.5
+```
+
+`finger_balance_source` selects which fingering supplies the load used by the
+balance penalty. The default, `chosen`, uses the same context-dependent
+trigram-DP fingers that `analyze` reports. `default` uses the physical
+fingermap only. The penalty is off whenever `finger_balance` is absent from
+`priority_list`, regardless of this setting.
+
+`finger_strength` (optional) adds a constant cost to every press by selected
+fingers. Bare `P`/`R`/`M`/`I` apply to both hands; explicit `LP`/`LR`/... tokens
+override one hand. Values are non-negative and default to 0:
+
+```yaml
+finger_strength:
+  LP: 0.30
+  LR: 0.10
+  RP: 0.45
+  RR: 0.15
+```
+
+Higher values steer generation away from weak or uncomfortable fingers. The
+term enters the key-effort table, so it also appears in the analyzer's
+`key_effort` decomposition.
+
 ### Conditions
 
 Condition rules are evaluated from top to bottom; the first matching rule wins. `allow: false` forbids a matching pattern and `allow: true` permits it. Unless `reverse: true` is specified, a scissor rule matches both regular and reverse scissors.
@@ -366,7 +405,10 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 - when `redirect_tiers` is configured, per-tier and per-pattern redirect percentages plus `redirect_unclassified` for unlisted turns; the older `redirect`/`redirect_weak` categories remain as deprecated overlapping diagnostics;
 - when `roll_tiers` is configured, the share of letter bigrams in each roll tier and pair; the six directed pair shares (`roll_1_2` ... `roll_4_3`) are always in the JSON;
 - per-finger usage against the configured finger-balance targets;
-- the pattern-model score, including priority-tier weighting.
+- the pattern-model score, including priority-tier weighting;
+- a per-term score decomposition (`score_breakdown` in JSON and a text table)
+  that reconstructs the primary score from key effort, pair terms, trigram
+  terms, gate penalties, and space costs.
 
 `analyze` uses the most recent `compute` result when `--layout` is omitted. The same metrics drive primary-sacrifice enforcement during secondary optimization, so scores shown by the analyzer reflect the constraints the generator applied.
 

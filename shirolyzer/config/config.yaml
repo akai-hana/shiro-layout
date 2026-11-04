@@ -333,3 +333,19 @@ finger_balance:
   RM: 14
   RI: 14.5
 # = 100
+
+# Which fingering supplies the finger-balance loads.  "chosen" uses the same
+# trigram-DP fingers reported by `analyze` (flexible mode); "default" uses the
+# physical fingermap only.  The penalty is switched off when finger_balance is
+# missing from priority_list.
+finger_balance_source: chosen
+
+# Optional per-finger strength penalty (cost units added to every key press).
+# Higher values steer the search away from weak fingers.  Bare P/R/M/I apply
+# to both hands; explicit LP/LR/LM/LI/RP/RR/RM/RI override one hand.  Values
+# must be non-negative and default to 0 (off).
+# finger_strength:
+#   LP: 0.30
+#   LR: 0.10
+#   RP: 0.45
+#   RR: 0.15

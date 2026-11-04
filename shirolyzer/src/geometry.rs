@@ -117,6 +117,7 @@ pub struct Geometry {
     pub v: [f64; NK],
     pub rest_u: [[f64; NFINGER]; 2],
     pub rest_v: [[f64; NFINGER]; 2],
+    pub rest_key: [[usize; NFINGER]; 2],
     pub inner_sep: [[f64; NFINGER]; 2],
     pub u8: [[f64; NK]; NF],
     pub du: [[f64; NK]; NF],
@@ -217,6 +218,7 @@ impl Geometry {
 
         let mut rest_u = [[0.0; NFINGER]; 2];
         let mut rest_v = [[0.0; NFINGER]; 2];
+        let mut rest_key = [[0usize; NFINGER]; 2];
         for (h, map) in [&spec.rest.left, &spec.rest.right].iter().enumerate() {
             for (f, finger) in FINGERS.iter().enumerate() {
                 let key = map.get(&finger.to_string()).ok_or_else(|| {
@@ -245,6 +247,7 @@ impl Geometry {
                 }
                 rest_u[h][f] = u[k];
                 rest_v[h][f] = v[k];
+                rest_key[h][f] = k;
             }
         }
         let mut inner_sep = [[0.0; NFINGER]; 2];
@@ -370,6 +373,7 @@ impl Geometry {
             v,
             rest_u,
             rest_v,
+            rest_key,
             inner_sep,
             u8,
             du,
@@ -460,6 +464,12 @@ fn point_in_hull(hull: &[(f64, f64)], x: f64, y: f64, eps: f64) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn rest_keys_come_from_the_geometry_file() {
+        let geom = Geometry::new();
+        assert_eq!(geom.rest_key, [[10, 1, 2, 13], [19, 8, 7, 16]]);
+    }
 
     #[test]
     fn cross_hand_travel_uses_absolute_positions() {

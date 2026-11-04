@@ -604,6 +604,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
     )
     .map_err(anyhow::Error::msg)?;
     primary_ev.set_hand_restrictions(ctx.cfg.hand_restrictions);
+    primary_ev.set_balance_source(ctx.cfg.balance_source);
     let delta_tables = search::DeltaTables::build(&primary_ev);
     let secondary_ev = match secondary_corpus.as_ref() {
         Some(corpus) => {
@@ -618,6 +619,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             )
             .map_err(anyhow::Error::msg)?;
             ev.set_hand_restrictions(ctx.cfg.hand_restrictions);
+            ev.set_balance_source(ctx.cfg.balance_source);
             Some(ev)
         }
         None => None,

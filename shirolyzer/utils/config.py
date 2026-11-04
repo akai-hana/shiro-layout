@@ -64,6 +64,8 @@ class Config:
     redirect_tiers: list[list[tuple[int, int, int]]] = field(default_factory=list)
     roll_tiers: list[list[tuple[int, int]]] = field(default_factory=list)
     redirect_scale: float = 1.0
+    finger_strength: dict[str, float] = field(default_factory=dict)
+    balance_source: str = "chosen"
 
     @property
     def physical_layout(self) -> str:
@@ -422,6 +424,30 @@ def _parse_roll_tiers(path: Path, value: Any) -> list[list[tuple[int, int]]]:
     return out
 
 
+def _parse_finger_strength(path: Path, value: Any) -> dict[str, float]:
+    if value is None:
+        return {}
+    data = _as_mapping(path, "finger_strength", value)
+    allowed = {h + f for h in "LR" for f in FINGERS} | set(FINGERS)
+    out = {}
+    for key, raw in data.items():
+        if key not in allowed:
+            _fail(path, f"finger_strength.{key}",
+                  "expected LP/LR/LM/LI/RP/RR/RM/RI or P/R/M/I")
+        out[key] = _number(path, f"finger_strength.{key}", raw, minimum=0.0)
+    return out
+
+
+def _parse_balance_source(path: Path, value: Any) -> str:
+    if value is None:
+        return "chosen"
+    text = str(value).lower()
+    if text not in ("chosen", "flexible", "default", "fingermap", "fixed"):
+        _fail(path, "finger_balance_source",
+              'expected "chosen" or "default"')
+    return "chosen" if text in ("chosen", "flexible") else "default"
+
+
 def _parse_balance(path: Path, value: Any) -> tuple[dict[str, float], dict[str, float]]:
     data = _as_mapping(path, "finger_balance", value)
     allowed = {h + f for h in "LR" for f in FINGERS} | set(FINGERS)
@@ -467,7 +493,8 @@ def load(path=None) -> Config:
     raw = _as_mapping(path, "root", raw)
     required = {"general", "model", "fingermap", "alt_fingers", "conditions",
                 "priority_list", "finger_balance"}
-    known = required | {"redirect_tiers", "redirect_scale", "roll_tiers"}
+    known = required | {"redirect_tiers", "redirect_scale", "roll_tiers",
+                        "finger_strength", "finger_balance_source"}
     unknown = set(raw) - known
     if unknown:
         _fail(path, "root", f"unknown section(s): {sorted(unknown)}")
@@ -522,6 +549,8 @@ def load(path=None) -> Config:
         _fail(path, "redirect_scale",
               "must be greater than 0 (to switch redirects off, leave them out of priority_list)")
     balance, flat = _parse_balance(path, raw["finger_balance"])
+    finger_strength = _parse_finger_strength(path, raw.get("finger_strength"))
+    balance_source = _parse_balance_source(path, raw.get("finger_balance_source"))
 
     general = dict(general)
     general["primary_sacrifice"] = sacrifice
@@ -532,6 +561,7 @@ def load(path=None) -> Config:
                  priority_list=priority, redirect_tiers=redirect_tiers,
                  roll_tiers=roll_tiers, redirect_scale=redirect_scale,
                  finger_balance=balance, flat_share=flat,
+                 finger_strength=finger_strength, balance_source=balance_source,
                  primary_corpus=primary, secondary_corpus=secondary)
     return cfg
 
