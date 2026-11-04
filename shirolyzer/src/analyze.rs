@@ -1034,11 +1034,12 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         out("== redirect tiers (configured, % of trigrams) ==".to_string());
         for (i, tier) in tiers.tiers().iter().enumerate() {
             out(format!(
-                "  {:<16} {:6.2}",
+                "  {:<16} {:6.2}  weight={:.3}",
                 format!("tier {}", i + 1),
                 pats.get(&format!("redirect_tier_{}", i + 1))
                     .copied()
-                    .unwrap_or(0.0)
+                    .unwrap_or(0.0),
+                tiers.base_cost(i)
             ));
             for &pattern in tier {
                 out(format!(
