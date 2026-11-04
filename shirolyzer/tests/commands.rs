@@ -292,11 +292,14 @@ fn audit_and_check_baseline_pass() {
     let config = config_path();
     let out_json = tmp("audit.json");
     let out_txt = tmp("audit.txt");
+    let rulings = common::reference_rulings();
     let out = run(&[
         "audit",
         "A:all",
         "--config",
         config.as_str(),
+        "--rulings",
+        rulings.to_str().unwrap(),
         "--out",
         out_txt.to_str().unwrap(),
         "--out-json",
@@ -321,6 +324,8 @@ fn audit_and_check_baseline_pass() {
         "audit",
         "--config",
         config.as_str(),
+        "--rulings",
+        rulings.to_str().unwrap(),
         "--out",
         default_txt.to_str().unwrap(),
         "--out-json",
@@ -331,7 +336,13 @@ fn audit_and_check_baseline_pass() {
         serde_json::from_str(&std::fs::read_to_string(&default_json).unwrap()).unwrap();
     assert!(value["config"].is_null());
 
-    let out = run(&["check-baseline", "--config", config.as_str()]);
+    let out = run(&[
+        "check-baseline",
+        "--config",
+        config.as_str(),
+        "--rulings",
+        rulings.to_str().unwrap(),
+    ]);
     assert!(out.status.success());
     assert!(stdout(&out).contains("baseline OK: audit 166/166, 9 references"));
 }

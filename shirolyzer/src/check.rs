@@ -17,6 +17,7 @@ pub struct CheckArgs<'a> {
     pub baseline: Option<&'a Path>,
     pub corpus: Option<&'a Path>,
     pub config: Option<&'a Path>,
+    pub rulings: Option<&'a Path>,
     pub tolerance: f64,
     pub write: bool,
 }
@@ -55,9 +56,9 @@ pub fn reference_costs(layout: &str, corpus: &Corpus, tables: &Tables) -> Result
     }))
 }
 
-fn collect(ctx: &Context, corpus_path: &Path) -> Result<Value> {
+fn collect(ctx: &Context, corpus_path: &Path, rulings_path: Option<&Path>) -> Result<Value> {
     let corpus = Corpus::load(corpus_path)?;
-    let audit_outcome = audit::collect(ctx, "A:all", &[], &[], None, true)?;
+    let audit_outcome = audit::collect(ctx, "A:all", &[], &[], rulings_path, true)?;
     let model = ctx
         .cfg
         .parameters_path
@@ -138,7 +139,7 @@ pub fn run(args: CheckArgs) -> Result<()> {
         .map(Path::to_path_buf)
         .unwrap_or_else(|| paths::corpus_root().join("shai").join("parsed"));
     let ctx = context::Context::load(args.config)?;
-    let actual = collect(&ctx, &corpus_path)?;
+    let actual = collect(&ctx, &corpus_path, args.rulings)?;
     if args.write {
         if let Some(parent) = baseline.parent() {
             std::fs::create_dir_all(parent)?;
