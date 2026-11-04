@@ -269,7 +269,7 @@ impl<'a> Evaluator<'a> {
         weighted
     }
 
-    fn default_usage(&self, perm: &[usize]) -> Usage {
+    pub(crate) fn default_usage(&self, perm: &[usize]) -> Usage {
         let mut usage = [[0.0f64; 4]; 2];
         for li in 0..N_LETTERS {
             let slot = perm[li];
