@@ -136,6 +136,77 @@ fn analyze_score_matches_baseline() {
 }
 
 #[test]
+fn analyze_reports_preference_metrics_for_both_corpora() {
+    let config = config_path();
+    let path = tmp("preference.json");
+    let out = run(&[
+        "analyze",
+        SHIRO,
+        "--config",
+        config.as_str(),
+        "--out-json",
+        path.to_str().unwrap(),
+    ]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let preference = value["preference"].as_object().unwrap();
+    let primary = &preference["primary"];
+    let secondary = &preference["secondary"];
+
+    for report in [primary, secondary] {
+        assert!(report["total_letters"].as_f64().unwrap() > 0.0);
+        assert!(report["total_bigrams"].as_f64().unwrap() > 0.0);
+        assert!(report["total_trigrams"].as_f64().unwrap() > 0.0);
+        assert_eq!(report["scissor_bands"].as_array().unwrap().len(), 4);
+        assert_eq!(report["top_letters"].as_array().unwrap().len(), 25);
+        assert_eq!(report["top_bigrams"].as_array().unwrap().len(), 25);
+        assert_eq!(report["top_trigrams"].as_array().unwrap().len(), 25);
+        for kind in ["letters", "bigrams", "trigrams"] {
+            assert!(report["finger_strength"][kind]["mean_penalty"].is_number());
+            for finger in ["LP", "LR", "LM", "LI", "RP", "RR", "RM", "RI"] {
+                assert!(report["finger_strength"][kind]["per_finger"][finger].is_number());
+            }
+        }
+    }
+
+    let bands = primary["scissor_bands"].as_array().unwrap();
+    let band_total: f64 = bands
+        .iter()
+        .map(|band| band["count"].as_f64().unwrap())
+        .sum();
+    let category_total: f64 = primary["scissor_categories"]
+        .as_object()
+        .unwrap()
+        .values()
+        .map(|metric| metric["count"].as_f64().unwrap())
+        .sum();
+    assert!((band_total - category_total).abs() < 1e-6);
+
+    let tier_total: f64 = primary["redirect_tiers"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|tier| tier["count"].as_f64().unwrap())
+        .sum();
+    let unclassified = primary["redirect_unclassified"]["count"].as_f64().unwrap();
+    let redirect_total = primary["redirects"]["count"].as_f64().unwrap();
+    assert!((tier_total + unclassified - redirect_total).abs() < 1e-6);
+
+    let top = primary["top_bigrams"].as_array().unwrap();
+    assert!(top
+        .windows(2)
+        .all(|pair| pair[0]["count"].as_f64().unwrap() >= pair[1]["count"].as_f64().unwrap()));
+    let top = primary["top_trigrams"].as_array().unwrap();
+    assert!(top
+        .windows(2)
+        .all(|pair| pair[0]["count"].as_f64().unwrap() >= pair[1]["count"].as_f64().unwrap()));
+}
+
+#[test]
 fn compare_accepts_external_ngram_json() {
     let config = config_path();
     let path = tmp("external-ngrams.txt");

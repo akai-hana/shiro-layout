@@ -28,6 +28,7 @@
     - [Roll tiers](#roll-tiers)
     - [Conditions](#conditions)
 - [Analysis](#analysis)
+    - [Preference metrics](#preference-metrics)
     - [Corpus provenance](#corpus-provenance)
 - [Development](#development)
     - [Tests and the reference model](#tests-and-the-reference-model)
@@ -411,6 +412,60 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
   terms, gate penalties, and space costs.
 
 `analyze` uses the most recent `compute` result when `--layout` is omitted. The same metrics drive primary-sacrifice enforcement during secondary optimization, so scores shown by the analyzer reflect the constraints the generator applied.
+
+### Preference metrics
+
+`analyze` also writes a `preference` block for the primary corpus and, when one
+is configured, the secondary corpus. The text report prints a compact summary;
+`--out-json` contains the full top-25 lists and all per-pattern values. These
+metrics are observational: they do not feed back into the score or change any
+baseline.
+
+- `scissor_bands` groups scissors by their configured pair cost: `mild` below
+  `3`, `moderate` from `3` to below `5`, `severe` from `5` to below `8`, and
+  `extreme` at `8` or above. Each band reports count, share of corpus bigrams,
+  and frequency-weighted cost. `scissor_categories` keeps the existing category
+  breakdown. Adjust the thresholds in `SCISSOR_BAND_THRESHOLDS` when P6
+  introduces configured severity tiers.
+- `redirect_tiers` reports count, share, and weighted cost for each configured
+  tier, with a `patterns` map for the individual turn patterns.
+  `redirect_unclassified` covers turns outside every configured tier.
+- `rolls` reports count, share, and weighted cost for the six directed adjacent
+  finger pairs, including pairs whose cost is zero.
+- `top_letters` lists the 25 most frequent letters with their key, configured
+  default finger, selected-finger distribution, and weighted strength.
+- `top_bigrams` and `top_trigrams` list the 25 most frequent n-grams with the
+  selected finger sequence, term cost, and category.
+- `finger_strength` reports frequency-weighted mean finger-strength penalty for
+  letters, bigrams, and trigrams, plus the per-finger weighted distribution.
+  The vector comes from the top-level `finger_strength` mapping (zero when it
+  is omitted), so configs can be compared without editing code.
+
+Use the calibration sweep to compare config variants across seeds and both
+corpora:
+
+```sh
+just sweep --seeds 5 --out-json shirolyzer/results/preference_sweep.json
+just sweep --variants sweep_variants.yaml --seeds 10
+```
+
+`shirolyzer/utils/preference_sweep.py` accepts a JSON or YAML list (or an object
+with a `variants` list). Each variant has a `name` and optional `overrides`
+using dotted YAML paths:
+
+```yaml
+- name: baseline
+  overrides: {}
+- name: redirect-5
+  overrides:
+    redirect_scale: 5.0
+```
+
+The script runs `compute` for each variant/seed, analyzes the selected layout
+with both corpora, and writes the compute rows plus the full preference blocks
+to one JSON file. Search budget flags mirror `compute` (`--runs`, `--iters`,
+`--ils`, `--ils-candidates`, `--batch-size`, `--secondary-rounds`,
+`--polish-rounds`, `--time-budget`).
 
 ### Corpus provenance
 
