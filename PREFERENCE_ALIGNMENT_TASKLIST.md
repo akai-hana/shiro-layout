@@ -228,20 +228,20 @@ behavior.
 
 **Tasks:**
 
-- [ ] Audit current permissions and reachability for H/Y/M/X in
+- [x] Audit current permissions and reachability for H/Y/M/X in
       `config.yaml`, `alt_fingering`, `conditions`, and geometry.
-- [ ] Allow Y left index where reachable; prefer it over Y right middle.
-- [ ] Reassess the existing `Y:LM` allowance. The stated allowed set is RM or
+- [x] Allow Y left index where reachable; prefer it over Y right middle.
+- [x] Reassess the existing `Y:LM` allowance. The stated allowed set is RM or
       LI. Remove or demote `Y:LM` only after checking existing rulings and
       reference layouts.
-- [ ] Allow H left index broadly in contexts where it is comfortable, not only
+- [x] Allow H left index broadly in contexts where it is comfortable, not only
       in the current special-case entries.
-- [ ] Block M right middle everywhere; allow M right ring; prefer right ring
+- [x] Block M right middle everywhere; allow M right ring; prefer right ring
       over right index where the context allows.
-- [ ] Keep X left ring as the default and ensure X left index is allowed but
+- [x] Keep X left ring as the default and ensure X left index is allowed but
       slightly less preferred.
-- [ ] Add audit probes for each corrected key.
-- [ ] Verify that all other key mappings remain unchanged.
+- [x] Add audit probes for each corrected key.
+- [x] Verify that all other key mappings remain unchanged.
 
 **Planned commits:**
 
