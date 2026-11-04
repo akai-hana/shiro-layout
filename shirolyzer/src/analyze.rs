@@ -16,6 +16,7 @@ use crate::model::{
     W_SFS_1U, W_SFS_FAR,
 };
 use crate::paths;
+use crate::preferences;
 use crate::provenance;
 use crate::redirect::{pattern_for, pattern_key, pattern_label, redirect_cost, RedirectTiers};
 use crate::roll::{self, pair_key, pair_label};
@@ -856,6 +857,26 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         &ctx.gates,
         &ctx.conditions,
     );
+    let preference_primary = preferences::report(
+        layout,
+        &corpus,
+        &ctx.tables,
+        &ctx.model,
+        &ctx.geom,
+        ctx.cfg.redirect_tiers.as_ref(),
+        &ctx.model.finger_strength,
+    );
+    let preference_secondary = secondary_corpus.as_ref().map(|corpus| {
+        preferences::report(
+            layout,
+            corpus,
+            &ctx.tables,
+            &ctx.model,
+            &ctx.geom,
+            ctx.cfg.redirect_tiers.as_ref(),
+            &ctx.model.finger_strength,
+        )
+    });
 
     let mut lines = Vec::new();
     let mut out = |s: String| {
@@ -1050,6 +1071,20 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         out(format!("  {}: {}", h, parts.join("  ")));
     }
     out(String::new());
+    out("== preference metrics (primary) ==".to_string());
+    for line in preferences::top_summary(&preference_primary) {
+        out(format!("  {}", line));
+    }
+    out("  (full top-25 lists and per-pattern costs are in the JSON report)".to_string());
+    if let Some(report) = preference_secondary.as_ref() {
+        out(String::new());
+        out("== preference metrics (secondary) ==".to_string());
+        for line in preferences::top_summary(report) {
+            out(format!("  {}", line));
+        }
+        out("  (full top-25 lists and per-pattern costs are in the JSON report)".to_string());
+    }
+    out(String::new());
     out("== alpha fingering guide (trigram DP) ==".to_string());
     for ch in LETTERS.chars() {
         let Some(g) = guide.get(&ch) else { continue };
@@ -1135,6 +1170,10 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "trigram_patterns": pats,
         "usage": use_,
         "guide": guide_json,
+        "preference": {
+            "primary": preference_primary.to_json(),
+            "secondary": preference_secondary.as_ref().map(|report| report.to_json()),
+        },
     });
     std::fs::write(&out_json, serde_json::to_string_pretty(&payload)? + "\n")?;
     println!("\nwrote {} and {}", out_path.display(), out_json.display());

@@ -122,10 +122,16 @@ For every work item:
 5. Run the ignored compute smoke test when the change touches search or
    scoring:
    `cargo test --manifest-path shirolyzer/Cargo.toml --release --test commands compute_smoke -- --ignored`
-6. Open a PR referencing the issue. Use a merge commit to preserve the existing
-   history style.
-7. After merge, delete the local and remote topic branch and push `main`.
-   End state: only `main` remains locally and on `origin`.
+6. Check off the completed work item's boxes, then commit the changes in
+   logical commits. Open a PR referencing the issue, or merge the branch
+   directly when the work is already reviewed.
+7. Merge the topic branch into `main` with a merge commit to preserve the
+   existing history style. Delete the local and remote topic branch and push
+   `main`.
+8. Immediately start the next work item on a fresh branch from the updated
+   `main`. Do not stop between work items with completed work left unmerged.
+   End state after the final item: only `main` remains locally and on
+   `origin`.
 
 Planned issue/branch map:
 
@@ -150,18 +156,18 @@ explicitly does not know how roll-weight magnitudes affect the final layout.
 
 **Tasks:**
 
-- [ ] Extend `analyze` (or add a companion report) with the metrics listed in
+- [x] Extend `analyze` (or add a companion report) with the metrics listed in
       "Planned metrics and guardrails".
-- [ ] Report scissor costs by severity band, not only aggregate scissors.
-- [ ] Report redirect counts and costs per configured redirect tier.
-- [ ] Report roll counts and costs by finger pair and direction.
-- [ ] Report top-25 letters with their selected fingers.
-- [ ] Report top bigrams/trigrams with finger sequences and their term costs.
-- [ ] Add frequency-weighted finger-strength metric using a configurable
+- [x] Report scissor costs by severity band, not only aggregate scissors.
+- [x] Report redirect counts and costs per configured redirect tier.
+- [x] Report roll counts and costs by finger pair and direction.
+- [x] Report top-25 letters with their selected fingers.
+- [x] Report top bigrams/trigrams with finger sequences and their term costs.
+- [x] Add frequency-weighted finger-strength metric using a configurable
       strength vector.
-- [ ] Add a sweep tool that runs config variants across seeds and both corpora
+- [x] Add a sweep tool that runs config variants across seeds and both corpora
       and emits machine-readable results.
-- [ ] Add math tests for the new metrics.
+- [x] Add math tests for the new metrics.
 
 **Planned commits:**
 
