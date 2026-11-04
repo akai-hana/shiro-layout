@@ -107,6 +107,20 @@ fn analyze_score_matches_baseline() {
     let total = pats["total_redirects"].as_f64().unwrap();
     assert!((tier_total + unclassified - total).abs() < 1e-9);
 
+    // Bigram roll shares by directed finger pair always sum to the in/out rolls
+    // that are neither leaps nor wide jumps.
+    let cats = value["categories"].as_object().unwrap();
+    let pair_total: f64 = ["1_2", "2_1", "2_3", "3_2", "3_4", "4_3"]
+        .iter()
+        .map(|pair| cats[&format!("roll_{pair}")].as_f64().unwrap())
+        .sum();
+    let rolls = cats["roll_in"].as_f64().unwrap() + cats["roll_out"].as_f64().unwrap();
+    assert!(pair_total > 0.0 && pair_total <= rolls + 1e-9);
+    assert!(
+        !cats.contains_key("roll_tier_1"),
+        "reference config has no roll tiers"
+    );
+
     let provenance = &value["corpus_provenance"];
     for role in ["primary", "secondary"] {
         let entries = provenance[role].as_array().unwrap();
@@ -295,5 +309,36 @@ fn compute_smoke() {
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 1);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.441_308_419_926_627).abs() < 1e-6);
+    assert!((primary - 3.576_952_749_945_849_8).abs() < 1e-6);
+}
+
+#[test]
+fn analyze_reports_configured_roll_tiers() {
+    let path = tmp("roll-tiers-config.yaml");
+    let mut text = std::fs::read_to_string(common::reference_config()).unwrap();
+    text.push_str("\nroll_tiers:\n  - [\"1-2\"]\n  - [\"2-1\", \"3-2\"]\n");
+    std::fs::write(&path, text).unwrap();
+    let json = tmp("roll-tiers.json");
+    let out = run(&[
+        "analyze",
+        SHIRO,
+        "--config",
+        path.to_str().unwrap(),
+        "--out-json",
+        json.to_str().unwrap(),
+    ]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let text = stdout(&out);
+    assert!(text.contains("== roll tiers (configured"), "{text}");
+    let value: Value = serde_json::from_str(&std::fs::read_to_string(&json).unwrap()).unwrap();
+    let cats = value["categories"].as_object().unwrap();
+    let pair = |key: &str| cats[key].as_f64().unwrap();
+    assert!((cats["roll_tier_1"].as_f64().unwrap() - pair("roll_1_2")).abs() < 1e-9);
+    assert!(
+        (cats["roll_tier_2"].as_f64().unwrap() - pair("roll_2_1") - pair("roll_3_2")).abs() < 1e-9
+    );
 }

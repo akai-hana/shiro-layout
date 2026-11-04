@@ -15,6 +15,7 @@ use crate::model::pair_feature;
 use crate::paths;
 use crate::provenance;
 use crate::redirect::{pattern_for, pattern_key, pattern_label, RedirectTiers};
+use crate::roll::{self, pair_key, pair_label};
 use crate::scorer::{Tables, FINGER_SLOTS, SPACE_FINGER};
 
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
@@ -115,6 +116,11 @@ pub fn category_report(
             } else {
                 *stats.entry("roll_out".into()).or_insert(0.0) += cnt;
             }
+            if d2.abs_diff(d1) == 1 && dcol < 3.0 {
+                if let Some(pair) = roll::pair_for_kinds(finger_kind(f1), finger_kind(f2)) {
+                    *stats.entry(pair_key(pair)).or_insert(0.0) += cnt;
+                }
+            }
             let pf = pair_feature(geom, i, f1, j, f2);
             if pf.g > 0.25 {
                 let (outer, inner) = if d1 < d2 {
@@ -166,6 +172,11 @@ pub fn category_report(
     ] {
         let value = stats.get(key).copied().unwrap_or(0.0);
         cats.insert(key.to_string(), value / total * 100.0);
+    }
+    for pair in roll::ALL_PAIRS {
+        let key = pair_key(pair);
+        let value = stats.get(&key).copied().unwrap_or(0.0);
+        cats.insert(key, value / total * 100.0);
     }
     cats.insert(
         "hand_alternation".to_string(),
@@ -507,7 +518,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         }
     };
 
-    let (report, (pats, (use_, guide))) = rayon::join(
+    let (mut report, (pats, (use_, guide))) = rayon::join(
         || category_report(layout, &corpus, &ctx.tables, &ctx.geom),
         || {
             rayon::join(
@@ -529,6 +540,15 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             )
         },
     );
+    if let Some(tiers) = ctx.cfg.roll_tiers.as_ref() {
+        for (i, tier) in tiers.tiers().iter().enumerate() {
+            let share: f64 = tier
+                .iter()
+                .map(|&pair| report.cats.get(&pair_key(pair)).copied().unwrap_or(0.0))
+                .sum();
+            report.cats.insert(format!("roll_tier_{}", i + 1), share);
+        }
+    }
     let primary_provenance = if !args.primary_corpus.is_empty() {
         provenance::describe_paths(args.primary_corpus)?
     } else {
@@ -609,6 +629,28 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             k,
             report.cats.get(k).copied().unwrap_or(0.0)
         ));
+    }
+    if let Some(tiers) = ctx.cfg.roll_tiers.as_ref() {
+        out(String::new());
+        out("== roll tiers (configured, % of letter bigrams) ==".to_string());
+        for (i, tier) in tiers.tiers().iter().enumerate() {
+            out(format!(
+                "  {:<16} {:6.2}",
+                format!("tier {}", i + 1),
+                report
+                    .cats
+                    .get(&format!("roll_tier_{}", i + 1))
+                    .copied()
+                    .unwrap_or(0.0)
+            ));
+            for &pair in tier {
+                out(format!(
+                    "    {:<14} {:6.2}",
+                    pair_label(pair),
+                    report.cats.get(&pair_key(pair)).copied().unwrap_or(0.0)
+                ));
+            }
+        }
     }
     out(String::new());
     out("== worst bigrams (chosen cost, fingering, count) ==".to_string());

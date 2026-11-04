@@ -34,7 +34,7 @@ general:
     finger_balance: 1%
 
 model:
-  parameters_file: model/pattern_parameters_A_all.json
+  parameters_file: model/calibrated.json
   disallow_reverse_scissors: [MR]
 
 fingermap: |
@@ -58,10 +58,20 @@ conditions:
 
 # Tiered priority list.
 # High to low, most to least important in consideration.
+# Items grouped together share a tier. With N tiers, tier t (0 = highest) is
+# multiplied by 1 + 0.5 * (N - t - 1).  The list is always applied as written:
+# to weight every term equally, put them all in a single tier.  A term left out
+# of the list is switched off entirely (multiplier 0).  The effective
+# multipliers are printed at the top of every `compute` run.
+#
+# Avoid, worst first: SFBs/SFTs, then scissors, then redirects.
+# Seek: rolls together with finger strength (finger_balance), then alternation.
 priority_list:
-  - sfbs-sfts # sfb/ts are the unavoidable devil
-  - [scissors, redirects] # flow disruptions that are bad to have
-  - [rolls, alternation] # flow improving niceties
+  - sfbs-sfts # same-finger bigrams/trigrams: the unavoidable devil
+  - scissors # awkward stretches; harmless ones already cost nothing
+  - redirects # flow breakers, worst to least bad (see redirect_tiers)
+  - [rolls, finger_balance] # comfortable rolls, carried by the strong fingers
+  - alternation # nice to have, one tier below rolls
 
 # Redirect preferences. Tiers are ordered from most preferred (tier 1) to most
 # avoided (last tier). Fingers are numbered per hand: 1=index, 2=middle,
@@ -74,6 +84,22 @@ redirect_tiers:
   - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
   - ["4-1-4", "4-2-4", "2-4-2"]
   - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
+
+# Extra multiplier on every redirect cost, on top of the `redirects` priority
+# tier (1.0 = none).  The tier weights alone leave redirects cheap next to the
+# roll and alternation rewards, and the best layouts then carry about 5.5% of
+# trigrams as redirects; 3.0 brings that down to about 2.5% (stable up to 3.5).
+redirect_scale: 3.0
+
+# Roll preferences.  Tiers run from most preferred (tier 1) to least preferred.
+# Each entry is a directed same-hand finger pair "from-to" using per-hand
+# ranks: 1=index, 2=middle, 3=ring, 4=pinky, so "1-2" is index then middle and
+# "2-1" is middle then index.  Only neighbouring fingers can roll.  With N
+# tiers, tier t (0 = highest) earns a roll credit of -0.60 * (N - t) / N per
+# pair, scaled by the `rolls` priority.  Listed pairs replace the model's own
+# roll weight (r_MI, r_RM_*, r_PR_*); unlisted pairs keep it.
+roll_tiers:
+  - ["1-2", "2-1"]
 
 # Target share of strokes per finger in percent. The calibrated model uses the
 # same target for both hands: P 9%, R 12.5%, M 14%, I 14.5%.
