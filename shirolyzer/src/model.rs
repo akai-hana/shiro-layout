@@ -12,6 +12,7 @@ use crate::geometry::{
     finger_hand, finger_kind, finger_token, length_rank, Geometry, FINGERS, NF, NFINGER, NK,
 };
 use crate::redirect::{redirect_cost, RedirectCostTable};
+use crate::roll::RollCreditTable;
 
 pub const PARAM_NAMES: [&str; 47] = [
     "e_dn",
@@ -88,6 +89,8 @@ pub const W_REDIRECT_WEAK: f64 = 1.80;
 pub const W_CONTINUE: f64 = -0.10;
 pub const W_SFS_1U: f64 = 2.50;
 pub const W_SFS_FAR: f64 = 3.50;
+/// Roll credit of tier 1 in `roll_tiers`; later tiers earn equal smaller shares.
+pub const W_ROLL_TIER_BEST: f64 = -0.60;
 pub const ROLL_D0: f64 = 1.25;
 pub const ROLL_D1: f64 = 1.0;
 
@@ -176,6 +179,7 @@ pub struct Scales {
     pub roll: f64,
     pub alt: f64,
     pub redirect_costs: Option<RedirectCostTable>,
+    pub roll_credits: Option<RollCreditTable>,
 }
 
 impl Default for Scales {
@@ -187,6 +191,7 @@ impl Default for Scales {
             roll: 1.0,
             alt: 1.0,
             redirect_costs: None,
+            roll_credits: None,
         }
     }
 }
@@ -464,6 +469,18 @@ impl Model {
                             } else {
                                 self.p("r_PR_out")
                             };
+                        }
+                        if nadj == 1 {
+                            // roll_tiers overrides the model's weight for the
+                            // directed pairs it names; unlisted pairs keep it.
+                            if let Some(credit) = self
+                                .scales
+                                .roll_credits
+                                .as_ref()
+                                .and_then(|table| table.credit_for_fingers([fa, fb]))
+                            {
+                                rw = credit;
+                            }
                         }
                         let fade = (1.0 - (pf.dist - ROLL_D0).max(0.0) / ROLL_D1).clamp(0.0, 1.0);
                         let supp = if deficit > 0.2 { 0.25 } else { 1.0 };
@@ -743,6 +760,46 @@ mod tests {
         assert!(e[e_idx(h, ri)].is_finite());
         assert!(e[e_idx(h, li)] < 3.0);
         assert!(e[e_idx(y, lm)] < 3.5);
+    }
+
+    #[test]
+    fn roll_tiers_credit_only_the_listed_directed_pairs() {
+        use crate::roll::{pair_for, RollTiers};
+
+        let geom = Geometry::new();
+        let cfg = crate::config::load(None).unwrap();
+        let mut model = crate::config::build_model(&cfg).unwrap();
+        model.scales.roll_credits = None;
+        let base = model.tables(&geom);
+        model.scales.roll_credits = Some(RollTiers::new(vec![vec![[1, 2]]]).credit_table());
+        let tiered = model.tables(&geom);
+
+        let mut changed = 0;
+        for a in 0..NK {
+            for fa in 0..NF {
+                for b in 0..NK {
+                    for fb in 0..NF {
+                        let i = pt_idx(a, fa, b, fb);
+                        let before = base.parts.roll[i];
+                        let after = tiered.parts.roll[i];
+                        if pair_for([fa, fb]) == Some([1, 2]) {
+                            // index -> middle takes the tier credit, which is
+                            // never weaker than the full -0.60 times the roll scale.
+                            assert!(after <= 0.0);
+                            assert!(
+                                after.abs() <= W_ROLL_TIER_BEST.abs() * model.scales.roll + 1e-12
+                            );
+                            if (after - before).abs() > 1e-12 {
+                                changed += 1;
+                            }
+                        } else {
+                            assert_eq!(before, after, "unlisted pair changed: {a},{fa},{b},{fb}");
+                        }
+                    }
+                }
+            }
+        }
+        assert!(changed > 0, "the listed pair never changed");
     }
 
     #[test]

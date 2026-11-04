@@ -21,6 +21,7 @@ pub mod provenance;
 pub mod redirect;
 pub mod references;
 pub mod render;
+pub mod roll;
 pub mod scorer;
 pub mod search;
 pub mod ui;
