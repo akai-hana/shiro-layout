@@ -910,19 +910,20 @@ mod tests {
         let legacy_configured = legacy_block[configured_index];
         let legacy_unlisted = legacy_block[unlisted_index];
 
-        let expected =
-            (crate::redirect::tier_cost(1, tiers.len()) - W_REDIRECT) * model.scales.redirect;
+        let expected = (tiers.cost([3, 2, 3]).unwrap() - W_REDIRECT) * model.scales.redirect;
         assert!(
             (configured - legacy_configured - expected).abs() < 1e-12,
             "configured={configured} legacy={legacy_configured} expected={expected}"
         );
-        assert!((unlisted_cost - legacy_unlisted).abs() < 1e-12);
+        let fallback = tiers.fallback().expect("weighted fallback");
+        let expected_unlisted = (fallback - W_REDIRECT) * model.scales.redirect;
+        assert!(
+            (unlisted_cost - legacy_unlisted - expected_unlisted).abs() < 1e-12,
+            "unlisted={unlisted_cost} legacy={legacy_unlisted} expected={expected_unlisted}"
+        );
         assert!(model.scales.redirect_costs.is_none());
         assert!(Scales::default().redirect_costs.is_none());
-        assert_eq!(
-            tiers.cost(ring_middle_ring),
-            Some(crate::redirect::tier_cost(1, tiers.len()))
-        );
+        assert_eq!(tiers.cost(ring_middle_ring), Some(tiers.base_cost(1)));
         assert_eq!(tiers.cost(unlisted), None);
     }
 
