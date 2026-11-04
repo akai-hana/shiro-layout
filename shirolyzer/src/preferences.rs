@@ -14,11 +14,10 @@ use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS, N
 use crate::model::{pair_feature, pt_idx, Model};
 use crate::redirect::{pattern_label, redirect_cost, RedirectTiers};
 use crate::roll::{pair_for, pair_key, pair_label, ALL_PAIRS};
+use crate::scissor::{self, SCISSOR_BANDS};
 use crate::scorer::{big_idx, tri_idx, Tables, FINGER_SLOTS};
 
 pub const TOP_N: usize = 25;
-pub const SCISSOR_BANDS: [&str; 4] = ["mild", "moderate", "severe", "extreme"];
-pub const SCISSOR_BAND_THRESHOLDS: [f64; 3] = [3.0, 5.0, 8.0];
 const FORDER: [usize; 4] = [0, 1, 2, 3];
 
 type KeyMap = [Option<usize>; 27];
@@ -107,6 +106,7 @@ pub struct PreferenceReport {
     pub total_bigrams: f64,
     pub total_trigrams: f64,
     pub scissor_bands: [Metric; 4],
+    pub scissor_multipliers: [f64; 4],
     pub scissor_categories: HashMap<&'static str, Metric>,
     pub redirects: Metric,
     pub redirect_unclassified: Metric,
@@ -156,18 +156,6 @@ fn decode_finger(value: u8) -> usize {
 
 fn decode_finger_b(value: u8) -> usize {
     (value as usize) % FINGER_SLOTS
-}
-
-pub fn scissor_band(cost: f64) -> usize {
-    if cost < SCISSOR_BAND_THRESHOLDS[0] {
-        0
-    } else if cost < SCISSOR_BAND_THRESHOLDS[1] {
-        1
-    } else if cost < SCISSOR_BAND_THRESHOLDS[2] {
-        2
-    } else {
-        3
-    }
 }
 
 fn scissor_category(
@@ -255,6 +243,12 @@ pub fn report(
                     .collect()
             })
             .unwrap_or_default(),
+        scissor_multipliers: model
+            .scales
+            .scissor_tiers
+            .as_ref()
+            .map(|table| table.multipliers())
+            .unwrap_or([1.0; 4]),
         ..Default::default()
     };
 
@@ -276,7 +270,8 @@ pub fn report(
         let f2 = decode_finger_b(enc);
 
         if let Some(category) = scissor_category(geom, i, f1, j, f2) {
-            let band = scissor_band(cost);
+            let band = tables.model.scissor_band[pt_idx(i, f1, j, f2)] as usize;
+            let band = if band < 4 { band } else { scissor::band(cost) };
             out.scissor_bands[band].add(cnt, cost * cnt);
             out.scissor_categories
                 .entry(category)
@@ -456,6 +451,7 @@ impl PreferenceReport {
             .map(|(band, metric)| {
                 let mut value = metric.to_json(self.total_bigrams);
                 value["band"] = json!(SCISSOR_BANDS[band]);
+                value["multiplier"] = json!(self.scissor_multipliers[band]);
                 value
             })
             .collect();
@@ -585,11 +581,12 @@ pub fn top_summary(report: &PreferenceReport) -> Vec<String> {
     lines.push("scissor bands:".to_string());
     for (band, metric) in report.scissor_bands.iter().enumerate() {
         lines.push(format!(
-            "  {:<9} count={:<12.0} share={:5.2}%  weighted_cost={:.6}",
+            "  {:<9} count={:<12.0} share={:5.2}%  weighted_cost={:.6}  multiplier={:.3}",
             SCISSOR_BANDS[band],
             metric.count,
             metric.share(report.total_bigrams),
-            metric.weighted_cost(report.total_bigrams)
+            metric.weighted_cost(report.total_bigrams),
+            report.scissor_multipliers[band]
         ));
     }
     if !report.redirect_tiers.is_empty() {
@@ -686,11 +683,14 @@ mod tests {
 
     #[test]
     fn scissor_bands_follow_the_configured_thresholds() {
-        assert_eq!(scissor_band(SCISSOR_BAND_THRESHOLDS[0] - 0.001), 0);
-        assert_eq!(scissor_band(SCISSOR_BAND_THRESHOLDS[0]), 1);
-        assert_eq!(scissor_band(SCISSOR_BAND_THRESHOLDS[1]), 2);
-        assert_eq!(scissor_band(SCISSOR_BAND_THRESHOLDS[2]), 3);
-        assert_eq!(scissor_band(100.0), 3);
+        assert_eq!(
+            scissor::band(crate::scissor::SCISSOR_BAND_THRESHOLDS[0] - 0.001),
+            0
+        );
+        assert_eq!(scissor::band(crate::scissor::SCISSOR_BAND_THRESHOLDS[0]), 1);
+        assert_eq!(scissor::band(crate::scissor::SCISSOR_BAND_THRESHOLDS[1]), 2);
+        assert_eq!(scissor::band(crate::scissor::SCISSOR_BAND_THRESHOLDS[2]), 3);
+        assert_eq!(scissor::band(100.0), 3);
     }
 
     #[test]
