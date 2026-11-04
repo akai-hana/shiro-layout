@@ -20,6 +20,10 @@ test:
 variance *ARGS: build
     {{python}} shirolyzer/utils/compute_variance.py {{ARGS}}
 
+# Sweep config variants across seeds and report preference metrics
+sweep *ARGS: build
+    {{python}} shirolyzer/utils/preference_sweep.py {{ARGS}}
+
 # Verify the retained Python development tools still import
 dev-tools:
     {{python}} -m compileall -q shirolyzer corpora
