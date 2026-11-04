@@ -375,7 +375,11 @@ finger_balance_source: chosen
 # away from weak fingers.  Bare P/R/M/I apply the same strength to both hands;
 # explicit LP/LR/LM/LI/RP/RR/RM/RI override one hand.  Values must be
 # non-negative and default to 0 (off).  Anatomical ordering here is
-# pinky > ring > middle > index cost (index/middle are strongest).
+# pinky > ring > middle > index cost (index/middle are strongest).  These
+# values were retained after the final P9 sweep in
+# config/preference_variants.yaml: weaker or stronger vectors reduced redirects
+# only by raising the higher-priority mild-scissor cost, and the softer
+# redirect alternative traded a lower scissor cost for a higher redirect rate.
 finger_strength:
   P: 0.45
   R: 0.25
