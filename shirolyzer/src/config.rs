@@ -8,7 +8,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde_yaml::{Mapping, Value};
 
-use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NFINGER, NK};
+use crate::geometry::{finger_index, key_index, FINGERS, KEYS, NF, NFINGER, NK};
 use crate::model::{missing_parameters, Scales};
 use crate::paths;
 use crate::redirect::{is_turn, RedirectTiers};
@@ -72,6 +72,22 @@ impl CorpusEntry {
 pub enum AltMode {
     Allow,
     Block,
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum BalanceSource {
+    Default,
+    #[default]
+    Chosen,
+}
+
+impl BalanceSource {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Default => "default",
+            Self::Chosen => "chosen",
+        }
+    }
 }
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -177,6 +193,8 @@ pub struct Config {
     pub roll_tiers: Option<RollTiers>,
     pub finger_balance: HashMap<char, f64>,
     pub flat_share: HashMap<char, f64>,
+    pub finger_strength: [f64; NF],
+    pub balance_source: BalanceSource,
     pub hand_restrictions: [Option<usize>; 26],
 }
 
@@ -1127,6 +1145,64 @@ fn parse_balance(
     Ok((per_finger, flat))
 }
 
+fn parse_finger_strength(path: &Path, value: Option<&Value>) -> Result<[f64; NF]> {
+    let mut out = [0.0; NF];
+    let Some(value) = value else {
+        return Ok(out);
+    };
+    let map = as_mapping(path, "finger_strength", value)?;
+    for (k, v) in map {
+        let key = as_string(path, "finger_strength key", k)?;
+        let chars: Vec<char> = key.to_uppercase().chars().collect();
+        let (hand, finger) = match chars.as_slice() {
+            [finger] => (None, FINGERS.iter().position(|f| f == finger)),
+            [hand, finger] if *hand == 'L' || *hand == 'R' => (
+                Some(if *hand == 'L' { 0 } else { 1 }),
+                FINGERS.iter().position(|f| f == finger),
+            ),
+            _ => (None, None),
+        };
+        let Some(finger) = finger else {
+            return Err(fail(
+                path,
+                &format!("finger_strength.{}", key),
+                "expected LP/LR/LM/LI/RP/RR/RM/RI or P/R/M/I",
+            ));
+        };
+        let number = as_number(
+            path,
+            &format!("finger_strength.{}", key),
+            v,
+            Some(0.0),
+            None,
+        )?;
+        match hand {
+            Some(hand) => out[hand * NFINGER + finger] = number,
+            None => {
+                out[finger] = number;
+                out[NFINGER + finger] = number;
+            }
+        }
+    }
+    Ok(out)
+}
+
+fn parse_balance_source(path: &Path, value: Option<&Value>) -> Result<BalanceSource> {
+    let Some(value) = value else {
+        return Ok(BalanceSource::Chosen);
+    };
+    let text = as_string(path, "finger_balance_source", value)?;
+    match text.to_lowercase().as_str() {
+        "chosen" | "flexible" => Ok(BalanceSource::Chosen),
+        "default" | "fingermap" | "fixed" => Ok(BalanceSource::Default),
+        other => Err(fail(
+            path,
+            "finger_balance_source",
+            &format!("unknown source {other:?}; expected \"chosen\" or \"default\""),
+        )),
+    }
+}
+
 fn parse_hand_chars(path: &Path, where_: &str, value: &Value) -> Result<Vec<char>> {
     let mut out = Vec::new();
     match value {
@@ -1234,6 +1310,8 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
             "redirect_tiers",
             "redirect_scale",
             "roll_tiers",
+            "finger_strength",
+            "finger_balance_source",
         ],
     ]
     .concat();
@@ -1409,6 +1487,8 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     }
     let roll_tiers = parse_roll_tiers(&path, get(root, "roll_tiers"))?;
     let (finger_balance, flat_share) = parse_balance(&path, get(root, "finger_balance"))?;
+    let finger_strength = parse_finger_strength(&path, get(root, "finger_strength"))?;
+    let balance_source = parse_balance_source(&path, get(root, "finger_balance_source"))?;
     let hand_restrictions = parse_hand_restrictions(&path, get(root, "hand_restrictions"))?;
     let conditions_are_default = match default_conditions() {
         Ok(default) => default == *get(root, "conditions").unwrap_or(&Value::Null),
@@ -1438,6 +1518,8 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         roll_tiers,
         finger_balance,
         flat_share,
+        finger_strength,
+        balance_source,
         hand_restrictions,
     })
 }
@@ -1450,6 +1532,7 @@ pub fn build_model(cfg: &Config) -> Result<crate::model::Model> {
         cfg.fingermap,
     )?;
     model.scales = cfg.scales();
+    model.finger_strength = cfg.finger_strength;
     Ok(model)
 }
 
@@ -1767,6 +1850,49 @@ mod cross_hand_tests {
         assert_eq!(table.credit([2, 1]), None);
         cfg.roll_tiers = None;
         assert!(cfg.scales().roll_credits.is_none());
+    }
+
+    #[test]
+    fn finger_strength_is_optional_and_parses_bare_and_explicit_tokens() {
+        let path = Path::new("config.yaml");
+        assert_eq!(parse_finger_strength(path, None).unwrap(), [0.0; NF]);
+        let value: Value = serde_yaml::from_str("P: 0.4\nRI: 0.2\n").unwrap();
+        let strength = parse_finger_strength(path, Some(&value)).unwrap();
+        assert_eq!(strength[0], 0.4);
+        assert_eq!(strength[4], 0.4);
+        assert_eq!(strength[7], 0.2);
+        assert_eq!(strength[3], 0.0);
+    }
+
+    #[test]
+    fn finger_strength_rejects_bad_tokens_and_negative_values() {
+        for yaml in ["LX: 1\n", "Z: 1\n", "P: -1\n", "P: lots\n"] {
+            let value: Value = serde_yaml::from_str(yaml).unwrap();
+            assert!(
+                parse_finger_strength(Path::new("config.yaml"), Some(&value)).is_err(),
+                "{yaml}"
+            );
+        }
+    }
+
+    #[test]
+    fn balance_source_defaults_to_chosen_and_parses_aliases() {
+        let path = Path::new("config.yaml");
+        assert_eq!(
+            parse_balance_source(path, None).unwrap(),
+            BalanceSource::Chosen
+        );
+        for (text, expected) in [
+            ("chosen", BalanceSource::Chosen),
+            ("flexible", BalanceSource::Chosen),
+            ("default", BalanceSource::Default),
+            ("fingermap", BalanceSource::Default),
+        ] {
+            let value = Value::String(text.into());
+            assert_eq!(parse_balance_source(path, Some(&value)).unwrap(), expected);
+        }
+        let bad = Value::String("mixed".into());
+        assert!(parse_balance_source(path, Some(&bad)).is_err());
     }
 
     fn config_with(extra: &str) -> Result<Config> {

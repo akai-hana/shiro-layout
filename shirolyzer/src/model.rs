@@ -220,6 +220,7 @@ pub struct Model {
     index: HashMap<&'static str, usize>,
     pub disallow_full_reverse: [[bool; NFINGER]; NFINGER],
     pub default_finger: [usize; NK],
+    pub finger_strength: [f64; NF],
     pub scales: Scales,
 }
 
@@ -238,6 +239,7 @@ impl Model {
             index,
             disallow_full_reverse,
             default_finger,
+            finger_strength: [0.0; NF],
             scales: Scales::default(),
         }
     }
@@ -280,10 +282,11 @@ impl Model {
         let mut nd = vec![0.0; NK * NF];
         let mut ndr = vec![0.0; NK * NF];
         let dflt = self.default_finger_index();
-        let rest_keys: [usize; 8] = [10, 1, 2, 13, 19, 8, 7, 16];
         let mut is_rest = [false; NK];
-        for k in rest_keys {
-            is_rest[k] = true;
+        for keys in &geom.rest_key {
+            for &k in keys {
+                is_rest[k] = true;
+            }
         }
         let up_pen = [self.p("e_up_P"), 0.0, 0.0, self.p("e_up_I")];
         for k in 0..NK {
@@ -336,7 +339,7 @@ impl Model {
                 };
                 let ndv = e_nd * nd[i] + e_ndgap * gap;
                 final_nd[i] = ndv;
-                let mut value = e[i] + ndv + e_nd_rest * ndr[i];
+                let mut value = e[i] + ndv + e_nd_rest * ndr[i] + self.finger_strength[f];
                 if !ignore_reach && !geom.is_reachable(k, f) {
                     value = f64::INFINITY;
                 }
@@ -742,6 +745,40 @@ pub fn missing_parameters(data: &Value) -> Vec<String> {
 mod tests {
     use super::*;
     use crate::geometry::{key_index, parse_finger8, Geometry};
+
+    #[test]
+    fn rest_keys_follow_geometry_instead_of_a_hardcoded_list() {
+        let geom = Geometry::new();
+        let cfg = crate::config::load(None).unwrap();
+        let model = crate::config::build_model(&cfg).unwrap();
+        let q = key_index("Q").unwrap();
+        let lp = parse_finger8("LP").unwrap();
+        let (before, _) = model.key_cost(&geom);
+        let mut moved = geom.clone();
+        moved.rest_key = [[q; NFINGER]; 2];
+        let (after, _) = model.key_cost(&moved);
+        let expected = model.p("e_nd") - model.p("e_nd_rest");
+        assert!(
+            (before[e_idx(q, lp)] - after[e_idx(q, lp)] - expected).abs() < 1e-12,
+            "before={} after={} expected={}",
+            before[e_idx(q, lp)],
+            after[e_idx(q, lp)],
+            expected
+        );
+    }
+
+    #[test]
+    fn finger_strength_adds_a_constant_to_each_finger_state() {
+        let geom = Geometry::new();
+        let cfg = crate::config::load(None).unwrap();
+        let mut model = crate::config::build_model(&cfg).unwrap();
+        let (before, _) = model.key_cost(&geom);
+        let lp = parse_finger8("LP").unwrap();
+        model.finger_strength[lp] = 0.5;
+        let (after, _) = model.key_cost(&geom);
+        let a = key_index("A").unwrap();
+        assert!((after[e_idx(a, lp)] - before[e_idx(a, lp)] - 0.5).abs() < 1e-12);
+    }
 
     #[test]
     fn cross_hand_key_costs_are_finite_and_not_hand_relative() {

@@ -3,6 +3,7 @@
 use rand::seq::SliceRandom;
 use rand::Rng;
 
+use crate::config::BalanceSource;
 use crate::corpus::{Corpus, SPACE_INDEX};
 use crate::geometry::{finger_hand, finger_kind, key_index, KEYS, NK};
 use crate::model::Model;
@@ -12,6 +13,8 @@ pub const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
 pub const FORDER: [char; 4] = ['P', 'R', 'M', 'I'];
 pub const N_LETTERS: usize = 26;
 pub const N_ITEMS: usize = NK;
+
+pub type Usage = [[f64; 4]; 2];
 
 pub fn keymap(layout: &str) -> Vec<(char, usize)> {
     let chars: Vec<char> = layout.chars().collect();
@@ -76,6 +79,7 @@ pub struct Evaluator<'a> {
     pub w_balance: f64,
     pub w_hand: f64,
     pub flat_share: [f64; 4],
+    pub balance_source: BalanceSource,
     pub hand_restrictions: [Option<usize>; 26],
 }
 
@@ -143,12 +147,17 @@ impl<'a> Evaluator<'a> {
             w_balance,
             w_hand,
             flat_share,
+            balance_source: BalanceSource::Chosen,
             hand_restrictions: [None; 26],
         })
     }
 
     pub fn set_hand_restrictions(&mut self, restrictions: [Option<usize>; 26]) {
         self.hand_restrictions = restrictions;
+    }
+
+    pub fn set_balance_source(&mut self, source: BalanceSource) {
+        self.balance_source = source;
     }
 
     #[inline]
@@ -260,13 +269,37 @@ impl<'a> Evaluator<'a> {
         weighted
     }
 
-    pub fn penalty(&self, perm: &[usize]) -> f64 {
+    fn default_usage(&self, perm: &[usize]) -> Usage {
         let mut usage = [[0.0f64; 4]; 2];
         for li in 0..N_LETTERS {
             let slot = perm[li];
             let finger = self.default_finger[slot];
             usage[finger_hand(finger)][finger_kind(finger)] += self.lfreq[li];
         }
+        usage
+    }
+
+    pub fn usage_from_kid(&self, kid: &[u8; N_ITEMS]) -> Usage {
+        let mut usage = [[0.0f64; 4]; 2];
+        for (ids, &count) in self.tri_idx_slot.iter().zip(self.tri_counts.iter()) {
+            let idx = tri_idx_u8(
+                kid[ids[0] as usize],
+                kid[ids[1] as usize],
+                kid[ids[2] as usize],
+            );
+            for &finger in &self.tables.tri_f[idx] {
+                let finger = finger as usize;
+                usage[finger_hand(finger)][finger_kind(finger)] += count;
+            }
+        }
+        usage
+    }
+
+    pub fn usage_from_perm(&self, perm: &[usize]) -> Usage {
+        self.usage_from_kid(&self.key_ids(perm))
+    }
+
+    pub fn penalty_from_usage(&self, usage: &Usage) -> f64 {
         let mut pen = 0.0;
         for h in 0..2 {
             let total: f64 = usage[h].iter().sum();
@@ -283,6 +316,14 @@ impl<'a> Evaluator<'a> {
         let hr = usage[1].iter().sum::<f64>();
         pen += ((hl - hr) / (hl + hr).max(1e-9)).powi(2) * self.w_hand;
         pen
+    }
+
+    pub fn penalty(&self, perm: &[usize]) -> f64 {
+        let usage = match self.balance_source {
+            BalanceSource::Default => self.default_usage(perm),
+            BalanceSource::Chosen => self.usage_from_perm(perm),
+        };
+        self.penalty_from_usage(&usage)
     }
 
     pub fn score(&self, perm: &[usize]) -> f64 {

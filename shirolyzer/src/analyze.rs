@@ -10,13 +10,16 @@ use serde_json::json;
 
 use crate::context;
 use crate::evaluate::score_layout;
-use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS};
-use crate::model::pair_feature;
+use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS, NF};
+use crate::model::{
+    e_idx, pair_feature, pt_idx, sfb_cost, PAIR_CAP, W_ALT, W_CONTINUE, W_REPEAT, W_REPEAT_SWAP,
+    W_SFS_1U, W_SFS_FAR,
+};
 use crate::paths;
 use crate::provenance;
-use crate::redirect::{pattern_for, pattern_key, pattern_label, RedirectTiers};
+use crate::redirect::{pattern_for, pattern_key, pattern_label, redirect_cost, RedirectTiers};
 use crate::roll::{self, pair_key, pair_label};
-use crate::scorer::{Tables, FINGER_SLOTS, SPACE_FINGER};
+use crate::scorer::{Tables, FINGER_SLOTS, SPACE_EFFORT, SPACE_FINGER, SPACE_ID};
 
 const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
 const FORDER: [usize; 4] = [0, 1, 2, 3];
@@ -67,6 +70,284 @@ fn decode_finger_b(value: u8) -> usize {
 
 fn decode_finger_at(value: [u8; 3], pos: usize) -> usize {
     value[pos] as usize
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ScoreBreakdown {
+    pub key_effort: f64,
+    pub key_press: f64,
+    pub pair_vertical: f64,
+    pub pair_cross: f64,
+    pub pair_spread: f64,
+    pub pair_roll: f64,
+    pub pair_leap: f64,
+    pub pair_shift: f64,
+    pub pair_cap: f64,
+    pub pair_sfb: f64,
+    pub pair_alt: f64,
+    pub pair_repeat: f64,
+    pub trigram_redirect: f64,
+    pub trigram_continue: f64,
+    pub trigram_scissor: f64,
+    pub trigram_sfs: f64,
+    pub gate_penalty: f64,
+    pub space: f64,
+    pub total: f64,
+}
+
+impl ScoreBreakdown {
+    pub fn sum(&self) -> f64 {
+        self.key_effort
+            + self.key_press
+            + self.pair_vertical
+            + self.pair_cross
+            + self.pair_spread
+            + self.pair_roll
+            + self.pair_leap
+            + self.pair_shift
+            + self.pair_cap
+            + self.pair_sfb
+            + self.pair_alt
+            + self.pair_repeat
+            + self.trigram_redirect
+            + self.trigram_continue
+            + self.trigram_scissor
+            + self.trigram_sfs
+            + self.gate_penalty
+            + self.space
+    }
+
+    fn scale(&mut self, denom: f64) {
+        for value in [
+            &mut self.key_effort,
+            &mut self.key_press,
+            &mut self.pair_vertical,
+            &mut self.pair_cross,
+            &mut self.pair_spread,
+            &mut self.pair_roll,
+            &mut self.pair_leap,
+            &mut self.pair_shift,
+            &mut self.pair_cap,
+            &mut self.pair_sfb,
+            &mut self.pair_alt,
+            &mut self.pair_repeat,
+            &mut self.trigram_redirect,
+            &mut self.trigram_continue,
+            &mut self.trigram_scissor,
+            &mut self.trigram_sfs,
+            &mut self.gate_penalty,
+            &mut self.space,
+            &mut self.total,
+        ] {
+            *value /= denom;
+        }
+    }
+
+    pub fn to_json(&self) -> serde_json::Value {
+        json!({
+            "key_effort": self.key_effort,
+            "key_press": self.key_press,
+            "pair_vertical": self.pair_vertical,
+            "pair_cross": self.pair_cross,
+            "pair_spread": self.pair_spread,
+            "pair_roll": self.pair_roll,
+            "pair_leap": self.pair_leap,
+            "pair_shift": self.pair_shift,
+            "pair_cap": self.pair_cap,
+            "pair_sfb": self.pair_sfb,
+            "pair_alt": self.pair_alt,
+            "pair_repeat": self.pair_repeat,
+            "trigram_redirect": self.trigram_redirect,
+            "trigram_continue": self.trigram_continue,
+            "trigram_scissor": self.trigram_scissor,
+            "trigram_sfs": self.trigram_sfs,
+            "gate_penalty": self.gate_penalty,
+            "space": self.space,
+            "total": self.total,
+            "reconstructed": self.sum(),
+        })
+    }
+}
+
+fn key_char(k: usize) -> char {
+    KEYS[k].chars().next().unwrap()
+}
+
+#[allow(clippy::too_many_arguments)]
+fn add_pair_terms(
+    out: &mut ScoreBreakdown,
+    model: &crate::model::Model,
+    geom: &crate::geometry::Geometry,
+    mt: &crate::model::ModelTables,
+    a: usize,
+    fa: usize,
+    b: usize,
+    fb: usize,
+    count: f64,
+) {
+    let pf = pair_feature(geom, a, fa, b, fb);
+    if a == b {
+        let repeat = W_REPEAT + if fa != fb { W_REPEAT_SWAP } else { 0.0 };
+        out.pair_repeat += repeat * count;
+        return;
+    }
+    if pf.same_hand && fa == fb {
+        out.pair_sfb += sfb_cost(geom, a, b) * model.scales.sfb * count;
+        return;
+    }
+    if !pf.same_hand {
+        out.pair_alt += W_ALT * model.scales.alt * count;
+        return;
+    }
+    let i = pt_idx(a, fa, b, fb);
+    let parts = &mt.parts;
+    out.pair_vertical += parts.vert[i] * count;
+    out.pair_cross += parts.cross[i] * count;
+    out.pair_spread += parts.spread[i] * count;
+    out.pair_roll += parts.roll[i] * count;
+    out.pair_leap += parts.leap[i] * count;
+    out.pair_shift += parts.shift[i] * count;
+    let raw = parts.vert[i]
+        + parts.cross[i]
+        + parts.spread[i]
+        + parts.roll[i]
+        + parts.leap[i]
+        + parts.shift[i];
+    if raw > PAIR_CAP {
+        out.pair_cap += (PAIR_CAP - raw) * count;
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn add_trigram_terms(
+    out: &mut ScoreBreakdown,
+    model: &crate::model::Model,
+    geom: &crate::geometry::Geometry,
+    tables: &Tables,
+    a: usize,
+    fa: usize,
+    _b: usize,
+    fb: usize,
+    c: usize,
+    fc: usize,
+    count: f64,
+) {
+    let d1 = fb as i32 - fa as i32;
+    let d2 = fc as i32 - fb as i32;
+    let same = finger_hand(fa) == finger_hand(fb) && finger_hand(fb) == finger_hand(fc);
+    let strain = |x: usize, fx: usize, z: usize, fz: usize| {
+        let s = tables.model.strain[pt_idx(x, fx, z, fz)];
+        if s.is_finite() {
+            s
+        } else {
+            0.0
+        }
+    };
+    if same {
+        if d1 * d2 < 0 {
+            out.trigram_redirect +=
+                redirect_cost(model.scales.redirect_costs.as_ref(), [fa, fb, fc])
+                    * model.scales.redirect
+                    * count;
+        }
+        if d1 * d2 > 0 {
+            out.trigram_continue += W_CONTINUE * model.scales.redirect * count;
+        }
+        if fa != fc && a != c {
+            out.trigram_scissor +=
+                model.p("gamma13") * model.scales.scissor * strain(a, fa, c, fc) * count;
+        }
+    } else {
+        let alt13 =
+            finger_hand(fa) == finger_hand(fc) && finger_hand(fa) != finger_hand(fb) && a != c;
+        if alt13 && fa != fc {
+            out.trigram_scissor +=
+                model.p("gamma13_alt") * model.scales.scissor * strain(a, fa, c, fc) * count;
+        }
+    }
+    let m13 = fa == fc
+        && !(finger_hand(fa) == finger_hand(fb) && fa == fb)
+        && finger_hand(fa) == finger_hand(fc)
+        && a != c;
+    if m13 {
+        let sfs = if geom.distance(a, c) <= 1.3 {
+            W_SFS_1U
+        } else {
+            W_SFS_FAR
+        } * model.scales.sfb;
+        out.trigram_sfs += sfs * count;
+    }
+}
+
+fn add_space_terms(
+    out: &mut ScoreBreakdown,
+    mt: &crate::model::ModelTables,
+    ids: [usize; 3],
+    fs: [usize; 3],
+    count: f64,
+) {
+    let mut cost = 0.0;
+    for (pos, &id) in ids.iter().enumerate() {
+        if id == SPACE_ID {
+            cost += SPACE_EFFORT;
+        } else {
+            cost += mt.e[e_idx(id, fs[pos])] + crate::scorer::PRESS;
+        }
+    }
+    for (p, q) in [(0usize, 1usize), (1, 2)] {
+        if ids[p] == SPACE_ID || ids[q] == SPACE_ID {
+            cost += W_ALT;
+        } else {
+            cost += mt.pt[pt_idx(ids[p], fs[p], ids[q], fs[q])];
+        }
+    }
+    out.space += cost * count;
+}
+
+pub fn score_breakdown(
+    layout: &str,
+    corpus: &crate::corpus::Corpus,
+    tables: &Tables,
+    model: &crate::model::Model,
+    geom: &crate::geometry::Geometry,
+    gates: &crate::gates::Gates,
+    conditions: &crate::conditions::Conditions,
+) -> ScoreBreakdown {
+    let m = keymap(layout);
+    let mt = model.tables_unrestricted(geom);
+    let mut out = ScoreBreakdown::default();
+    let mut denom = 0.0;
+    let mut pm = vec![0.0; NF * NF * NF];
+    for (ids, &count) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
+        let (Some(k0), Some(k1), Some(k2)) = (m[ids[0]], m[ids[1]], m[ids[2]]) else {
+            continue;
+        };
+        let keys = [k0, k1, k2];
+        let enc = tables.tri_f[crate::scorer::tri_idx(k0, k1, k2)];
+        let fs = [enc[0] as usize, enc[1] as usize, enc[2] as usize];
+        denom += count;
+        out.total += tables.tri[crate::scorer::tri_idx(k0, k1, k2)] * count;
+        if keys.contains(&SPACE_ID) {
+            add_space_terms(&mut out, &mt, keys, fs, count);
+            continue;
+        }
+        out.key_effort +=
+            (mt.e[e_idx(k0, fs[0])] + mt.e[e_idx(k1, fs[1])] + mt.e[e_idx(k2, fs[2])]) * count;
+        out.key_press += 3.0 * crate::scorer::PRESS * count;
+        add_pair_terms(&mut out, model, geom, &mt, k0, fs[0], k1, fs[1], count);
+        add_pair_terms(&mut out, model, geom, &mt, k1, fs[1], k2, fs[2], count);
+        add_trigram_terms(
+            &mut out, model, geom, tables, k0, fs[0], k1, fs[1], k2, fs[2], count,
+        );
+        let chars = [key_char(k0), key_char(k1), key_char(k2)];
+        gates.penalty_mask_into(&chars, conditions, &mut pm);
+        let pi = (fs[0] * NF + fs[1]) * NF + fs[2];
+        out.gate_penalty += pm[pi] * count;
+    }
+    if denom > 0.0 {
+        out.scale(denom);
+    }
+    out
 }
 
 pub struct CategoryReport {
@@ -566,6 +847,15 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
     let secondary_score = secondary_corpus
         .as_ref()
         .map(|c| score_layout(layout, c, &ctx.tables));
+    let breakdown = score_breakdown(
+        layout,
+        &corpus,
+        &ctx.tables,
+        &ctx.model,
+        &ctx.geom,
+        &ctx.gates,
+        &ctx.conditions,
+    );
 
     let mut lines = Vec::new();
     let mut out = |s: String| {
@@ -591,6 +881,32 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             score,
             secondary_paths.join(",")
         ));
+    }
+    out(String::new());
+    out("== primary score decomposition (per trigram) ==".to_string());
+    for (name, value) in [
+        ("key_effort", breakdown.key_effort),
+        ("key_press", breakdown.key_press),
+        ("pair_vertical", breakdown.pair_vertical),
+        ("pair_cross", breakdown.pair_cross),
+        ("pair_spread", breakdown.pair_spread),
+        ("pair_roll", breakdown.pair_roll),
+        ("pair_leap", breakdown.pair_leap),
+        ("pair_shift", breakdown.pair_shift),
+        ("pair_cap", breakdown.pair_cap),
+        ("pair_sfb", breakdown.pair_sfb),
+        ("pair_alt", breakdown.pair_alt),
+        ("pair_repeat", breakdown.pair_repeat),
+        ("trigram_redirect", breakdown.trigram_redirect),
+        ("trigram_continue", breakdown.trigram_continue),
+        ("trigram_scissor", breakdown.trigram_scissor),
+        ("trigram_sfs", breakdown.trigram_sfs),
+        ("gate_penalty", breakdown.gate_penalty),
+        ("space", breakdown.space),
+        ("sum", breakdown.sum()),
+        ("total", breakdown.total),
+    ] {
+        out(format!("  {:<18} {:9.6}", name, value));
     }
     out(String::new());
     out("== corpus provenance ==".to_string());
@@ -805,6 +1121,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "layout": layout,
         "fingering": ctx.cfg.fingering.label(),
         "primary_score": primary_score,
+        "score_breakdown": breakdown.to_json(),
         "primary_corpora": primary_paths,
         "secondary_score": secondary_score,
         "secondary_corpora": secondary_paths,
@@ -835,6 +1152,32 @@ mod tests {
 
     fn tiers() -> RedirectTiers {
         RedirectTiers::new(vec![vec![[1, 2, 1]], vec![[3, 2, 3]], vec![[1, 4, 1]]])
+    }
+
+    #[test]
+    fn score_breakdown_reconstructs_the_primary_score() {
+        let ctx = crate::context::Context::load(None).expect("context");
+        let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
+        let layout = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+        let score = crate::evaluate::score_layout(layout, &corpus, &ctx.tables);
+        let breakdown = super::score_breakdown(
+            layout,
+            &corpus,
+            &ctx.tables,
+            &ctx.model,
+            &ctx.geom,
+            &ctx.gates,
+            &ctx.conditions,
+        );
+        assert!((breakdown.total - score).abs() < 1e-9);
+        assert!(
+            (breakdown.sum() - score).abs() < 1e-8,
+            "sum={} score={} diff={} breakdown={:?}",
+            breakdown.sum(),
+            score,
+            breakdown.sum() - score,
+            breakdown
+        );
     }
 
     #[test]

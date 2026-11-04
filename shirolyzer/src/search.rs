@@ -12,7 +12,9 @@ use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
 use rayon::prelude::*;
 
-use crate::evaluate::{Evaluator, N_ITEMS};
+use crate::config::BalanceSource;
+use crate::evaluate::{Evaluator, Usage, N_ITEMS};
+use crate::geometry::{finger_hand, finger_kind};
 use crate::scorer::tri_idx_u8;
 
 pub trait ScoreFn {
@@ -170,6 +172,7 @@ struct Local<'a> {
     kid: [u8; N_ITEMS],
     weighted: f64,
     pen: f64,
+    usage: Option<Usage>,
     seen: Vec<u32>,
     stamp: u32,
 }
@@ -189,12 +192,24 @@ impl<'a> Local<'a> {
             );
             weighted += ev.tables.tri[idx] * count;
         }
+        let usage = if ev.balance_source == BalanceSource::Chosen
+            && (ev.w_balance != 0.0 || ev.w_hand != 0.0)
+        {
+            Some(ev.usage_from_kid(&kid))
+        } else {
+            None
+        };
+        let pen = match usage {
+            Some(usage) => ev.penalty_from_usage(&usage),
+            None => ev.penalty(perm),
+        };
         Self {
             ev,
             perm: perm.to_vec(),
             kid,
             weighted,
-            pen: ev.penalty(perm),
+            pen,
+            usage,
             seen: vec![0; ev.tri_idx_slot.len()],
             stamp: 0,
         }
@@ -205,7 +220,11 @@ impl<'a> Local<'a> {
         self.weighted / self.ev.n_tri + self.pen
     }
 
-    fn penalty_after(&self, swaps: &[(usize, usize)]) -> f64 {
+    fn penalty_after(&mut self, swaps: &[(usize, usize)]) -> f64 {
+        if self.usage.is_some() {
+            let usage = self.usage_after(swaps);
+            return self.ev.penalty_from_usage(&usage);
+        }
         let mut perm = [0usize; N_ITEMS];
         perm.copy_from_slice(&self.perm);
         for &(i, j) in swaps {
@@ -214,7 +233,64 @@ impl<'a> Local<'a> {
         self.ev.penalty(&perm)
     }
 
+    fn usage_after(&mut self, swaps: &[(usize, usize)]) -> Usage {
+        let mut kid2 = self.kid;
+        let mut changed = Vec::with_capacity(swaps.len() * 2);
+        for &(i, j) in swaps {
+            kid2.swap(i, j);
+            changed.push(i);
+            changed.push(j);
+        }
+        changed.sort_unstable();
+        changed.dedup();
+        self.stamp = self.stamp.wrapping_add(1);
+        if self.stamp == 0 {
+            self.seen.fill(0);
+            self.stamp = 1;
+        }
+        let stamp = self.stamp;
+        let mut usage = self.usage.expect("usage tracked");
+        for &letter in &changed {
+            let list = &self.ev.inc[letter];
+            for &t in list {
+                let t = t as usize;
+                if self.seen[t] == stamp {
+                    continue;
+                }
+                self.seen[t] = stamp;
+                let ids = self.ev.tri_idx_slot[t];
+                let a = ids[0] as usize;
+                let b = ids[1] as usize;
+                let c = ids[2] as usize;
+                let old_idx = tri_idx_u8(self.kid[a], self.kid[b], self.kid[c]);
+                let new_idx = tri_idx_u8(kid2[a], kid2[b], kid2[c]);
+                if old_idx == new_idx {
+                    continue;
+                }
+                let count = self.ev.tri_counts[t];
+                let old = self.ev.tables.tri_f[old_idx];
+                let new = self.ev.tables.tri_f[new_idx];
+                for pos in 0..3 {
+                    let of = old[pos] as usize;
+                    let nf = new[pos] as usize;
+                    usage[finger_hand(of)][finger_kind(of)] -= count;
+                    usage[finger_hand(nf)][finger_kind(nf)] += count;
+                }
+            }
+        }
+        usage
+    }
+
     fn delta(&mut self, kid2: &[u8; N_ITEMS], changed: &[usize]) -> f64 {
+        self.delta_core(kid2, changed, false).0
+    }
+
+    fn delta_core(
+        &mut self,
+        kid2: &[u8; N_ITEMS],
+        changed: &[usize],
+        track_usage: bool,
+    ) -> (f64, Option<Usage>) {
         self.stamp = self.stamp.wrapping_add(1);
         if self.stamp == 0 {
             self.seen.fill(0);
@@ -222,6 +298,7 @@ impl<'a> Local<'a> {
         }
         let stamp = self.stamp;
         let mut dw = 0.0;
+        let mut new_usage = if track_usage { self.usage } else { None };
         for &letter in changed {
             let list = &self.ev.inc[letter];
             for &t in list {
@@ -234,12 +311,26 @@ impl<'a> Local<'a> {
                 let a = ids[0] as usize;
                 let b = ids[1] as usize;
                 let c = ids[2] as usize;
-                let old = self.ev.tables.tri[tri_idx_u8(self.kid[a], self.kid[b], self.kid[c])];
-                let new = self.ev.tables.tri[tri_idx_u8(kid2[a], kid2[b], kid2[c])];
-                dw += (new - old) * self.ev.tri_counts[t];
+                let old_idx = tri_idx_u8(self.kid[a], self.kid[b], self.kid[c]);
+                let new_idx = tri_idx_u8(kid2[a], kid2[b], kid2[c]);
+                dw += (self.ev.tables.tri[new_idx] - self.ev.tables.tri[old_idx])
+                    * self.ev.tri_counts[t];
+                if let Some(usage) = new_usage.as_mut() {
+                    if old_idx != new_idx {
+                        let count = self.ev.tri_counts[t];
+                        let old = self.ev.tables.tri_f[old_idx];
+                        let new = self.ev.tables.tri_f[new_idx];
+                        for pos in 0..3 {
+                            let of = old[pos] as usize;
+                            let nf = new[pos] as usize;
+                            usage[finger_hand(of)][finger_kind(of)] -= count;
+                            usage[finger_hand(nf)][finger_kind(nf)] += count;
+                        }
+                    }
+                }
             }
         }
-        dw
+        (dw, new_usage)
     }
 
     fn delta_swap(&mut self, i: usize, j: usize) -> f64 {
@@ -278,23 +369,34 @@ impl<'a> Local<'a> {
         dw
     }
 
+    fn refresh_penalty(&mut self) {
+        self.pen = match self.usage {
+            Some(usage) => self.ev.penalty_from_usage(&usage),
+            None => self.ev.penalty(&self.perm),
+        };
+    }
+
     fn swap(&mut self, i: usize, j: usize) -> f64 {
         let mut kid2 = self.kid;
         kid2[i] = self.kid[j];
         kid2[j] = self.kid[i];
-        let dw = self.delta(&kid2, &[i, j]);
+        let (dw, usage) = self.delta_core(&kid2, &[i, j], true);
         self.kid = kid2;
         self.perm.swap(i, j);
         self.weighted += dw;
-        self.pen = self.ev.penalty(&self.perm);
+        if usage.is_some() {
+            self.usage = usage;
+        }
+        self.refresh_penalty();
         self.score()
     }
 
-    fn undo_swap(&mut self, i: usize, j: usize, w: f64, kid: [u8; N_ITEMS]) {
+    fn undo_swap(&mut self, i: usize, j: usize, w: f64, kid: [u8; N_ITEMS], usage: Option<Usage>) {
         self.perm.swap(i, j);
         self.weighted = w;
         self.kid = kid;
-        self.pen = self.ev.penalty(&self.perm);
+        self.usage = usage;
+        self.refresh_penalty();
     }
 
     fn cycle3(&mut self, i: usize, j: usize, k: usize) -> f64 {
@@ -302,17 +404,21 @@ impl<'a> Local<'a> {
         kid2[i] = self.kid[j];
         kid2[j] = self.kid[k];
         kid2[k] = self.kid[i];
-        let dw = self.delta(&kid2, &[i, j, k]);
+        let (dw, usage) = self.delta_core(&kid2, &[i, j, k], true);
         let state = [self.perm[i], self.perm[j], self.perm[k]];
         self.perm[i] = state[1];
         self.perm[j] = state[2];
         self.perm[k] = state[0];
         self.kid = kid2;
         self.weighted += dw;
-        self.pen = self.ev.penalty(&self.perm);
+        if usage.is_some() {
+            self.usage = usage;
+        }
+        self.refresh_penalty();
         self.score()
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn undo_cycle3(
         &mut self,
         i: usize,
@@ -321,13 +427,15 @@ impl<'a> Local<'a> {
         w: f64,
         kid: [u8; N_ITEMS],
         p: [usize; 3],
+        usage: Option<Usage>,
     ) {
         self.perm[i] = p[0];
         self.perm[j] = p[1];
         self.perm[k] = p[2];
         self.weighted = w;
         self.kid = kid;
-        self.pen = self.ev.penalty(&self.perm);
+        self.usage = usage;
+        self.refresh_penalty();
     }
 }
 
@@ -372,6 +480,7 @@ pub fn anneal(
         };
         let w0 = st.weighted;
         let kid0 = st.kid;
+        let u0 = st.usage;
         let s = st.swap(i, j);
         if s < cur || rng.gen::<f64>() < ((cur - s) / t).exp() {
             cur = s;
@@ -380,7 +489,7 @@ pub fn anneal(
                 best = st.perm.clone();
             }
         } else {
-            st.undo_swap(i, j, w0, kid0);
+            st.undo_swap(i, j, w0, kid0, u0);
         }
     }
     (best, best_s)
@@ -409,12 +518,13 @@ pub fn quench(
                 }
                 let w0 = st.weighted;
                 let kid0 = st.kid;
+                let u0 = st.usage;
                 let s = st.swap(i, j);
                 if s < cur - 1e-12 {
                     cur = s;
                     changed = true;
                 } else {
-                    st.undo_swap(i, j, w0, kid0);
+                    st.undo_swap(i, j, w0, kid0, u0);
                 }
             }
         }
@@ -476,13 +586,14 @@ pub fn quench(
                 }
                 let w0 = st.weighted;
                 let kid0 = st.kid;
+                let u0 = st.usage;
                 let p0 = [st.perm[i], st.perm[j], st.perm[k]];
                 let s = st.cycle3(i, j, k);
                 if s < cur - 1e-12 {
                     cur = s;
                     changed = true;
                 } else {
-                    st.undo_cycle3(i, j, k, w0, kid0, p0);
+                    st.undo_cycle3(i, j, k, w0, kid0, p0, u0);
                 }
             }
         }
@@ -655,13 +766,15 @@ pub fn quench_constrained(
             }
             let pw0 = p.weighted;
             let pk0 = p.kid;
+            let pu0 = p.usage;
             let sw0 = s.weighted;
             let sk0 = s.kid;
+            let su0 = s.usage;
             let ps = p.swap(i, j);
             let ss = s.swap(i, j);
             if ps > primary_limit || ss >= cur - 1e-12 {
-                p.undo_swap(i, j, pw0, pk0);
-                s.undo_swap(i, j, sw0, sk0);
+                p.undo_swap(i, j, pw0, pk0, pu0);
+                s.undo_swap(i, j, sw0, sk0, su0);
             } else {
                 cur = ss;
                 changed = true;
@@ -684,8 +797,10 @@ pub fn quench_constrained(
             }
             let pw0 = p.weighted;
             let pk0 = p.kid;
+            let pu0 = p.usage;
             let sw0 = s.weighted;
             let sk0 = s.kid;
+            let su0 = s.usage;
             p.swap(i1, j1);
             p.swap(i2, j2);
             s.swap(i1, j1);
@@ -693,10 +808,10 @@ pub fn quench_constrained(
             let ps = p.score();
             let ss = s.score();
             if ps > primary_limit || ss >= cur - 1e-12 {
-                p.undo_swap(i1, j1, pw0, pk0);
-                p.undo_swap(i2, j2, pw0, pk0);
-                s.undo_swap(i1, j1, sw0, sk0);
-                s.undo_swap(i2, j2, sw0, sk0);
+                p.undo_swap(i1, j1, pw0, pk0, pu0);
+                p.undo_swap(i2, j2, pw0, pk0, pu0);
+                s.undo_swap(i1, j1, sw0, sk0, su0);
+                s.undo_swap(i2, j2, sw0, sk0, su0);
             } else {
                 cur = ss;
                 changed = true;
@@ -716,15 +831,17 @@ pub fn quench_constrained(
             }
             let pw0 = p.weighted;
             let pk0 = p.kid;
+            let pu0 = p.usage;
             let pp0 = [p.perm[i], p.perm[j], p.perm[k]];
             let sw0 = s.weighted;
             let sk0 = s.kid;
+            let su0 = s.usage;
             let sp0 = [s.perm[i], s.perm[j], s.perm[k]];
             let ps = p.cycle3(i, j, k);
             let ss = s.cycle3(i, j, k);
             if ps > primary_limit || ss >= cur - 1e-12 {
-                p.undo_cycle3(i, j, k, pw0, pk0, pp0);
-                s.undo_cycle3(i, j, k, sw0, sk0, sp0);
+                p.undo_cycle3(i, j, k, pw0, pk0, pp0, pu0);
+                s.undo_cycle3(i, j, k, sw0, sk0, sp0, su0);
             } else {
                 cur = ss;
                 changed = true;
@@ -770,7 +887,7 @@ mod tests {
         let corpus = crate::corpus::load_many(&paths).expect("corpus");
         let flat = flat_share_from_config(&cfg);
         let (w_balance, w_hand) = cfg.balance_weights();
-        let ev = crate::evaluate::Evaluator::new(
+        let mut ev = crate::evaluate::Evaluator::new(
             Box::leak(Box::new(corpus)),
             Box::leak(Box::new(tables)),
             Box::leak(Box::new(model)),
@@ -780,6 +897,7 @@ mod tests {
             w_hand,
         )
         .expect("evaluator");
+        ev.set_balance_source(cfg.balance_source);
         (cfg, ev)
     }
 
@@ -837,7 +955,7 @@ mod tests {
         let corpus = crate::corpus::load_many(&paths).expect("secondary corpus");
         let flat = flat_share_from_config(&cfg);
         let (w_balance, w_hand) = cfg.balance_weights();
-        let secondary = crate::evaluate::Evaluator::new(
+        let mut secondary = crate::evaluate::Evaluator::new(
             Box::leak(Box::new(corpus)),
             primary.tables,
             primary.model,
@@ -847,6 +965,7 @@ mod tests {
             w_hand,
         )
         .expect("secondary evaluator");
+        secondary.set_balance_source(cfg.balance_source);
         let perm = crate::evaluate::perm_of(TEST_LAYOUT, &cfg.punctuation).expect("perm");
         let limit = primary.score(&perm) + 0.001;
         let constrained = |p: &[usize]| -> f64 {
@@ -892,9 +1011,10 @@ mod tests {
             let before = st.score();
             let w = st.weighted;
             let kid = st.kid;
+            let u = st.usage;
             let s = st.swap(i, j);
             assert!((s - ev.score(&full)).abs() < 1e-12);
-            st.undo_swap(i, j, w, kid);
+            st.undo_swap(i, j, w, kid, u);
             assert!((st.score() - before).abs() < 1e-12);
             assert_eq!(st.perm, perm);
         }
@@ -943,12 +1063,64 @@ mod tests {
             let before = st.score();
             let w = st.weighted;
             let kid = st.kid;
+            let u = st.usage;
             let old = [st.perm[i], st.perm[j], st.perm[k]];
             let s = st.cycle3(i, j, k);
             assert!((s - ev.score(&full)).abs() < 1e-12);
-            st.undo_cycle3(i, j, k, w, kid, old);
+            st.undo_cycle3(i, j, k, w, kid, old, u);
             assert!((st.score() - before).abs() < 1e-12);
             assert_eq!(st.perm, perm);
+        }
+    }
+
+    #[test]
+    fn chosen_balance_matches_full_rescore() {
+        let (cfg, mut ev) = setup();
+        ev.w_balance = 0.6;
+        ev.balance_source = BalanceSource::Chosen;
+        let perm = crate::evaluate::perm_of(TEST_LAYOUT, &cfg.punctuation).expect("perm");
+        let tables = DeltaTables::build(&ev);
+        let mut rng = rand::rngs::StdRng::seed_from_u64(23);
+        let mut st = Local::new(&ev, &perm);
+        assert!((st.score() - ev.score(&perm)).abs() < 1e-12);
+        for _ in 0..40 {
+            let i = rng.gen_range(0..N_ITEMS);
+            let mut j = rng.gen_range(0..N_ITEMS - 1);
+            if j >= i {
+                j += 1;
+            }
+            let mut full = st.perm.clone();
+            full.swap(i, j);
+            let before = st.score();
+            let w = st.weighted;
+            let kid = st.kid;
+            let u = st.usage;
+            let s = st.swap(i, j);
+            assert!((s - ev.score(&full)).abs() < 1e-12);
+            st.undo_swap(i, j, w, kid, u);
+            assert!((st.score() - before).abs() < 1e-12);
+        }
+
+        let mut st = Local::new(&ev, &perm);
+        for _ in 0..40 {
+            let mut idx = [0usize; 4];
+            for x in idx.iter_mut() {
+                *x = rng.gen_range(0..N_ITEMS);
+            }
+            idx.sort_unstable();
+            if idx.windows(2).any(|w| w[0] == w[1]) {
+                continue;
+            }
+            let [i1, j1, i2, j2] = idx;
+            let d1 = st.delta_swap(i1, j1);
+            let d2 = st.delta_swap(i2, j2);
+            let dc = st.delta_cross(i1, j1, i2, j2, tables.get_pairs(i1, j1, i2, j2));
+            let pen = st.penalty_after(&[(i1, j1), (i2, j2)]);
+            let predicted = st.score() + (d1 + d2 + dc) / ev.n_tri + (pen - st.pen);
+            let mut full = st.perm.clone();
+            full.swap(i1, j1);
+            full.swap(i2, j2);
+            assert!((predicted - ev.score(&full)).abs() < 1e-12);
         }
     }
 
