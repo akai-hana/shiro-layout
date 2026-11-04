@@ -68,24 +68,55 @@ pub fn tier_cost(tier: usize, tier_count: usize) -> f64 {
 /// Base cost for a same-hand turn, using configured tiers when available and
 /// the legacy rule otherwise.
 pub fn redirect_cost(table: Option<&RedirectCostTable>, fs: [usize; 3]) -> f64 {
-    table
-        .and_then(|table| table.cost_for_fingers(fs))
-        .unwrap_or_else(|| legacy_cost_for_fingers(fs))
+    match table {
+        Some(table) => table
+            .cost_for_fingers(fs)
+            .or(table.fallback())
+            .unwrap_or_else(|| legacy_cost_for_fingers(fs)),
+        None => legacy_cost_for_fingers(fs),
+    }
 }
 
 /// Ordered redirect tiers, most preferred first.
 #[derive(Clone, Debug, Default)]
 pub struct RedirectTiers {
     tiers: Vec<Vec<[u8; 3]>>,
+    weights: Option<Vec<f64>>,
+    fallback: Option<f64>,
 }
 
 impl RedirectTiers {
     pub fn new(tiers: Vec<Vec<[u8; 3]>>) -> Self {
-        Self { tiers }
+        Self {
+            tiers,
+            weights: None,
+            fallback: None,
+        }
+    }
+
+    pub fn with_weights(tiers: Vec<Vec<[u8; 3]>>, weights: Vec<f64>) -> Self {
+        let fallback = weights.last().copied();
+        Self {
+            tiers,
+            weights: Some(weights),
+            fallback,
+        }
+    }
+
+    pub fn fallback(&self) -> Option<f64> {
+        self.fallback
     }
 
     pub fn tiers(&self) -> &[Vec<[u8; 3]>] {
         &self.tiers
+    }
+
+    pub fn weights(&self) -> Option<&[f64]> {
+        self.weights.as_deref()
+    }
+
+    pub fn has_weights(&self) -> bool {
+        self.weights.is_some()
     }
 
     pub fn len(&self) -> usize {
@@ -102,7 +133,10 @@ impl RedirectTiers {
     }
 
     pub fn base_cost(&self, tier: usize) -> f64 {
-        tier_cost(tier, self.tiers.len())
+        self.weights
+            .as_ref()
+            .and_then(|weights| weights.get(tier).copied())
+            .unwrap_or_else(|| tier_cost(tier, self.tiers.len()))
     }
 
     pub fn cost(&self, pattern: [u8; 3]) -> Option<f64> {
@@ -122,7 +156,10 @@ impl RedirectTiers {
                 costs[index[0]][index[1]][index[2]] = Some(cost);
             }
         }
-        RedirectCostTable { costs }
+        RedirectCostTable {
+            costs,
+            fallback: self.fallback,
+        }
     }
 }
 
@@ -130,11 +167,17 @@ impl RedirectTiers {
 #[derive(Clone, Copy, Debug, Default)]
 pub struct RedirectCostTable {
     costs: [[[Option<f64>; 4]; 4]; 4],
+    fallback: Option<f64>,
 }
 
 impl RedirectCostTable {
     pub fn from_tiers(tiers: &RedirectTiers) -> Self {
         tiers.cost_table()
+    }
+
+    #[inline]
+    pub fn fallback(&self) -> Option<f64> {
+        self.fallback
     }
 
     #[inline]
@@ -220,6 +263,17 @@ mod tests {
             W_REDIRECT_WEAK
         );
         assert_eq!(redirect_cost(None, ring_middle_ring), W_REDIRECT);
+    }
+
+    #[test]
+    fn weighted_tiers_use_the_last_weight_as_the_unlisted_floor() {
+        let tiers =
+            RedirectTiers::with_weights(vec![vec![[1, 2, 1]], vec![[3, 2, 3]]], vec![0.0, 2.5]);
+        let table = tiers.cost_table();
+        assert_eq!(table.cost([1, 2, 1]), Some(0.0));
+        assert_eq!(table.cost([3, 2, 3]), Some(2.5));
+        assert_eq!(redirect_cost(Some(&table), fingers([1, 3, 2], 0)), 2.5);
+        assert_eq!(redirect_cost(Some(&table), fingers([1, 4, 2], 0)), 2.5);
     }
 
     #[test]

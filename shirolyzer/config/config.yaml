@@ -317,11 +317,13 @@ redirect_tiers:
   - ["4-1-4", "4-2-4", "2-4-2"]
   - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
 
-# Extra multiplier on every redirect cost, on top of the `redirects` priority
-# tier (1.0 = none).  The tier weights alone leave redirects cheap next to the
-# roll and alternation rewards, and the best layouts then carry about 5.5% of
-# trigrams as redirects; 3.0 brings that down to about 2.5% (stable up to 3.5).
-redirect_scale: 3.0
+# Per-tier redirect costs, aligned with redirect_tiers above.  These replace
+# the old global redirect_scale: tier 1 is effectively free, 3-2-3 is only a
+# hair worse, and each later tier is progressively more expensive.  Unlisted
+# turns are charged the worst configured tier.  The `redirects` priority
+# multiplier still applies on top of these weights.  P1 measured 2.11% weighted
+# redirects versus 2.17% for the old scale on the same computed layout.
+redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
 
 # Roll preferences.  Tiers run from most preferred (tier 1) to least preferred.
 # Each entry is a directed same-hand finger pair "from-to" using per-hand

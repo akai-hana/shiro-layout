@@ -62,6 +62,7 @@ impl Metric {
 #[derive(Clone, Debug, Default)]
 pub struct TierMetric {
     pub tier: usize,
+    pub weight: f64,
     pub total: Metric,
     pub patterns: Vec<([u8; 3], Metric)>,
 }
@@ -234,6 +235,7 @@ pub fn report(
                     .enumerate()
                     .map(|(tier, patterns)| TierMetric {
                         tier,
+                        weight: tiers.base_cost(tier),
                         total: Metric::default(),
                         patterns: patterns
                             .iter()
@@ -473,6 +475,7 @@ impl PreferenceReport {
                     .collect();
                 json!({
                     "tier": tier.tier + 1,
+                    "weight": tier.weight,
                     "count": tier.total.count,
                     "share": tier.total.share(self.total_trigrams),
                     "weighted_cost": tier.total.weighted_cost(self.total_trigrams),
@@ -593,8 +596,9 @@ pub fn top_summary(report: &PreferenceReport) -> Vec<String> {
         lines.push("redirect tiers:".to_string());
         for tier in &report.redirect_tiers {
             lines.push(format!(
-                "  tier {:<2} count={:<12.0} share={:5.2}%  weighted_cost={:.6}",
+                "  tier {:<2} weight={:<6.3} count={:<12.0} share={:5.2}%  weighted_cost={:.6}",
                 tier.tier + 1,
+                tier.weight,
                 tier.total.count,
                 tier.total.share(report.total_trigrams),
                 tier.total.weighted_cost(report.total_trigrams)
