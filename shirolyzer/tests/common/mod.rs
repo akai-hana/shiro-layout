@@ -6,6 +6,7 @@ use std::sync::OnceLock;
 use serde_yaml::{Mapping, Value};
 
 static REFERENCE_CONFIG: OnceLock<PathBuf> = OnceLock::new();
+static REFERENCE_RULINGS: OnceLock<PathBuf> = OnceLock::new();
 
 /// Build a temporary copy of the shipped config that matches the canonical
 /// reference model: no cross-hand alt rules and no hand restrictions.
@@ -73,6 +74,19 @@ pub fn reference_config() -> PathBuf {
 
             std::fs::write(&path, serde_yaml::to_string(&value).unwrap()).unwrap();
             path
+        })
+        .clone()
+}
+
+/// Frozen questionnaire rulings that match the reference config.
+///
+/// Live `config/rulings.json` follows user preference corrections; the
+/// reference audit keeps the original calibration so `just check` measures a
+/// stable baseline.
+pub fn reference_rulings() -> PathBuf {
+    REFERENCE_RULINGS
+        .get_or_init(|| {
+            PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/rulings.reference.json")
         })
         .clone()
 }
