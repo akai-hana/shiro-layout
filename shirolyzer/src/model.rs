@@ -345,7 +345,7 @@ impl Model {
                 };
                 let ndv = e_nd * nd[i] + e_ndgap * gap;
                 final_nd[i] = ndv;
-                let mut value = e[i] + ndv + e_nd_rest * ndr[i] + self.finger_strength[f];
+                let mut value = e[i] + ndv + e_nd_rest * ndr[i];
                 if !ignore_reach && !geom.is_reachable(k, f) {
                     value = f64::INFINITY;
                 }
@@ -802,7 +802,7 @@ mod tests {
     }
 
     #[test]
-    fn finger_strength_adds_a_constant_to_each_finger_state() {
+    fn finger_strength_is_not_encoded_in_geometry_key_cost() {
         let geom = Geometry::new();
         let cfg = crate::config::load(None).unwrap();
         let mut model = crate::config::build_model(&cfg).unwrap();
@@ -810,8 +810,7 @@ mod tests {
         let lp = parse_finger8("LP").unwrap();
         model.finger_strength[lp] = 0.5;
         let (after, _) = model.key_cost(&geom);
-        let a = key_index("A").unwrap();
-        assert!((after[e_idx(a, lp)] - before[e_idx(a, lp)] - 0.5).abs() < 1e-12);
+        assert_eq!(before, after);
     }
 
     #[test]

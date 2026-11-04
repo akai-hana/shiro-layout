@@ -13,6 +13,8 @@ pub const LETTERS: &str = "abcdefghijklmnopqrstuvwxyz";
 pub const FORDER: [char; 4] = ['P', 'R', 'M', 'I'];
 pub const N_LETTERS: usize = 26;
 pub const N_ITEMS: usize = NK;
+const BALANCE_FLOOR_SHARE: f64 = 0.5;
+const BALANCE_GUARD_WEIGHT: f64 = 10.0;
 
 pub type Usage = [[f64; 4]; 2];
 
@@ -315,6 +317,7 @@ impl<'a> Evaluator<'a> {
         let hl = usage[0].iter().sum::<f64>();
         let hr = usage[1].iter().sum::<f64>();
         pen += ((hl - hr) / (hl + hr).max(1e-9)).powi(2) * self.w_hand;
+        pen += balance_guard_penalty(usage, &self.flat_share);
         pen
     }
 
@@ -405,9 +408,39 @@ pub fn flat_share_from_config(cfg: &crate::config::Config) -> [f64; 4] {
     ]
 }
 
+fn balance_guard_penalty(usage: &Usage, flat_share: &[f64; 4]) -> f64 {
+    let mut pen = 0.0;
+    for h in 0..2 {
+        let total: f64 = usage[h].iter().sum();
+        if total <= 0.0 {
+            continue;
+        }
+        for fi in 0..4 {
+            let share = usage[h][fi] / total;
+            let floor = flat_share[fi] * BALANCE_FLOOR_SHARE;
+            if share < floor {
+                pen += ((floor - share) / floor).powi(2) * BALANCE_GUARD_WEIGHT;
+            }
+        }
+    }
+    pen
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn balance_guardrail_punishes_an_ignored_finger() {
+        let flat = [0.09, 0.125, 0.14, 0.145];
+        let mut usage = [[0.25; 4]; 2];
+        assert_eq!(balance_guard_penalty(&usage, &flat), 0.0);
+        usage[0][0] = 0.0;
+        usage[0][1] = 0.30;
+        usage[0][2] = 0.35;
+        usage[0][3] = 0.35;
+        assert!(balance_guard_penalty(&usage, &flat) > 1.0);
+    }
 
     #[test]
     fn canonical_punctuation_sorts_slots_without_moving_letters() {
