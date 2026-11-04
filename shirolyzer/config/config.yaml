@@ -335,9 +335,10 @@ finger_balance:
 # = 100
 
 # Which fingering supplies the finger-balance loads.  "chosen" uses the same
-# trigram-DP fingers reported by `analyze` (flexible mode); "default" uses the
-# physical fingermap only.  The penalty is switched off when finger_balance is
-# missing from priority_list.
+# trigram-DP fingers reported by `analyze`, including allowed alt_fingers and
+# reachable alternatives; "default" uses the physical fingermap only.  Both
+# respect allow/block and reachability.  The penalty is switched off when
+# finger_balance is missing from priority_list.
 finger_balance_source: chosen
 
 # Optional per-finger strength penalty (cost units added to every key press).
