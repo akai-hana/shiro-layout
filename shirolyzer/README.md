@@ -351,6 +351,25 @@ roll_tiers:
 - This is a per-pair preference, not a redirect penalty: a redirect such as `1-2-1` still collects the credit of each pair it contains. To avoid redirects, use `redirect_tiers` and `redirect_scale`.
 - `analyze` reports the share of letter bigrams in each tier and each pair (`roll_tier_N` and `roll_A_B` in the JSON).
 
+### Scissor tiers
+
+`scissor_tiers` scales the continuous scissor cost by severity band. Bands are
+fixed, from mild to extreme, and every name in the list is optional; an omitted
+band keeps a multiplier of `1.0`.
+
+```yaml
+scissor_tiers:
+  - {band: mild, multiplier: 0.50}
+  - {band: moderate, multiplier: 0.75}
+  - {band: severe, multiplier: 1.00}
+  - {band: extreme, multiplier: 0.12}
+```
+
+- The multiplier is applied to the pair strain before the `scissors` priority tier, so the worst forms can rank near SFB/SFT while mild stretches stay cheap.
+- Band membership comes from intrinsic strain: mild below `3`, moderate below `5`, severe below `8`, and extreme at `8` or above. Multipliers do not move a scissor between bands.
+- `analyze` reports count, share, weighted cost, and multiplier for every band.
+- Hard conditions still forbid blocked scissors; a tier multiplier never makes an impossible form reachable.
+
 ### Finger load and strength
 
 `finger_balance` sets the target share of strokes for each finger. The shipped
@@ -446,12 +465,11 @@ is configured, the secondary corpus. The text report prints a compact summary;
 metrics are observational: they do not feed back into the score or change any
 baseline.
 
-- `scissor_bands` groups scissors by their configured pair cost: `mild` below
-  `3`, `moderate` from `3` to below `5`, `severe` from `5` to below `8`, and
-  `extreme` at `8` or above. Each band reports count, share of corpus bigrams,
-  and frequency-weighted cost. `scissor_categories` keeps the existing category
-  breakdown. Adjust the thresholds in `SCISSOR_BAND_THRESHOLDS` when P6
-  introduces configured severity tiers.
+- `scissor_bands` groups scissors by intrinsic severity: `mild` below `3`,
+  `moderate` from `3` to below `5`, `severe` from `5` to below `8`, and
+  `extreme` at `8` or above. Each band reports its configured multiplier,
+  count, share of corpus bigrams, and frequency-weighted cost.
+  `scissor_categories` keeps the existing category breakdown.
 - `redirect_tiers` reports count, share, and weighted cost for each configured
   tier, with a `patterns` map for the individual turn patterns.
   `redirect_unclassified` covers turns outside every configured tier.
