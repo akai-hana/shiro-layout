@@ -270,7 +270,7 @@ same letter placement. Re-run `just variance` after changing the objective:
 | `--runs 200 --iters 25000` | 0.000000000 | 0.000000000 | 100% |
 | `--runs 28 --iters 25000` | 0.005378908 | 0.001654132 | 85% |
 
-With the shipped config (weighted priority tiers, `roll_tiers`, `redirect_scale: 3.0`),
+With the shipped config (weighted priority tiers, `roll_tiers`, `redirect_tier_weights`),
 seeds `0..3` at the default budget all reach the same layout; re-run
 `just variance --seeds 20` to confirm on more seeds.
 
@@ -329,11 +329,15 @@ redirect_tiers:
   - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
   - ["4-1-4", "4-2-4", "2-4-2"]
   - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
+
+redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
 ```
 
-Tier costs are spaced automatically between the calibrated `W_REDIRECT` and `W_REDIRECT_WEAK` endpoints, so tier 1 is the cheapest and the last tier is the most expensive. Same-hand turns that are not listed keep the legacy cost (pinky involved means the weak value, otherwise the regular value). Calibration and audit always use the legacy fitted curve, independent of this preference layer.
+`redirect_tier_weights` gives the base cost of each tier, aligned with `redirect_tiers`. The `redirects` priority multiplier still applies on top. Tier 1 is effectively free, `3-2-3` is a hair worse, and later tiers rise monotonically. Unlisted same-hand turns are charged the worst configured tier, so the weights also act as a fallback floor.
 
-`redirect_scale` (optional, default `1.0`) multiplies every redirect cost on top of the `redirects` priority tier; `compute` prints the effective weight at the top of a run. Redirect costs are small next to the roll and alternation rewards, so with the tier weights alone the best layouts carry roughly 5.5% of trigrams as redirects. `redirect_scale: 3.0` brings that to roughly 2.5%. Raise it to avoid redirects harder, lower it to accept more. It must be greater than 0.
+The shipped weights were swept with P1. On the same computed layout they cut weighted redirects from `2.17%` to `2.11%` of the primary corpus while also improving SFB and scissor costs; the fixed current layout drops from `3.41%` to `3.08%` in the P1 analyzer. Re-run `just sweep` when changing the tier ordering or weights.
+
+`redirect_scale` is the legacy global multiplier (default `1.0`) and still works when `redirect_tier_weights` is absent, preserving old configs. It cannot be combined with per-tier weights. With the old tier curve it applied the calibrated `W_REDIRECT`–`W_REDIRECT_WEAK` endpoints evenly; the shipped config now uses explicit weights instead.
 
 ### Roll tiers
 
@@ -348,7 +352,7 @@ roll_tiers:
 - With N tiers, tier t (0 = highest) earns a roll credit of `-0.60 * (N - t) / N` per pair, so a single tier earns the full `-0.60`. The credit still fades with key distance and is multiplied by the `rolls` priority.
 - A listed pair replaces the model's own weight for that pair and direction (`r_MI`, `r_RM_in`, `r_RM_out`, `r_PR_in`, `r_PR_out`). Unlisted pairs keep the model's weight, and the calibrated model is unchanged when `roll_tiers` is absent.
 - The unlisted direction bias scales with the weaker finger: index<->middle is a tie, ring->middle is slightly preferred over middle->ring, and pinky->ring is strongly preferred over ring->pinky.
-- This is a per-pair preference, not a redirect penalty: a redirect such as `1-2-1` still collects the credit of each pair it contains. To avoid redirects, use `redirect_tiers` and `redirect_scale`.
+- This is a per-pair preference, not a redirect penalty: a redirect such as `1-2-1` still collects the credit of each pair it contains. To avoid redirects, use `redirect_tiers` and `redirect_tier_weights`.
 - `analyze` reports the share of letter bigrams in each tier and each pair (`roll_tier_N` and `roll_A_B` in the JSON).
 
 ### Scissor tiers
@@ -470,8 +474,8 @@ baseline.
   `extreme` at `8` or above. Each band reports its configured multiplier,
   count, share of corpus bigrams, and frequency-weighted cost.
   `scissor_categories` keeps the existing category breakdown.
-- `redirect_tiers` reports count, share, and weighted cost for each configured
-  tier, with a `patterns` map for the individual turn patterns.
+- `redirect_tiers` reports count, share, weighted cost, and the configured
+  weight for each tier, with a `patterns` map for the individual turn patterns.
   `redirect_unclassified` covers turns outside every configured tier.
 - `rolls` reports count, share, and weighted cost for the six directed adjacent
   finger pairs, including pairs whose cost is zero.
@@ -490,6 +494,7 @@ corpora:
 ```sh
 just sweep --seeds 5 --out-json shirolyzer/results/preference_sweep.json
 just sweep --variants sweep_variants.yaml --seeds 10
+just sweep --variants shirolyzer/config/redirect_variants.yaml --seeds 1 --iters 10000
 ```
 
 `shirolyzer/utils/preference_sweep.py` accepts a JSON or YAML list (or an object
@@ -499,9 +504,9 @@ using dotted YAML paths:
 ```yaml
 - name: baseline
   overrides: {}
-- name: redirect-5
+- name: redirect-floor
   overrides:
-    redirect_scale: 5.0
+    redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
 ```
 
 The script runs `compute` for each variant/seed, analyzes the selected layout

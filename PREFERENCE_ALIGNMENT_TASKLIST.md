@@ -393,15 +393,15 @@ possible without harming more important metrics.
 
 **Tasks:**
 
-- [ ] Replace the single `redirect_scale` with per-tier weights while keeping
+- [x] Replace the single `redirect_scale` with per-tier weights while keeping
       backward-compatible parsing.
-- [ ] Set the best tier (`1-2-1`, `2-1-2`, `1-3-1`, `3-1-3`) at or near zero.
-- [ ] Set `3-2-3` to a very small tie-breaker penalty.
-- [ ] Make the remaining tiers monotonically more expensive, worst last.
-- [ ] Sweep weights with P1 to minimize redirect rate subject to guardrails on
+- [x] Set the best tier (`1-2-1`, `2-1-2`, `1-3-1`, `3-1-3`) at or near zero.
+- [x] Set `3-2-3` to a very small tie-breaker penalty.
+- [x] Make the remaining tiers monotonically more expensive, worst last.
+- [x] Sweep weights with P1 to minimize redirect rate subject to guardrails on
       SFB, scissors, rolls, and finger priority.
-- [ ] Report the redirect tier distribution in `analyze`.
-- [ ] Document the chosen floor and the measured tradeoff.
+- [x] Report the redirect tier distribution in `analyze`.
+- [x] Document the chosen floor and the measured tradeoff.
 
 **Planned commits:**
 
