@@ -66,8 +66,8 @@ pub const PARAM_NAMES: [&str; 47] = [
 
 pub const PARAM_DEFAULTS: [f64; 47] = [
     0.14, 0.15, 1.0, 0.20, 0.10, 0.60, 0.20, 0.30, 2.0, 0.15, 1.50, 1.50, 1.00, 0.50, 0.50, 0.20,
-    3.00, 0.50, 0.25, 0.25, 0.75, 0.40, 0.00, 0.35, 0.30, 0.50, 1.00, 1.00, -0.275, -0.35, -0.20,
-    -0.14, 0.06, 0.15, 0.35, 0.15, 0.50, 0.30, 1.00, 0.60, 0.30, 0.50, 0.30, 0.50, 0.30, 0.30,
+    3.00, 0.50, 0.25, 0.25, 0.75, 0.40, 0.00, 0.35, 0.30, 0.50, 1.00, 1.00, -0.275, -0.45, -0.20,
+    -0.05, -0.40, 0.15, 0.35, 0.15, 0.50, 0.30, 1.00, 0.60, 0.30, 0.50, 0.30, 0.50, 0.30, 0.30,
     0.80,
 ];
 
@@ -361,6 +361,23 @@ impl Model {
         }
     }
 
+    /// Direction bias for a same-hand adjacent roll.
+    ///
+    /// The bias grows with the weaker finger in the pair: index/middle has no
+    /// directional preference, middle/ring a small ring-first preference, and
+    /// ring/pinky a strong pinky-first preference.  `roll_tiers` may override
+    /// this for the directed pairs it names.
+    fn roll_direction_bias(&self, lo: usize, hi: usize, direction: f64) -> f64 {
+        match (lo, hi) {
+            (2, 3) => self.p("r_MI"),
+            (1, 2) if direction > 0.0 => self.p("r_RM_in"),
+            (1, 2) => self.p("r_RM_out"),
+            (0, 1) if direction > 0.0 => self.p("r_PR_in"),
+            (0, 1) => self.p("r_PR_out"),
+            _ => 0.0,
+        }
+    }
+
     pub fn pair_parts(&self, geom: &Geometry, nd: &[f64]) -> (Vec<f64>, Parts) {
         let size = NK * NF * NK * NF;
         let mut parts = Parts {
@@ -456,23 +473,7 @@ impl Model {
                             spread += SPREAD_IMP * sig((s - pf.rest_sep - SPREAD_LIM) / TAU);
                         }
 
-                        let mut rw = 0.0;
-                        let d = pf.direction;
-                        if lo == 2 && hi == 3 {
-                            rw = self.p("r_MI");
-                        } else if lo == 1 && hi == 2 {
-                            rw = if d > 0.0 {
-                                self.p("r_RM_in")
-                            } else {
-                                self.p("r_RM_out")
-                            };
-                        } else if lo == 0 && hi == 1 {
-                            rw = if d > 0.0 {
-                                self.p("r_PR_in")
-                            } else {
-                                self.p("r_PR_out")
-                            };
-                        }
+                        let mut rw = self.roll_direction_bias(lo, hi, pf.direction);
                         if nadj == 1 {
                             // roll_tiers overrides the model's weight for the
                             // directed pairs it names; unlisted pairs keep it.
