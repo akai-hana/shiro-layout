@@ -274,15 +274,15 @@ contexts.
 
 **Tasks:**
 
-- [ ] Update the Y→U and U→Y expected fingerings from the current `LMRM` /
+- [x] Update the Y→U and U→Y expected fingerings from the current `LMRM` /
       `RMLM` behavior to the user's preferred `LIRM` / `RMLI` forms.
-- [ ] Keep right-middle→right-ring Y→U impossible.
-- [ ] Replace the U→H "must be impossible" ruling with acceptance of the
+- [x] Keep right-middle→right-ring Y→U impossible.
+- [x] Replace the U→H "must be impossible" ruling with acceptance of the
       left-index H form (`RMLI`) while still rejecting the uncomfortable
       right-index form (`RMRI`).
-- [ ] Update the corresponding audit checks (`r12_YU_*`, `r12_UY_*`, `r9_UH`,
+- [x] Update the corresponding audit checks (`r12_YU_*`, `r12_UY_*`, `r9_UH`,
       `r9_HU`).
-- [ ] Add regression tests for both directions.
+- [x] Add regression tests for both directions.
 
 **Planned commits:**
 
