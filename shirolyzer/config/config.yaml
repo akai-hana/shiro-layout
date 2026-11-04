@@ -297,13 +297,14 @@ conditions:
 # multipliers are printed at the top of every `compute` run.
 #
 # Avoid, worst first: SFBs/SFTs, then scissors, then redirects.
-# Seek: rolls together with finger strength (finger_balance), then alternation.
+# Seek: rolls first, then alternation; finger balance is only a tie-breaker
+# guardrail so no finger is ignored entirely.
 priority_list:
   - sfbs-sfts # same-finger bigrams/trigrams: the unavoidable devil
   - scissors # awkward stretches; harmless ones already cost nothing
   - redirects # flow breakers, worst to least bad (see redirect_tiers)
-  - [rolls, finger_balance] # comfortable rolls, carried by the strong fingers
-  - alternation # nice to have, one tier below rolls
+  - rolls # comfortable rolls, carried by the strong fingers
+  - [alternation, finger_balance] # nice-to-have flow and balance guardrail
 
 # Redirect preferences. Tiers are ordered from most preferred (tier 1) to most
 # avoided (last tier). Fingers are numbered per hand: 1=index, 2=middle,
@@ -368,12 +369,15 @@ finger_balance:
 # finger_balance is missing from priority_list.
 finger_balance_source: chosen
 
-# Optional per-finger strength penalty (cost units added to every key press).
-# Higher values steer the search away from weak fingers.  Bare P/R/M/I apply
-# to both hands; explicit LP/LR/LM/LI/RP/RR/RM/RI override one hand.  Values
-# must be non-negative and default to 0 (off).
-# finger_strength:
-#   LP: 0.30
-#   LR: 0.10
-#   RP: 0.45
-#   RR: 0.15
+# Frequency-weighted finger-strength objective.  This is a separate scoring
+# term, not part of travel geometry: frequent letters, bigrams, and trigrams
+# pay it according to the fingers the DP chooses.  Higher values steer work
+# away from weak fingers.  Bare P/R/M/I apply the same strength to both hands;
+# explicit LP/LR/LM/LI/RP/RR/RM/RI override one hand.  Values must be
+# non-negative and default to 0 (off).  Anatomical ordering here is
+# pinky > ring > middle > index cost (index/middle are strongest).
+finger_strength:
+  P: 0.45
+  R: 0.25
+  M: 0.10
+  I: 0.05
