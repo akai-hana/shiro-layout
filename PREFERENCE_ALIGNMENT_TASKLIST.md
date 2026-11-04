@@ -190,14 +190,14 @@ whether it conflicts with the fingermap or alt-fingering list.
 
 **Tasks:**
 
-- [ ] Add a documentation section that defines `default` and `chosen` exactly as
+- [x] Add a documentation section that defines `default` and `chosen` exactly as
       in "Definitions" above.
-- [ ] Add a worked example showing a context where `chosen` uses an allowed
+- [x] Add a worked example showing a context where `chosen` uses an allowed
       alternative finger and `default` uses the physical fingermap.
-- [ ] Add a regression test proving that `chosen` changes when an allowed alt
+- [x] Add a regression test proving that `chosen` changes when an allowed alt
       fingering is used, while `default` does not.
-- [ ] Confirm that both modes still respect allow/block rules and reachability.
-- [ ] Keep `chosen` as the default unless the user explicitly changes it after
+- [x] Confirm that both modes still respect allow/block rules and reachability.
+- [x] Keep `chosen` as the default unless the user explicitly changes it after
       reviewing the example.
 
 **Planned commits:**
