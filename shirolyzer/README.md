@@ -426,15 +426,23 @@ override one hand. Values are non-negative and default to 0:
 
 ```yaml
 finger_strength:
-  LP: 0.30
-  LR: 0.10
-  RP: 0.45
-  RR: 0.15
+  P: 0.45
+  R: 0.25
+  M: 0.10
+  I: 0.05
 ```
 
-Higher values steer generation away from weak or uncomfortable fingers. The
-term enters the key-effort table, so it also appears in the analyzer's
-`key_effort` decomposition.
+The strength vector is shared by both hands. Higher values steer generation
+away from weak or uncomfortable fingers. This is a separate
+frequency-weighted objective: each corpus trigram pays the strength cost of
+the fingers the DP actually selects, so top letters and n-grams dominate the
+result. Strength is not folded into travel geometry; `key_effort` stays a pure
+geometry term, and `analyze` reports the strength contribution separately in
+`score_breakdown.finger_strength`.
+
+`finger_balance` is demoted to a tie-breaker tier. It is not a primary goal,
+but a guardrail keeps every finger from being ignored: usage below half of its
+configured target receives an additional penalty.
 
 ### Conditions
 
@@ -453,11 +461,13 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 - trigram patterns including rolls, redirects, alternation, true same-finger trigrams (Sft), and adjacent same-finger trigrams (Sfb/BadSfb lumped); repeated-character trigrams are also reported as an overlapping `repeat` diagnostic;
 - when `redirect_tiers` is configured, per-tier and per-pattern redirect percentages plus `redirect_unclassified` for unlisted turns; the older `redirect`/`redirect_weak` categories remain as deprecated overlapping diagnostics;
 - when `roll_tiers` is configured, the share of letter bigrams in each roll tier and pair; the six directed pair shares (`roll_1_2` ... `roll_4_3`) are always in the JSON;
-- per-finger usage against the configured finger-balance targets;
+- per-finger usage against the configured finger-balance targets, plus the
+  frequency-weighted strength cost of the top letters, bigrams, and trigrams;
 - the pattern-model score, including priority-tier weighting;
 - a per-term score decomposition (`score_breakdown` in JSON and a text table)
   that reconstructs the primary score from key effort, pair terms, trigram
-  terms, gate penalties, and space costs.
+  terms, the separate finger-strength objective, gate penalties, and space
+  costs.
 
 `analyze` uses the most recent `compute` result when `--layout` is omitted. The same metrics drive primary-sacrifice enforcement during secondary optimization, so scores shown by the analyzer reflect the constraints the generator applied.
 
