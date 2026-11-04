@@ -2115,6 +2115,34 @@ mod cross_hand_tests {
     }
 
     #[test]
+    fn shipped_config_pins_final_preference_calibration() {
+        let cfg = load(None).unwrap();
+        let weights = cfg.priority_multipliers();
+        assert!(weights["sfbs-sfts"] > weights["scissors"]);
+        assert!(weights["scissors"] > weights["redirects"]);
+        assert!(weights["redirects"] > weights["rolls"]);
+        assert!(weights["rolls"] > weights["alternation"]);
+        assert_eq!(weights["alternation"], weights["finger_balance"]);
+
+        let strength = cfg.finger_strength;
+        assert_eq!(strength, [0.45, 0.25, 0.10, 0.05, 0.45, 0.25, 0.10, 0.05]);
+        assert!(strength[0] > strength[1]);
+        assert!(strength[1] > strength[2]);
+        assert!(strength[2] > strength[3]);
+        for fi in 0..4 {
+            assert_eq!(strength[fi], strength[fi + 4]);
+        }
+        assert_eq!(cfg.balance_source, BalanceSource::Chosen);
+
+        let redirects = cfg.redirect_tiers.as_ref().expect("redirect tiers");
+        let redirect_weights = redirects.weights().expect("redirect weights");
+        assert!(redirect_weights.windows(2).all(|pair| pair[0] <= pair[1]));
+
+        assert_eq!(cfg.primary_corpus[0].label(), "shai");
+        assert_eq!(cfg.secondary_corpus[0].label(), "douglas");
+    }
+
+    #[test]
     fn finger_strength_is_optional_and_parses_bare_and_explicit_tokens() {
         let path = Path::new("config.yaml");
         assert_eq!(parse_finger_strength(path, None).unwrap(), [0.0; NF]);
