@@ -335,6 +335,17 @@ redirect_scale: 3.0
 roll_tiers:
   - ["1-2", "2-1"]
 
+# Scissor severity bands, mild to extreme.  Each band's multiplier scales the
+# pair strain before the `scissors` priority is applied.  Bands are defined by
+# base strain thresholds: mild < 3, moderate < 5, severe < 8, extreme >= 8.
+# Weight the extreme band about as strongly as an SFB/SFT, and keep milder
+# bands progressively cheaper.  Every band must be named if the list is used.
+scissor_tiers:
+  - {band: mild, multiplier: 0.50}
+  - {band: moderate, multiplier: 0.75}
+  - {band: severe, multiplier: 1.00}
+  - {band: extreme, multiplier: 0.12}
+
 # Target share of strokes per finger in percent. The calibrated model uses the
 # same target for both hands: P 9%, R 12.5%, M 14%, I 14.5%.
 finger_balance:
