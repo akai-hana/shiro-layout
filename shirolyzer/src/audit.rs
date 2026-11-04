@@ -1472,6 +1472,33 @@ mod tests {
     }
 
     #[test]
+    fn live_config_pins_scissor_severity_bands() {
+        let ctx = Context::load(None).unwrap();
+        let pair = |a: &str, fa: &str, b: &str, fb: &str| {
+            let i = pt_idx(
+                key(a),
+                parse_finger8(fa).unwrap(),
+                key(b),
+                parse_finger8(fb).unwrap(),
+            );
+            (ctx.tables.model.scissor_band[i], ctx.tables.model.pt[i])
+        };
+        let mild = pair("D", "LM", "A", "LP");
+        let moderate = pair("X", "LR", "Z", "LP");
+        let severe = pair("Q", "LP", "J", "LM");
+        let extreme = pair("W", "LR", "Z", "LM");
+        assert_eq!(mild.0, 0);
+        assert_eq!(moderate.0, 1);
+        assert_eq!(severe.0, 2);
+        assert_eq!(extreme.0, 3);
+        assert!(mild.1 < moderate.1);
+        assert!(moderate.1 < severe.1);
+        assert!(severe.1 < extreme.1);
+        let table = ctx.model.scales.scissor_tiers.expect("scissor tiers");
+        assert_eq!(table.multipliers(), [0.5, 0.75, 1.0, 0.12]);
+    }
+
+    #[test]
     fn live_config_pins_roll_direction_preferences() {
         let ctx = Context::load(None).unwrap().calibration().unwrap();
         let cost = |a: &str, fa: &str, b: &str, fb: &str| {
