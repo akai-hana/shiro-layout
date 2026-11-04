@@ -874,21 +874,21 @@ pub fn collect(
         top["WD"] == expected_fp(&["W", "D"], "RM"),
         top["WD"].clone()
     );
+    let wd = probe_rows(ctx, &["W", "D"]);
     let dw = probe_rows(ctx, &["D", "W"]);
     chk!(
-        "D->W middle/ring is cheaper than W->D",
-        dw[0].0 < probe_rows(ctx, &["W", "D"])[0].0 && top["DW"] == expected_fp(&["D", "W"], "MR"),
-        top["DW"].clone()
+        "W->D ring/middle is cheaper than D->W",
+        wd[0].0 < dw[0].0 && top["WD"] == expected_fp(&["W", "D"], "RM"),
+        format!("{:.3} / {:.3}", wd[0].0, dw[0].0)
     );
+    let a_s = probe_rows(ctx, &["A", "S"]);
+    let s_a = probe_rows(ctx, &["S", "A"]);
     chk!(
-        "A->S pinky/ring (2026-10-29 correction)",
-        top["AS"] == expected_fp(&["A", "S"], "PR"),
-        top["AS"].clone()
-    );
-    chk!(
-        "S->A ring/pinky",
-        top["SA"] == expected_fp(&["S", "A"], "RP"),
-        top["SA"].clone()
+        "A->S pinky/ring is cheaper than S->A",
+        a_s[0].0 < s_a[0].0
+            && top["AS"] == expected_fp(&["A", "S"], "PR")
+            && top["SA"] == expected_fp(&["S", "A"], "RP"),
+        format!("{:.3} / {:.3}", a_s[0].0, s_a[0].0)
     );
     let xa = probe_rows(ctx, &["X", "A"]);
     let xa_map: HashMap<String, f64> = xa.iter().map(|(c, f)| (f.clone(), *c)).collect();
@@ -1469,6 +1469,53 @@ mod tests {
         assert!(probe_rows(&ctx, &["K", "J", "M"])[0].1.ends_with("RR"));
         assert!(probe_rows(&ctx, &["X", "F"])[0].1.starts_with("LR"));
         assert!(probe_rows(&ctx, &["X", "S"])[0].1.starts_with("LI"));
+    }
+
+    #[test]
+    fn live_config_pins_roll_direction_preferences() {
+        let ctx = Context::load(None).unwrap().calibration().unwrap();
+        let cost = |a: &str, fa: &str, b: &str, fb: &str| {
+            t2(
+                &ctx,
+                key(a),
+                parse_finger8(fa).unwrap(),
+                key(b),
+                parse_finger8(fb).unwrap(),
+            )
+        };
+
+        let im = cost("I", "RM", "M", "RI");
+        let mi = cost("M", "RI", "I", "RM");
+        assert!((im - mi).abs() < 1e-9);
+
+        let rm = cost("S", "LR", "D", "LM");
+        let mr = cost("D", "LM", "S", "LR");
+        assert!(rm < mr && mr - rm < 0.4);
+
+        let pr = cost("A", "LP", "S", "LR");
+        let rp = cost("S", "LR", "A", "LP");
+        assert!(pr + 0.2 < rp);
+
+        let wd = cost("W", "LR", "D", "LM");
+        let dw = cost("D", "LM", "W", "LR");
+        assert!(wd < dw);
+
+        let unrestricted = ctx.model.tables_unrestricted(&ctx.geom);
+        let w_alt = unrestricted.t2[pt_idx(
+            key("W"),
+            parse_finger8("LI").unwrap(),
+            key("D"),
+            parse_finger8("LM").unwrap(),
+        )];
+        let d_alt = unrestricted.t2[pt_idx(
+            key("D"),
+            parse_finger8("LM").unwrap(),
+            key("W"),
+            parse_finger8("LI").unwrap(),
+        )];
+        assert!((w_alt - d_alt).abs() < 1e-9);
+
+        assert!(cost("A", "LP", "S", "LR") < cost("S", "LR", "A", "LP"));
     }
 
     #[test]

@@ -70,6 +70,19 @@ pub fn reference_config() -> PathBuf {
                     Value::String("hand_restrictions".into()),
                     Value::Mapping(restrictions),
                 );
+
+                // Freeze the reference model as well as the reference config:
+                // live calibration changes must not move the regression scores
+                // or the audit rulings measured by `just check`.
+                let model = root
+                    .entry(Value::String("model".into()))
+                    .or_insert_with(|| Value::Mapping(Mapping::new()));
+                if let Some(model) = model.as_mapping_mut() {
+                    model.insert(
+                        Value::String("parameters_file".into()),
+                        Value::String("../tests/fixtures/calibrated.json".into()),
+                    );
+                }
             }
 
             std::fs::write(&path, serde_yaml::to_string(&value).unwrap()).unwrap();
