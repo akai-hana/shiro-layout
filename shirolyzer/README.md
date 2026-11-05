@@ -132,9 +132,10 @@ Finger selection is user-defined through `general.fingering`:
 general:
   fingering: flexible   # default: any reachable finger, subject to alt_fingers
   # fingering: fixed    # always use the fingermap; ignore alt_fingers
+  alt_finger_penalty: 0.0  # extra cost per non-default finger (flexible only)
 ```
 
-- `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis.
+- `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis. `alt_finger_penalty` adds a configurable cost for every non-default finger, so a positive value prefers layouts that remain strong when typed with the fixed fingermap.
 - `fixed` forces every key to its `fingermap` finger. Alt rules are ignored, so the resulting metrics are directly comparable to fixed-fingering analyzers such as oxeylyzer. Conditions and the fitted model still apply.
 
 Two configs are shipped:
@@ -459,8 +460,8 @@ python3 shirolyzer/utils/preference_sweep.py \
 
 Mean results on the selected layouts:
 
-| Variant | SFB/SFT | Redirects | Mild scissors | Strength |
-|---------|--------:|----------:|--------------:|---------:|
+| Variant | Trigram same-finger | Redirects | Mild scissors | Strength |
+|---------|-------------------:|----------:|--------------:|---------:|
 | shipped (`P .45/R .25/M .10/I .05`) | 6.689 | 2.202% | 0.174 | 0.179 |
 | `strength-low` | 6.685 | 1.766% | 0.245 | 0.131 |
 | `strength-index` | 6.685 | 1.840% | 0.245 | 0.153 |
@@ -477,11 +478,15 @@ redirect rate by about 0.5 percentage points, undoing the P7 floor. No variant
 improved a higher-priority metric without regressing another, so the calibrated
 values are retained and pinned by tests.
 
+The table above uses the analyzer's trigram same-finger share
+(`sfb_sft = sfb_tri + sft`), not conventional bigram SFB. For the retained
+`shiro` layout, the conventional fixed-fingering bigram SFB is `1.630%`.
+
 Final check on the retained `shiro` layout
-(`;ntgfjoehkrpmscuaydilbqvwxz,./`): primary `4.533725491`, secondary
-`4.549689230`, SFB/SFT `6.693%`, redirects `2.579%`, rolls `45.016%`, mild
-scissor cost `0.140`, frequency-weighted strength `0.182`; `audit` passes
-`166/166` rulings.
+(`cntgf;oehkrplsmuazdixjqvw,.b/y`): primary `4.470070576`, secondary
+`4.611357535`, trigram same-finger `6.680%` (`sfb_sft`; bigram SFB is `1.630%`
+with fixed fingering), redirects `2.850%`, rolls `45.635%`, mild scissor cost
+`0.145`, frequency-weighted strength `0.179`; `audit` passes `166/166` rulings.
 
 ### Conditions
 

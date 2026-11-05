@@ -61,6 +61,7 @@ impl Tables {
         let e_with_press: Vec<f64> = mt.e.iter().map(|v| v + PRESS).collect();
         let chars: Vec<char> = (0..NK).map(key_char).collect();
         let fixed = cfg.fingering == FingeringMode::Fixed;
+        let alt_penalty = cfg.alt_finger_penalty;
         let strength_cost = |f: usize| {
             if f < NF {
                 model.finger_strength[f]
@@ -143,6 +144,14 @@ impl Tables {
                             }
                             if a == b && fa != fb {
                                 c = f64::INFINITY;
+                            }
+                            if !fixed {
+                                if fa != cfg.fingermap[a] {
+                                    c += alt_penalty;
+                                }
+                                if fb != cfg.fingermap[b] {
+                                    c += alt_penalty;
+                                }
                             }
                             if c < best {
                                 best = c;
@@ -244,6 +253,13 @@ impl Tables {
                                                     + strength_cost(f1)
                                                     + strength_cost(f2)
                                                     + strength_cost(f3);
+                                            }
+                                        }
+                                    }
+                                    if !fixed {
+                                        for (pos, f) in [f1, f2, f3].iter().enumerate() {
+                                            if *f != cfg.fingermap[[a, b, c][pos]] {
+                                                value += alt_penalty;
                                             }
                                         }
                                     }
