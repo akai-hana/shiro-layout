@@ -7,7 +7,7 @@ use shirolyzer::evaluate::{flat_share_from_config, perm_of, Evaluator};
 use shirolyzer::search::{anneal, delta_swap_cost, quench, quench_generic, DeltaTables};
 use shirolyzer::{conditions, config, corpus, gates, geometry, scorer};
 
-const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+const SHIRO: &str = "cntgf;oehkrplsmuazdixjqvw,.b/y";
 
 fn main() {
     let cfg = config::load(None).expect("config");
