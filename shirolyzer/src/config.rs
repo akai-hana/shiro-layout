@@ -182,6 +182,7 @@ pub struct Config {
     pub parameters_file: String,
     pub parameters_path: PathBuf,
     pub fingering: FingeringMode,
+    pub alt_finger_penalty: f64,
     pub fingermap: [usize; NK],
     pub finger_tokens: Vec<char>,
     pub alt_fingers: Vec<AltRule>,
@@ -1539,6 +1540,10 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
     )?;
     let primary_sacrifice = parse_sacrifice(&path, get(general, "primary_sacrifice"))?;
     let fingering = parse_fingering(&path, get(general, "fingering"))?;
+    let alt_finger_penalty = match get(general, "alt_finger_penalty") {
+        Some(value) => as_number(&path, "general.alt_finger_penalty", value, Some(0.0), None)?,
+        None => 0.0,
+    };
 
     let model = as_mapping(&path, "model", get(root, "model").unwrap())?;
     let mut disallow_reverse_scissors = [[false; NFINGER]; NFINGER];
@@ -1666,6 +1671,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         parameters_file,
         parameters_path,
         fingering,
+        alt_finger_penalty,
         fingermap,
         finger_tokens,
         alt_fingers,
@@ -2133,6 +2139,7 @@ mod cross_hand_tests {
             assert_eq!(strength[fi], strength[fi + 4]);
         }
         assert_eq!(cfg.balance_source, BalanceSource::Chosen);
+        assert_eq!(cfg.alt_finger_penalty, 0.0);
 
         let redirects = cfg.redirect_tiers.as_ref().expect("redirect tiers");
         let redirect_weights = redirects.weights().expect("redirect weights");

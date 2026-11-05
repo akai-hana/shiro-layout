@@ -26,15 +26,18 @@ name = "gallium"
 layout = "bldcvjfou,nrtsgyhaeixqmwzkp';."
 
 [[reference]]
+name = "graphite"
+layout = "bldwz'foujnrtsgyhaeiqxmcvkp.-,"
+
+[[reference]]
 name = "semimak"
 layout = "flhvzqwuoysrntkcdeaix'bmjpg/,/"
 
 [[reference]]
 name = "shiro"
-layout = ";ntgfjoehkrpmscuaydilbqvwxz,./"
-primary_score = 3.520201897
-secondary_score = 3.704852567
-seed = 20261029
+layout = "cntgf;oehkrplsmuazdixjqvw,.b/y"
+primary_score = 4.470070576
+secondary_score = 4.611357535
 
 [[reference]]
 name = "t5-diversity-2"

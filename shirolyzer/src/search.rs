@@ -906,7 +906,7 @@ mod tests {
         ev
     }
 
-    const TEST_LAYOUT: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+    const TEST_LAYOUT: &str = "cntgf;oehkrplsmuazdixjqvw,.b/y";
 
     #[test]
     fn hand_restrictions_are_preserved_by_search() {
