@@ -573,6 +573,10 @@ pub fn trigram_pattern(fs: [usize; 3], tiers: Option<&RedirectTiers>) -> Trigram
     }
 }
 
+fn is_same_finger_skipgram(fs: [usize; 3]) -> bool {
+    fs[0] == fs[2] && fs[0] != fs[1]
+}
+
 pub fn trigram_patterns(
     layout: &str,
     corpus: &crate::corpus::Corpus,
@@ -601,6 +605,9 @@ pub fn trigram_patterns(
         };
         let pat = trigram_pattern(fs, tiers);
         add(&mut acc, pat.category);
+        if is_same_finger_skipgram(fs) {
+            add(&mut acc, "sfs");
+        }
         if let Some(redirect) = pat.redirect {
             match pat.tier {
                 Some(tier) => {
@@ -629,10 +636,12 @@ pub fn trigram_patterns(
     let alternation = out.get("alternate").copied().unwrap_or(0.0);
     let sft = out.get("sft").copied().unwrap_or(0.0);
     let sfb_tri = out.get("sfb_tri").copied().unwrap_or(0.0);
+    let sfs = out.get("sfs").copied().unwrap_or(0.0);
     out.insert("total_rolls".into(), rolls);
     out.insert("total_redirects".into(), redirects);
     out.insert("hand_alternation".into(), alternation);
     out.insert("sfb_sft".into(), sfb_tri + sft);
+    out.insert("same_finger_total".into(), sfb_tri + sft + sfs);
     out
 }
 
@@ -1032,6 +1041,8 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "sft",
         "sfb_tri",
         "sfb_sft",
+        "sfs",
+        "same_finger_total",
         "repeat",
         "other",
     ] {
@@ -1195,7 +1206,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::trigram_pattern;
+    use super::{is_same_finger_skipgram, trigram_pattern};
     use crate::redirect::RedirectTiers;
 
     fn fingers(pattern: [u8; 3], hand: usize) -> [usize; 3] {
@@ -1210,7 +1221,7 @@ mod tests {
     fn score_breakdown_reconstructs_the_primary_score() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+        let layout = "cntgf;oehkrplsmuazdixjqvw,.b/y";
         let score = crate::evaluate::score_layout(layout, &corpus, &ctx.tables);
         let breakdown = super::score_breakdown(
             layout,
@@ -1236,7 +1247,7 @@ mod tests {
     fn finger_strength_term_is_corpus_weighted_and_geometry_independent() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+        let layout = "cntgf;oehkrplsmuazdixjqvw,.b/y";
         let breakdown = super::score_breakdown(
             layout,
             &corpus,
@@ -1265,6 +1276,14 @@ mod tests {
         expected /= total;
         assert!(breakdown.finger_strength > 0.0);
         assert!((breakdown.finger_strength - expected).abs() < 1e-12);
+    }
+
+    #[test]
+    fn same_finger_skipgram_detects_non_adjacent_repeats() {
+        assert!(is_same_finger_skipgram([3, 6, 3]));
+        assert!(!is_same_finger_skipgram([3, 3, 6]));
+        assert!(!is_same_finger_skipgram([3, 3, 3]));
+        assert!(!is_same_finger_skipgram([2, 3, 4]));
     }
 
     #[test]
