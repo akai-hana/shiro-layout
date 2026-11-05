@@ -29,6 +29,10 @@ general:
   # each ngram (subject to alt_fingers); "fixed" always uses the fingermap
   # below and ignores alt_fingers.  Use config.fixed.yaml for the fixed mode.
   fingering: flexible
+  # Extra cost per keystroke typed with a non-default finger in flexible mode.
+  # 0 preserves the calibrated behavior; raising it rewards layouts that stay
+  # close to the fingermap and therefore hold up better under fixed fingering.
+  alt_finger_penalty: 0.0
   # Non-letter characters placed by compute.  Letters occupy the other 26
   # physical keys, so these four characters are permuted across the remaining
   # positions.  analyze uses the most recent compute result when --layout is

@@ -132,9 +132,10 @@ Finger selection is user-defined through `general.fingering`:
 general:
   fingering: flexible   # default: any reachable finger, subject to alt_fingers
   # fingering: fixed    # always use the fingermap; ignore alt_fingers
+  alt_finger_penalty: 0.0  # extra cost per non-default finger (flexible only)
 ```
 
-- `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis.
+- `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis. `alt_finger_penalty` adds a configurable cost for every non-default finger, so a positive value prefers layouts that remain strong when typed with the fixed fingermap.
 - `fixed` forces every key to its `fingermap` finger. Alt rules are ignored, so the resulting metrics are directly comparable to fixed-fingering analyzers such as oxeylyzer. Conditions and the fitted model still apply.
 
 Two configs are shipped:
