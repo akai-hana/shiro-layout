@@ -5,7 +5,7 @@ use shirolyzer::{conditions, config, corpus, gates, geometry, scorer};
 
 mod common;
 
-const SHIRO: &str = ";ntgfjoehkrpmscuaydilbqvwxz,./";
+const SHIRO: &str = "cntgf;oehkrplsmuazdixjqvw,.b/y";
 
 fn setup() -> (
     config::Config,
@@ -125,7 +125,7 @@ fn diversity_keeps_only_comparable_distinct_layouts() {
         "near",
         3.5210,
         Some(3.7050),
-        ";ntgfjoehkrpmscuaydilbqvwxz,..",
+        "cntgf;oehkrplsmuazdixjqvw,.by/",
     );
     let far = Row::new(
         "far",
