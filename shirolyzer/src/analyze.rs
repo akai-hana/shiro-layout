@@ -578,6 +578,152 @@ fn is_same_finger_skipgram(fs: [usize; 3]) -> bool {
     fs[0] == fs[2] && fs[0] != fs[1]
 }
 
+/// Key-aware classification of a trigram for the repeat-free diagnostics.
+///
+/// A repeated physical key always uses one finger, so the true same-finger
+/// metrics are restricted to trigrams with three distinct physical keys.
+/// Repeats are reported separately and never inflate the true counts.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub struct TrigramClass {
+    pub sfb_true: bool,
+    pub sft_true: bool,
+    pub sfs_true: bool,
+    pub repeat_adjacent: bool,
+    pub repeat_skip: bool,
+    pub repeat_all: bool,
+}
+
+pub fn classify_trigram(keys: [usize; 3], fingers: [usize; 3]) -> TrigramClass {
+    let repeat_adjacent = keys[0] == keys[1] || keys[1] == keys[2];
+    let repeat_skip = keys[0] == keys[2] && keys[0] != keys[1];
+    let repeat_all = repeat_adjacent || keys[0] == keys[2];
+    let distinct = keys[0] != keys[1] && keys[1] != keys[2] && keys[0] != keys[2];
+    let all_same_finger = fingers[0] == fingers[1] && fingers[1] == fingers[2];
+    let sft_true = distinct && all_same_finger;
+    let sfb_true = distinct && !sft_true && (fingers[0] == fingers[1] || fingers[1] == fingers[2]);
+    let sfs_true = distinct && fingers[0] == fingers[2] && fingers[0] != fingers[1];
+    TrigramClass {
+        sfb_true,
+        sft_true,
+        sfs_true,
+        repeat_adjacent,
+        repeat_skip,
+        repeat_all,
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+struct TrueCounts {
+    sfb_true: f64,
+    sft_true: f64,
+    sfs_true: f64,
+    repeat_adjacent: f64,
+    repeat_skip: f64,
+    repeat_all: f64,
+}
+
+impl TrueCounts {
+    fn add(&mut self, class: TrigramClass, count: f64) {
+        if class.sfb_true {
+            self.sfb_true += count;
+        }
+        if class.sft_true {
+            self.sft_true += count;
+        }
+        if class.sfs_true {
+            self.sfs_true += count;
+        }
+        if class.repeat_adjacent {
+            self.repeat_adjacent += count;
+        }
+        if class.repeat_skip {
+            self.repeat_skip += count;
+        }
+        if class.repeat_all {
+            self.repeat_all += count;
+        }
+    }
+}
+
+fn count_true_trigrams(
+    layout: &str,
+    corpus: &crate::corpus::Corpus,
+    tables: &Tables,
+    default_fingers: Option<&[usize; crate::geometry::NK]>,
+) -> (TrueCounts, f64) {
+    let m = keymap(layout);
+    let mut acc = TrueCounts::default();
+    let mut total = 0.0;
+    for (letter_ids, &cnt) in corpus.tri_ids.iter().zip(&corpus.tri_counts) {
+        let (Some(k0), Some(k1), Some(k2)) = (m[letter_ids[0]], m[letter_ids[1]], m[letter_ids[2]])
+        else {
+            continue;
+        };
+        let keys = [k0, k1, k2];
+        let fs = match default_fingers {
+            Some(dflt) => [dflt[k0], dflt[k1], dflt[k2]],
+            None => {
+                let enc = tables.tri_f[crate::scorer::tri_idx(k0, k1, k2)];
+                [
+                    decode_finger_at(enc, 0),
+                    decode_finger_at(enc, 1),
+                    decode_finger_at(enc, 2),
+                ]
+            }
+        };
+        total += cnt;
+        acc.add(classify_trigram(keys, fs), cnt);
+    }
+    (acc, total)
+}
+
+/// Repeat-free same-finger metrics under the chosen DP fingers and the default
+/// fingermap.  `*_delta` is chosen minus default, so a negative value means
+/// alt fingering reduced the metric.
+pub fn true_same_finger_metrics(
+    layout: &str,
+    corpus: &crate::corpus::Corpus,
+    tables: &Tables,
+    default_fingers: &[usize; crate::geometry::NK],
+) -> HashMap<String, f64> {
+    let (chosen, total) = count_true_trigrams(layout, corpus, tables, None);
+    let (default, default_total) =
+        count_true_trigrams(layout, corpus, tables, Some(default_fingers));
+    let pct = |value: f64, denom: f64| {
+        if denom > 0.0 {
+            value / denom * 100.0
+        } else {
+            0.0
+        }
+    };
+    let rows = [
+        ("sfb_true", chosen.sfb_true, default.sfb_true),
+        ("sft_true", chosen.sft_true, default.sft_true),
+        (
+            "sfb_sft_true",
+            chosen.sfb_true + chosen.sft_true,
+            default.sfb_true + default.sft_true,
+        ),
+        ("sfs_true", chosen.sfs_true, default.sfs_true),
+        (
+            "repeat_adjacent",
+            chosen.repeat_adjacent,
+            default.repeat_adjacent,
+        ),
+        ("repeat_skip", chosen.repeat_skip, default.repeat_skip),
+        ("repeat_all", chosen.repeat_all, default.repeat_all),
+    ];
+    let mut out = HashMap::new();
+    for (name, chosen_value, default_value) in rows {
+        let chosen_pct = pct(chosen_value, total);
+        let default_pct = pct(default_value, default_total);
+        out.insert(name.to_string(), chosen_pct);
+        out.insert(format!("{name}_default"), default_pct);
+        out.insert(format!("{name}_delta"), chosen_pct - default_pct);
+    }
+    out
+}
+
 pub fn trigram_patterns(
     layout: &str,
     corpus: &crate::corpus::Corpus,
@@ -821,7 +967,7 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         }
     };
 
-    let (mut report, (pats, (use_, guide))) = rayon::join(
+    let (mut report, (mut pats, (use_, guide))) = rayon::join(
         || category_report(layout, &corpus, &ctx.tables, &ctx.geom),
         || {
             rayon::join(
@@ -843,6 +989,12 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             )
         },
     );
+    pats.extend(true_same_finger_metrics(
+        layout,
+        &corpus,
+        &ctx.tables,
+        &ctx.model.default_finger,
+    ));
     if let Some(tiers) = ctx.cfg.roll_tiers.as_ref() {
         for (i, tier) in tiers.tiers().iter().enumerate() {
             let share: f64 = tier
@@ -1029,30 +1181,57 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
     }
     out(String::new());
     out("== trigram patterns (chosen fingering, % of trigrams) ==".to_string());
-    for k in [
-        "alternate",
-        "hand_alternation",
-        "inroll",
-        "outroll",
-        "total_rolls",
-        "onehand",
-        "redirect",
-        "redirect_weak",
-        "total_redirects",
-        "sft",
-        "sfb_tri",
-        "sfb_sft",
-        "sfs",
-        "same_finger_total",
-        "repeat",
-        "other",
+    for (label, key) in [
+        ("alternate", "alternate"),
+        ("hand_alternation", "hand_alternation"),
+        ("inroll", "inroll"),
+        ("outroll", "outroll"),
+        ("total_rolls", "total_rolls"),
+        ("onehand", "onehand"),
+        ("redirect", "redirect"),
+        ("redirect_weak", "redirect_weak"),
+        ("total_redirects", "total_redirects"),
+        ("legacy_sft", "sft"),
+        ("legacy_sfb_tri", "sfb_tri"),
+        ("legacy_sfb_sft", "sfb_sft"),
+        ("legacy_sfs", "sfs"),
+        ("legacy_same_finger_total", "same_finger_total"),
+        ("repeat", "repeat"),
+        ("other", "other"),
     ] {
         out(format!(
-            "  {:<16} {:6.2}",
-            k,
-            pats.get(k).copied().unwrap_or(0.0)
+            "  {:<24} {:6.2}",
+            label,
+            pats.get(key).copied().unwrap_or(0.0)
         ));
     }
+    out(String::new());
+    out("== true same-finger metrics (chosen vs default fingering, % of trigrams) ==".to_string());
+    out(format!(
+        "  {:<20} {:>8} {:>8} {:>8}",
+        "metric", "chosen", "default", "delta"
+    ));
+    for name in [
+        "sfb_true",
+        "sft_true",
+        "sfb_sft_true",
+        "sfs_true",
+        "repeat_adjacent",
+        "repeat_skip",
+        "repeat_all",
+    ] {
+        out(format!(
+            "  {:<20} {:8.2} {:8.2} {:8.2}",
+            name,
+            pats.get(name).copied().unwrap_or(0.0),
+            pats.get(&format!("{name}_default")).copied().unwrap_or(0.0),
+            pats.get(&format!("{name}_delta")).copied().unwrap_or(0.0)
+        ));
+    }
+    out(
+        "  note: legacy_* values include repeated physical keys and retain their budget meaning; delta = chosen - default"
+            .to_string(),
+    );
     if let Some(tiers) = ctx.cfg.redirect_tiers.as_ref() {
         out(String::new());
         out("== redirect tiers (configured, % of trigrams) ==".to_string());
@@ -1207,7 +1386,9 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
 
 #[cfg(test)]
 mod tests {
-    use super::{is_same_finger_skipgram, trigram_pattern};
+    use super::{
+        classify_trigram, is_same_finger_skipgram, trigram_pattern, true_same_finger_metrics,
+    };
     use crate::redirect::RedirectTiers;
 
     fn fingers(pattern: [u8; 3], hand: usize) -> [usize; 3] {
@@ -1285,6 +1466,77 @@ mod tests {
         assert!(!is_same_finger_skipgram([3, 3, 6]));
         assert!(!is_same_finger_skipgram([3, 3, 3]));
         assert!(!is_same_finger_skipgram([2, 3, 4]));
+    }
+
+    #[test]
+    fn key_aware_classifier_separates_repeats_from_true_same_finger() {
+        let same = [3, 3, 3];
+
+        let aaa = classify_trigram([0, 0, 0], same);
+        assert!(aaa.repeat_adjacent && aaa.repeat_all && !aaa.repeat_skip);
+        assert!(!aaa.sfb_true && !aaa.sft_true && !aaa.sfs_true);
+
+        let aba = classify_trigram([0, 1, 0], [3, 2, 3]);
+        assert!(aba.repeat_skip && aba.repeat_all && !aba.repeat_adjacent);
+        assert!(!aba.sfb_true && !aba.sft_true && !aba.sfs_true);
+
+        let abb = classify_trigram([0, 1, 1], [3, 2, 2]);
+        assert!(abb.repeat_adjacent && abb.repeat_all && !abb.repeat_skip);
+        assert!(!abb.sfb_true && !abb.sft_true && !abb.sfs_true);
+
+        let abc_sft = classify_trigram([0, 1, 2], same);
+        assert!(abc_sft.sft_true);
+        assert!(!abc_sft.sfb_true && !abc_sft.sfs_true && !abc_sft.repeat_all);
+
+        let abc_sfb = classify_trigram([0, 1, 2], [3, 3, 6]);
+        assert!(abc_sfb.sfb_true);
+        assert!(!abc_sfb.sft_true && !abc_sfb.sfs_true);
+
+        let abc_sfs = classify_trigram([0, 1, 2], [3, 2, 3]);
+        assert!(abc_sfs.sfs_true);
+        assert!(!abc_sfs.sfb_true && !abc_sfs.sft_true);
+
+        let abc_clean = classify_trigram([0, 1, 2], [3, 2, 6]);
+        assert!(
+            !abc_clean.sfb_true
+                && !abc_clean.sft_true
+                && !abc_clean.sfs_true
+                && !abc_clean.repeat_all
+        );
+    }
+
+    #[test]
+    fn default_sfb_can_disappear_with_chosen_alt_finger() {
+        let keys = [0, 1, 2];
+        let default_fingers = [3, 3, 6];
+        let chosen_alt_fingers = [3, 2, 6];
+        assert!(classify_trigram(keys, default_fingers).sfb_true);
+        assert!(!classify_trigram(keys, chosen_alt_fingers).sfb_true);
+    }
+
+    #[test]
+    fn true_metrics_are_repeat_free_on_the_shipped_layout() {
+        let ctx = crate::context::Context::load(None).expect("context");
+        let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
+        let layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
+        let pats = super::trigram_patterns(
+            layout,
+            &corpus,
+            &ctx.tables,
+            &ctx.geom,
+            ctx.cfg.redirect_tiers.as_ref(),
+        );
+        let metrics =
+            true_same_finger_metrics(layout, &corpus, &ctx.tables, &ctx.model.default_finger);
+        assert!(metrics["sfb_true"] < 1e-9, "{metrics:?}");
+        assert!(metrics["sft_true"] < 1e-9, "{metrics:?}");
+        assert!(metrics["sfb_sft_true"] < 1e-9, "{metrics:?}");
+        let legacy = pats["sfb_sft"];
+        assert!(
+            (metrics["repeat_adjacent"] - legacy).abs() < 0.01,
+            "repeat_adjacent={} legacy={legacy}",
+            metrics["repeat_adjacent"]
+        );
     }
 
     #[test]

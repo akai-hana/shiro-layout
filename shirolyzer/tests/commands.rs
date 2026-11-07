@@ -100,6 +100,29 @@ fn analyze_score_matches_baseline() {
     ] {
         assert!(pats.contains_key(key), "missing {key}");
     }
+    for name in [
+        "sfb_true",
+        "sft_true",
+        "sfb_sft_true",
+        "sfs_true",
+        "repeat_adjacent",
+        "repeat_skip",
+        "repeat_all",
+    ] {
+        for suffix in ["", "_default", "_delta"] {
+            let key = format!("{name}{suffix}");
+            assert!(pats.contains_key(&key), "missing {key}");
+        }
+    }
+    for legacy in ["sft", "sfb_tri", "sfb_sft", "sfs"] {
+        assert!(pats.contains_key(legacy), "missing legacy {legacy}");
+    }
+    let legacy_sfb_sft = pats["sfb_sft"].as_f64().unwrap();
+    let repeat_adjacent = pats["repeat_adjacent"].as_f64().unwrap();
+    assert!(
+        legacy_sfb_sft + 1e-9 >= repeat_adjacent,
+        "legacy sfb_sft should include all adjacent repeats"
+    );
     let tier_total: f64 = (1..=5)
         .map(|tier| pats[&format!("redirect_tier_{tier}")].as_f64().unwrap())
         .sum();

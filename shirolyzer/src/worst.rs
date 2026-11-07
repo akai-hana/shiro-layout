@@ -4,7 +4,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Result};
 
-use crate::analyze::trigram_pattern;
+use crate::analyze::{trigram_pattern, true_same_finger_metrics};
 use crate::context;
 use crate::corpus::SPACE_INDEX;
 use crate::geometry::{finger_token, key_index, KEYS};
@@ -249,6 +249,37 @@ pub fn run(args: WorstArgs) -> Result<()> {
         args.limit,
         true,
     );
+    let true_metrics =
+        true_same_finger_metrics(layout, &corpus, &ctx.tables, &ctx.model.default_finger);
+    lines.push("== true same-finger metrics (% of trigrams) ==".to_string());
+    lines.push(format!(
+        "{:<20} {:>8} {:>8} {:>8}",
+        "metric", "chosen", "default", "delta"
+    ));
+    for name in [
+        "sfb_true",
+        "sft_true",
+        "sfb_sft_true",
+        "sfs_true",
+        "repeat_adjacent",
+        "repeat_skip",
+        "repeat_all",
+    ] {
+        lines.push(format!(
+            "{:<20} {:8.2} {:8.2} {:8.2}",
+            name,
+            true_metrics.get(name).copied().unwrap_or(0.0),
+            true_metrics
+                .get(&format!("{name}_default"))
+                .copied()
+                .unwrap_or(0.0),
+            true_metrics
+                .get(&format!("{name}_delta"))
+                .copied()
+                .unwrap_or(0.0)
+        ));
+    }
+    lines.push(String::new());
     lines.push(
         "note: bigram and trigram costs are not directly comparable across lengths.".to_string(),
     );
