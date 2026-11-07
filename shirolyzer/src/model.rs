@@ -90,6 +90,10 @@ pub const W_REDIRECT_WEAK: f64 = 1.80;
 pub const W_CONTINUE: f64 = -0.10;
 pub const W_SFS_1U: f64 = 2.50;
 pub const W_SFS_FAR: f64 = 3.50;
+/// Finite cost used when same-finger bigrams are configured as impossible.
+/// It is large enough that the search never prefers a layout carrying one,
+/// while staying finite so the analyzer and tables never produce NaN.
+pub const SFB_HARD_PENALTY: f64 = 1.0e9;
 /// Roll credit of tier 1 in `roll_tiers`; later tiers earn equal smaller shares.
 pub const W_ROLL_TIER_BEST: f64 = -0.60;
 pub const ROLL_D0: f64 = 1.25;
@@ -117,6 +121,15 @@ pub fn sfb_cost(geom: &Geometry, a: usize, b: usize) -> f64 {
         c += 0.3;
     }
     c
+}
+
+#[inline]
+pub fn sfb_pair_cost(geom: &Geometry, a: usize, b: usize, scale: f64, impossible: bool) -> f64 {
+    if impossible {
+        SFB_HARD_PENALTY
+    } else {
+        sfb_cost(geom, a, b) * scale
+    }
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -175,6 +188,7 @@ pub fn pair_feature(geom: &Geometry, a: usize, fa: usize, b: usize, fb: usize) -
 #[derive(Clone, Copy, Debug)]
 pub struct Scales {
     pub sfb: f64,
+    pub sfb_impossible: bool,
     pub scissor: f64,
     pub redirect: f64,
     pub roll: f64,
@@ -188,6 +202,7 @@ impl Default for Scales {
     fn default() -> Self {
         Self {
             sfb: 1.0,
+            sfb_impossible: false,
             scissor: 1.0,
             redirect: 1.0,
             roll: 1.0,
@@ -605,7 +620,13 @@ impl Model {
                         };
                         let same_f = pf.same_hand && fa == fb && a != b;
                         if same_f {
-                            out = sfb_cost(geom, a, b) * self.scales.sfb;
+                            out = sfb_pair_cost(
+                                geom,
+                                a,
+                                b,
+                                self.scales.sfb,
+                                self.scales.sfb_impossible,
+                            );
                         }
                         if a == b {
                             out = W_REPEAT + if fa != fb { W_REPEAT_SWAP } else { 0.0 };
@@ -879,9 +900,9 @@ mod tests {
         let tiers = cfg.redirect_tiers.clone().expect("shipped redirect tiers");
         let mut model = crate::config::build_model(&cfg).unwrap();
         let configured_index = (NF + 2) * NF + 1;
-        let unlisted_index = (3 * NF + 1) * NF + 2;
+        let unlisted_index = (3 * NF) * NF + 2;
         let ring_middle_ring = [3, 2, 3];
-        let unlisted = [1, 3, 2];
+        let unlisted = [1, 4, 2];
 
         let tables = model.tables(&geom);
         let mut chosen = None;
@@ -915,14 +936,15 @@ mod tests {
             "configured={configured} legacy={legacy_configured} expected={expected}"
         );
         let fallback = tiers.fallback().expect("weighted fallback");
-        let expected_unlisted = (fallback - W_REDIRECT) * model.scales.redirect;
+        let legacy_unlisted_cost = crate::redirect::legacy_cost_for_pattern(unlisted);
+        let expected_unlisted = (fallback - legacy_unlisted_cost) * model.scales.redirect;
         assert!(
             (unlisted_cost - legacy_unlisted - expected_unlisted).abs() < 1e-12,
             "unlisted={unlisted_cost} legacy={legacy_unlisted} expected={expected_unlisted}"
         );
         assert!(model.scales.redirect_costs.is_none());
         assert!(Scales::default().redirect_costs.is_none());
-        assert_eq!(tiers.cost(ring_middle_ring), Some(tiers.base_cost(1)));
+        assert_eq!(tiers.cost(ring_middle_ring), Some(tiers.base_cost(2)));
         assert_eq!(tiers.cost(unlisted), None);
     }
 

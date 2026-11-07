@@ -872,7 +872,12 @@ mod tests {
     use crate::evaluate::flat_share_from_config;
 
     pub(super) fn setup() -> (crate::config::Config, crate::evaluate::Evaluator<'static>) {
-        let cfg = crate::config::load(None).expect("config");
+        let mut cfg = crate::config::load(None).expect("config");
+        // These tests exercise the generic incremental evaluator with the
+        // reference layout, which still contains the mv/vm SFB.  Keep the
+        // hard-SFB search preference out of that comparison; the penalty is
+        // covered separately.
+        cfg.sfb_impossible = false;
         let ev = evaluator_for(&cfg);
         (cfg, ev)
     }

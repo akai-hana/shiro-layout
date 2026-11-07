@@ -33,6 +33,11 @@ general:
   # 0 preserves the calibrated behavior; raising it rewards layouts that stay
   # close to the fingermap and therefore hold up better under fixed fingering.
   alt_finger_penalty: 0.0
+  # Treat every same-finger bigram (different keys) as effectively impossible:
+  # the search pays a fixed 1e9 penalty instead of the fitted SFB cost.  The
+  # analyzer reports zero conventional bigram SFBs for any layout that clears
+  # this constraint.  Same-key repeats are not affected.
+  sfb_impossible: true
   # Non-letter characters placed by compute.  Letters occupy the other 26
   # physical keys, so these four characters are permuted across the remaining
   # positions.  analyze uses the most recent compute result when --layout is
@@ -316,19 +321,20 @@ priority_list:
 # third fingers differ in direction from the middle (for example 1-2-1).
 # Unlisted same-hand turns keep the legacy redirect cost.
 redirect_tiers:
-  - ["1-2-1", "2-1-2", "1-3-1", "3-1-3"]
-  - ["3-2-3"]
-  - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
-  - ["4-1-4", "4-2-4", "2-4-2"]
-  - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
+  - ["1-3-2", "3-1-2"] # free: the common index/ring/middle turn
+  - ["1-2-1", "2-1-2", "1-3-1", "3-1-3"] # former tier 1, now a tie-breaker
+  - ["3-2-3", "2-3-2"] # former tier 2 plus 2-3-2
+  - ["2-1-3", "1-4-1"] # former tier 3
+  - ["4-1-4", "4-2-4", "2-4-2"] # former tier 4
+  - ["3-4-3", "4-3-4", "3-2-4", "4-2-3", "3-1-4"] # former tier 5 plus 3-1-4
 
 # Per-tier redirect costs, aligned with redirect_tiers above.  These replace
-# the old global redirect_scale: tier 1 is effectively free, 3-2-3 is only a
-# hair worse, and each later tier is progressively more expensive.  Unlisted
+# the old global redirect_scale: the new first tier is free, the next two are
+# small tie-breakers (kept larger than the old 0.01 gap so they still order
+# cleanly), and each later tier is progressively more expensive.  Unlisted
 # turns are charged the worst configured tier.  The `redirects` priority
-# multiplier still applies on top of these weights.  P1 measured 2.11% weighted
-# redirects versus 2.17% for the old scale on the same computed layout.
-redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
+# multiplier still applies on top of these weights.
+redirect_tier_weights: [0.0, 0.05, 0.10, 2.0, 3.5, 5.0]
 
 # Roll preferences.  Tiers run from most preferred (tier 1) to least preferred.
 # Each entry is a directed same-hand finger pair "from-to" using per-hand
