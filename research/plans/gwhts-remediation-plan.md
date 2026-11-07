@@ -1,10 +1,21 @@
 # `gwhts` layout remediation plan
 
-Status: **planning**. Source review:
+Status: **in progress**. Source review:
 `research/findings/gwhts_layout_review.md`.
 
 This plan covers every actionable item from the review. It also records the
 immediate cleanup of the uncommitted layout work and the stale issue tracker.
+
+## Progress checklist
+
+- [x] Immediate cleanup: commit the computed layout, review, and plan.
+- [x] Close stale issues #104, #103, #96, and #93; tracker starts empty.
+- [x] W1 — True same-finger metrics with alt-aware reporting.
+- [ ] W2 — Enforce the Ctrl shortcut constraints.
+- [ ] W3 — Comparison and reference-score integrity.
+- [ ] W4 — Human-factors reporting.
+- [ ] W5 — Repeat-aware budget decision and SFS re-anneal.
+- [ ] W6 — Final release and tracker cleanup.
 
 ## Decisions that constrain the plan
 

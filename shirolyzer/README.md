@@ -480,17 +480,20 @@ redirect rate by about 0.5 percentage points, undoing the P7 floor. No variant
 improved a higher-priority metric without regressing another, so the calibrated
 values are retained and pinned by tests.
 
-The table above uses the analyzer's trigram same-finger share
-(`sfb_sft = sfb_tri + sft`), not conventional bigram SFB. On the current
-`shiro` layout this share is almost entirely adjacent repeated characters: the
-corpus has `6.67%` adjacent-repeat trigrams, matching `sfb_sft = 6.673%`,
-while conventional flexible-fingering SFB is `0.000%`. Do not compare
-`sfb_sft` directly with community SFS/SFB tables.
+The table above uses the analyzer's legacy trigram same-finger share
+(`legacy_sfb_sft = legacy_sfb_tri + legacy_sft`), not conventional bigram SFB
+and not the repeat-free `sfb_sft_true`. On the current `shiro` layout the legacy
+share is almost entirely adjacent repeated characters: the corpus has `6.67%`
+adjacent-repeat trigrams, matching `legacy_sfb_sft = 6.673%`, while the true,
+repeat-free values are `sfb_true = 0`, `sft_true = 0`, and `sfs_true = 2.86%`
+under flexible fingering. Conventional bigram SFB is `0.000%`. Do not compare
+the legacy fields directly with community SFS/SFB tables.
 
 Final check on the retained `shiro` layout
 (`gwhtsmuenqlrdv;oajpicxkfz,.by/`): primary `4.261835`, secondary
-`4.499064`, trigram same-finger `6.673%` (`sfb_sft`; conventional bigram SFB is
-`0.000%`), redirects `3.847%`, rolls `46.406%`, mild scissor cost `0.133`,
+`4.499064`, true same-finger trigrams `sfb_true = 0`, `sft_true = 0`,
+`sfb_sft_true = 0`, `sfs_true = 2.86%`, repeats `repeat_adjacent = 6.673%`,
+redirects `3.847%`, rolls `46.406%`, mild scissor cost `0.133`,
 frequency-weighted strength `0.172`; `audit` passes `166/166` rulings.
 Fixed-fingering mode is a diagnostic only; it is not an optimization target and
 must not be used to penalize context-dependent alt fingering.
@@ -509,7 +512,8 @@ The shipped condition list is a built-in default and stays disabled because the 
 The **shirolyzer** analyzer uses the same configuration, geometry, model, and fingering rules as the generator. It reports:
 
 - bigram categories such as SFBs, scissors, and stretches;
-- trigram patterns including rolls, redirects, alternation, true same-finger trigrams (Sft), and adjacent same-finger trigrams (Sfb/BadSfb lumped); repeated-character trigrams are also reported as an overlapping `repeat` diagnostic;
+- trigram patterns including rolls, redirects, alternation, and the repeat-free true same-finger diagnostics `sfb_true`, `sft_true`, `sfb_sft_true`, and `sfs_true`; repeats are reported separately as `repeat_adjacent`, `repeat_skip`, and `repeat_all`;
+- the legacy `sft`, `sfb_tri`, `sfb_sft`, and `sfs` values, shown as `legacy_*` in the text report; they retain their budget meaning but include repeated physical keys and are not conventional same-finger comparisons;
 - when `redirect_tiers` is configured, per-tier and per-pattern redirect percentages plus `redirect_unclassified` for unlisted turns; the older `redirect`/`redirect_weak` categories remain as deprecated overlapping diagnostics;
 - when `roll_tiers` is configured, the share of letter bigrams in each roll tier and pair; the six directed pair shares (`roll_1_2` ... `roll_4_3`) are always in the JSON;
 - per-finger usage against the configured finger-balance targets, plus the
@@ -521,6 +525,29 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
   costs.
 
 `analyze` uses the most recent `compute` result when `--layout` is omitted. The same metrics drive primary-sacrifice enforcement during secondary optimization, so scores shown by the analyzer reflect the constraints the generator applied.
+
+### True same-finger metrics
+
+The true same-finger metrics use physical keys, not only finger numbers:
+
+- `sfb_true`: three distinct keys, adjacent keys share the selected finger, and the trigram is not a true SFT.
+- `sft_true`: three distinct keys, all three selected fingers are the same.
+- `sfb_sft_true`: `sfb_true + sft_true`.
+- `sfs_true`: three distinct keys, the first and third selected fingers are the same, and the middle finger differs.
+- `repeat_adjacent`: an adjacent pair is the same physical key.
+- `repeat_skip`: the first and third keys are the same physical key and the middle differs.
+- `repeat_all`: any pair in the trigram is the same physical key.
+
+Repeats are not SFBs: a repeated physical key always uses the same finger, so a repeat cannot be a same-finger risk on distinct keys. The legacy fields still count repeats because the primary-sacrifice budget intentionally does so.
+
+Every true metric is reported three ways in the text report and JSON: the chosen flexible-DP fingering, the default fingermap as `<name>_default`, and the difference as `<name>_delta` (`chosen - default`). A negative delta means alt fingering reduced the metric. Repeats are fingering-independent, so their deltas are zero. These diagnostics are report-only: they do not change the primary score, the budget, or the fitted objective.
+
+```sh
+shirolyzer/target/release/shirolyzer analyze "gwhtsmuenqlrdv;oajpicxkfz,.by/"
+shirolyzer/target/release/shirolyzer worst "gwhtsmuenqlrdv;oajpicxkfz,.by/"
+```
+
+On the shipped `gwhts` layout the chosen flexible fingering reports `sfb_true = sft_true = sfb_sft_true = 0`, `sfs_true = 2.86%`, and `repeat_adjacent = 6.673%`. The default fingermap reports `sfb_true = 12.806%`, `sft_true = 0.099%`, and `sfs_true = 6.737%`, which is the alt-fingering effect the flexible model is designed to capture.
 
 ### Preference metrics
 
