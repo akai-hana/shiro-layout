@@ -5,7 +5,7 @@ use shirolyzer::{conditions, config, corpus, evaluate, gates, geometry, scorer};
 
 mod common;
 
-const SHIRO: &str = "cntgf;oehkrplsmuazdixjqvw,.b/y";
+const SHIRO: &str = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
 
 #[derive(Deserialize)]
 struct Reference {
@@ -50,14 +50,14 @@ fn reference_trigram_scores() {
         ("sturdy", 3.9152460321534845),
         ("gallium", 3.871559718134498),
         ("semimak", 3.947694742590448),
-        ("shiro", 3.576_952_749_945_849),
+        ("shiro", 3.907_860_887_460_963),
         ("t5-diversity-2", 3.664580151719405),
     ];
     let refs_text = std::fs::read_to_string(shirolyzer::paths::references_file()).unwrap();
     let refs: References = toml::from_str(&refs_text).unwrap();
     let primary = evaluate::score_layout(SHIRO, &corpus, &tables);
     assert!(
-        (primary - 3.576_952_749_945_849).abs() < 1e-9,
+        (primary - 3.907_860_887_460_963).abs() < 1e-9,
         "configured current layout score {primary}"
     );
     let mut worst = 0.0f64;

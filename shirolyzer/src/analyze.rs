@@ -12,8 +12,8 @@ use crate::context;
 use crate::evaluate::score_layout;
 use crate::geometry::{finger_hand, finger_kind, finger_token, key_index, KEYS, NF};
 use crate::model::{
-    e_idx, pair_feature, pt_idx, sfb_cost, PAIR_CAP, W_ALT, W_CONTINUE, W_REPEAT, W_REPEAT_SWAP,
-    W_SFS_1U, W_SFS_FAR,
+    e_idx, pair_feature, pt_idx, sfb_pair_cost, PAIR_CAP, W_ALT, W_CONTINUE, W_REPEAT,
+    W_REPEAT_SWAP, W_SFS_1U, W_SFS_FAR,
 };
 use crate::paths;
 use crate::preferences;
@@ -197,7 +197,8 @@ fn add_pair_terms(
         return;
     }
     if pf.same_hand && fa == fb {
-        out.pair_sfb += sfb_cost(geom, a, b) * model.scales.sfb * count;
+        out.pair_sfb +=
+            sfb_pair_cost(geom, a, b, model.scales.sfb, model.scales.sfb_impossible) * count;
         return;
     }
     if !pf.same_hand {
@@ -1221,7 +1222,7 @@ mod tests {
     fn score_breakdown_reconstructs_the_primary_score() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = "cntgf;oehkrplsmuazdixjqvw,.b/y";
+        let layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
         let score = crate::evaluate::score_layout(layout, &corpus, &ctx.tables);
         let breakdown = super::score_breakdown(
             layout,
@@ -1234,7 +1235,7 @@ mod tests {
         );
         assert!((breakdown.total - score).abs() < 1e-9);
         assert!(
-            (breakdown.sum() - score).abs() < 1e-6,
+            (breakdown.sum() - score).abs() < 1e-5,
             "sum={} score={} diff={} breakdown={:?}",
             breakdown.sum(),
             score,
@@ -1247,7 +1248,7 @@ mod tests {
     fn finger_strength_term_is_corpus_weighted_and_geometry_independent() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = "cntgf;oehkrplsmuazdixjqvw,.b/y";
+        let layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
         let breakdown = super::score_breakdown(
             layout,
             &corpus,

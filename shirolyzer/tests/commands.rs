@@ -31,14 +31,14 @@ fn config_path() -> String {
     common::reference_config().to_string_lossy().into_owned()
 }
 
-const SHIRO: &str = "cntgf;oehkrplsmuazdixjqvw,.b/y";
+const SHIRO: &str = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
 
 #[test]
 fn render_matches_reference() {
     let config = config_path();
     let out = run(&["render", SHIRO, "--config", config.as_str()]);
     assert!(out.status.success());
-    let expected = "cR nR tM gM fM  ;M oM eM hR kR\n rP pR lM sI mI  uI aI zM dR iP\n  xP jR qI vI wI  ,I .I bR /R yP\n";
+    let expected = "gR wR hM tM sM  mM uM eM nR qR\n lP rR dM vI ;I  oI aI jM pR iP\n  cP xR kI fI zI  ,I .I bR yR /P\n";
     assert_eq!(stdout(&out), expected);
 }
 
@@ -79,7 +79,7 @@ fn analyze_score_matches_baseline() {
     assert!(out.status.success());
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
-    assert!((score - 3.576_952_749_945_849).abs() < 1e-12);
+    assert!((score - 3.907_860_887_460_961).abs() < 1e-12);
     for entry in value["guide"].as_object().unwrap().values() {
         for contexts in entry["alt_contexts"].as_object().unwrap().values() {
             for item in contexts.as_array().unwrap() {
@@ -284,7 +284,7 @@ fn compare_reports_baseline_scores() {
     assert!(out.status.success());
     let text = stdout(&out);
     assert!(text.contains("shiro"));
-    assert!(text.contains("3.576953"));
+    assert!(text.contains("3.907861"));
 }
 
 #[test]
@@ -391,7 +391,7 @@ fn compute_smoke() {
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 1);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.576_952_749_945_849_8).abs() < 1e-6);
+    assert!((primary - 3.586_719_175_352_358).abs() < 1e-6);
 }
 
 #[test]

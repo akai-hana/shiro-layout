@@ -325,18 +325,19 @@ priority_list:
 
 ```yaml
 redirect_tiers:
+  - ["1-3-2", "3-1-2"]
   - ["1-2-1", "2-1-2", "1-3-1", "3-1-3"]
-  - ["3-2-3"]
-  - ["2-1-3", "3-1-2", "2-3-2", "1-4-1"]
+  - ["3-2-3", "2-3-2"]
+  - ["2-1-3", "1-4-1"]
   - ["4-1-4", "4-2-4", "2-4-2"]
-  - ["3-4-3", "4-3-4", "3-2-4", "4-2-3"]
+  - ["3-4-3", "4-3-4", "3-2-4", "4-2-3", "3-1-4"]
 
-redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
+redirect_tier_weights: [0.0, 0.05, 0.10, 2.0, 3.5, 5.0]
 ```
 
-`redirect_tier_weights` gives the base cost of each tier, aligned with `redirect_tiers`. The `redirects` priority multiplier still applies on top. Tier 1 is effectively free, `3-2-3` is a hair worse, and later tiers rise monotonically. Unlisted same-hand turns are charged the worst configured tier, so the weights also act as a fallback floor.
+`redirect_tier_weights` gives the base cost of each tier, aligned with `redirect_tiers`. The `redirects` priority multiplier still applies on top. Tier 1 is free, tiers 2 and 3 are small tie-breakers, and the later tiers follow the original severity ordering. Unlisted same-hand turns are charged the worst configured tier, so the weights also act as a fallback floor.
 
-The shipped weights were swept with P1. On the same computed layout they cut weighted redirects from `2.17%` to `2.11%` of the primary corpus while also improving SFB and scissor costs; the fixed current layout drops from `3.41%` to `3.08%` in the P1 analyzer. Re-run `just sweep` when changing the tier ordering or weights.
+The current ordering is a user preference rather than a swept optimum: the first tier is free, the next two order near-equal alternatives, and the remaining tiers preserve the older severity ranking. Re-run `just sweep` when changing the tier ordering or weights.
 
 `redirect_scale` is the legacy global multiplier (default `1.0`) and still works when `redirect_tier_weights` is absent, preserving old configs. It cannot be combined with per-tier weights. With the old tier curve it applied the calibrated `W_REDIRECT`–`W_REDIRECT_WEAK` endpoints evenly; the shipped config now uses explicit weights instead.
 
@@ -458,7 +459,8 @@ python3 shirolyzer/utils/preference_sweep.py \
   --secondary-rounds 1 --polish-rounds 1
 ```
 
-Mean results on the selected layouts:
+Historical mean results on the selected layouts under the previous 5-tier
+redirect objective:
 
 | Variant | Trigram same-finger | Redirects | Mild scissors | Strength |
 |---------|-------------------:|----------:|--------------:|---------:|
@@ -479,14 +481,19 @@ improved a higher-priority metric without regressing another, so the calibrated
 values are retained and pinned by tests.
 
 The table above uses the analyzer's trigram same-finger share
-(`sfb_sft = sfb_tri + sft`), not conventional bigram SFB. For the retained
-`shiro` layout, the conventional fixed-fingering bigram SFB is `1.630%`.
+(`sfb_sft = sfb_tri + sft`), not conventional bigram SFB. On the current
+`shiro` layout this share is almost entirely adjacent repeated characters: the
+corpus has `6.67%` adjacent-repeat trigrams, matching `sfb_sft = 6.673%`,
+while conventional flexible-fingering SFB is `0.000%`. Do not compare
+`sfb_sft` directly with community SFS/SFB tables.
 
 Final check on the retained `shiro` layout
-(`cntgf;oehkrplsmuazdixjqvw,.b/y`): primary `4.470070576`, secondary
-`4.611357535`, trigram same-finger `6.680%` (`sfb_sft`; bigram SFB is `1.630%`
-with fixed fingering), redirects `2.850%`, rolls `45.635%`, mild scissor cost
-`0.145`, frequency-weighted strength `0.179`; `audit` passes `166/166` rulings.
+(`gwhtsmuenqlrdv;oajpicxkfz,.by/`): primary `4.261835`, secondary
+`4.499064`, trigram same-finger `6.673%` (`sfb_sft`; conventional bigram SFB is
+`0.000%`), redirects `3.847%`, rolls `46.406%`, mild scissor cost `0.133`,
+frequency-weighted strength `0.172`; `audit` passes `166/166` rulings.
+Fixed-fingering mode is a diagnostic only; it is not an optimization target and
+must not be used to penalize context-dependent alt fingering.
 
 ### Conditions
 
@@ -560,7 +567,7 @@ using dotted YAML paths:
   overrides: {}
 - name: redirect-floor
   overrides:
-    redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]
+    redirect_tier_weights: [0.0, 0.05, 0.10, 2.0, 3.5, 5.0]
 ```
 
 The script runs `compute` for each variant/seed, analyzes the selected layout

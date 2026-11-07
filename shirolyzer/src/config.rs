@@ -183,6 +183,7 @@ pub struct Config {
     pub parameters_path: PathBuf,
     pub fingering: FingeringMode,
     pub alt_finger_penalty: f64,
+    pub sfb_impossible: bool,
     pub fingermap: [usize; NK],
     pub finger_tokens: Vec<char>,
     pub alt_fingers: Vec<AltRule>,
@@ -207,6 +208,7 @@ impl Config {
         let m = self.priority_multipliers();
         Scales {
             sfb: m["sfbs-sfts"],
+            sfb_impossible: self.sfb_impossible,
             scissor: m["scissors"],
             redirect: m["redirects"]
                 * if self
@@ -1544,6 +1546,10 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         Some(value) => as_number(&path, "general.alt_finger_penalty", value, Some(0.0), None)?,
         None => 0.0,
     };
+    let sfb_impossible = match get(general, "sfb_impossible") {
+        Some(value) => as_bool(&path, "general.sfb_impossible", value)?,
+        None => false,
+    };
 
     let model = as_mapping(&path, "model", get(root, "model").unwrap())?;
     let mut disallow_reverse_scissors = [[false; NFINGER]; NFINGER];
@@ -1672,6 +1678,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         parameters_path,
         fingering,
         alt_finger_penalty,
+        sfb_impossible,
         fingermap,
         finger_tokens,
         alt_fingers,
@@ -1884,12 +1891,13 @@ mod cross_hand_tests {
     fn shipped_redirect_tiers_preserve_order() {
         let cfg = load(None).unwrap();
         let tiers = cfg.redirect_tiers.as_ref().expect("redirect tiers");
-        let expected: [&[[u8; 3]]; 5] = [
+        let expected: [&[[u8; 3]]; 6] = [
+            &[[1, 3, 2], [3, 1, 2]],
             &[[1, 2, 1], [2, 1, 2], [1, 3, 1], [3, 1, 3]],
-            &[[3, 2, 3]],
-            &[[2, 1, 3], [3, 1, 2], [2, 3, 2], [1, 4, 1]],
+            &[[3, 2, 3], [2, 3, 2]],
+            &[[2, 1, 3], [1, 4, 1]],
             &[[4, 1, 4], [4, 2, 4], [2, 4, 2]],
-            &[[3, 4, 3], [4, 3, 4], [3, 2, 4], [4, 2, 3]],
+            &[[3, 4, 3], [4, 3, 4], [3, 2, 4], [4, 2, 3], [3, 1, 4]],
         ];
         assert_eq!(tiers.len(), expected.len());
         for (tier, patterns) in expected.iter().enumerate() {
@@ -1899,14 +1907,12 @@ mod cross_hand_tests {
             }
         }
         for pattern in [
-            [1, 3, 2],
             [1, 4, 2],
             [1, 4, 3],
             [2, 1, 4],
             [2, 3, 1],
             [2, 4, 1],
             [2, 4, 3],
-            [3, 1, 4],
             [3, 4, 1],
             [3, 4, 2],
             [4, 1, 2],
@@ -2213,7 +2219,7 @@ mod cross_hand_tests {
     #[test]
     fn redirect_weights_cannot_be_combined_with_redirect_scale() {
         assert!(config_with(
-            "redirect_tier_weights: [0.0, 0.01, 2.0, 3.5, 5.0]\nredirect_scale: 1.5\n"
+            "redirect_tier_weights: [0.0, 0.05, 0.10, 2.0, 3.5, 5.0]\nredirect_scale: 1.5\n"
         )
         .is_err());
     }
@@ -2224,7 +2230,7 @@ mod cross_hand_tests {
         let rolls = cfg.roll_tiers.as_ref().expect("roll tiers");
         assert_eq!(rolls.tiers(), &[vec![[1, 2], [2, 1]]]);
         let tiers = cfg.redirect_tiers.as_ref().expect("redirect tiers");
-        assert_eq!(tiers.weights(), Some(&[0.0, 0.01, 2.0, 3.5, 5.0][..]));
+        assert_eq!(tiers.weights(), Some(&[0.0, 0.05, 0.10, 2.0, 3.5, 5.0][..]));
         assert_eq!(tiers.fallback(), Some(5.0));
         let weights = cfg.priority_multipliers();
         assert_eq!(cfg.scales().redirect, weights["redirects"]);
