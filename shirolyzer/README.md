@@ -90,7 +90,7 @@ general:
     finger_balance: 1%
 ```
 
-Percentages are relative to the best primary layout. Lower-is-better metrics (`sfbs`, `scissors`, `redirects`, `finger_balance`) may increase by the given percentage; higher-is-better metrics (`rolls`, `alternation`) may decrease by it. `sfb`, `sfts`, and `sfbs` are aliases for the combined SFB/SFT budget. That budget counts ordinary same-finger bigrams and adjacent same-finger trigrams (Sfb and BadSfb lumped together) at 1x, and true all-three-same-finger trigrams (Sft) at 2x. `score` is optional only when every metric is specified.
+Percentages are relative to the best primary layout. Lower-is-better metrics (`sfbs`, `scissors`, `redirects`, `finger_balance`) may increase by the given percentage; higher-is-better metrics (`rolls`, `alternation`) may decrease by it. `sfb`, `sfts`, and `sfbs` are aliases for the combined SFB/SFT budget. That budget counts ordinary same-finger bigrams and adjacent same-finger trigrams (Sfb and BadSfb lumped together) at 1x, and true all-three-same-finger trigrams (Sft) at 2x. `score` is optional only when every metric is specified. `repeat_adjacent` (aliases `repeat`, `repeats`) and `sfs` (alias `sfs_true`) opt into the repeat-aware split: when either is present, `sfb_sft` is evaluated on repeat-free true SFB/SFT, and repeats and SFS get their own limits.
 
 ### Alt-fingers & Context
 
@@ -137,6 +137,8 @@ general:
 
 - `flexible` lets the scorer choose a finger per bigram/trigram, using `alt_fingers` as constraints. This is shirolyzer's context-dependent analysis. `alt_finger_penalty` adds a configurable cost for every non-default finger, so a positive value prefers layouts that remain strong when typed with the fixed fingermap.
 - `fixed` forces every key to its `fingermap` finger. Alt rules are ignored, so the resulting metrics are directly comparable to fixed-fingering analyzers such as oxeylyzer. Conditions and the fitted model still apply.
+
+`general.sfs_scale` (default `1.0`) multiplies the fitted repeat-free SFS trigram term. Leave it at `1.0` for the shipped model; experiment configs may raise it to test whether SFS becomes a stronger search term.
 
 Two configs are shipped:
 
@@ -210,6 +212,12 @@ The `hits` column counts independent starts that reached the same letter
 placement, ignoring punctuation. Punctuation is placed canonically in the
 final layout after the letter search, because punctuation positions do not
 affect the primary score.
+
+#### Repeat-aware budget experiment
+
+`config/experiments/repeat_aware.yaml` splits the sacrifice budget into repeat-free SFB/SFT, adjacent repeats, and repeat-free SFS, and sets `general.sfs_scale: 2.0` to make SFS a first-class search term. The shipped config leaves these unset, so it keeps the legacy combined budget and `sfs_scale: 1.0`. The experiment seed list is `config/experiments/repeat_aware.seeds` (seeds `0 1 2`).
+
+The SFS-weighted run moved only the `x`/comma placement and regressed the shipped-config primary score by `0.000006`; it was rejected, so the shipped layout and scoring path are unchanged. See `research/findings/repeat_aware_experiment.md` for the metrics and decision.
 
 ### Polishing
 
