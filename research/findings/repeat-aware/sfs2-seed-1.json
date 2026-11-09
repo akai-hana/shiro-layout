@@ -1,0 +1,336 @@
+{
+  "append_references": "/tmp/opencode/w5-appended.toml",
+  "batch_size": 8,
+  "best_primary": {
+    "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+    "primary": 4.38033644197296
+  },
+  "best_secondary": null,
+  "completed_batches": 4,
+  "completed_ils_rounds": 32,
+  "completed_iterations": 9000000,
+  "completed_polish_rounds": 1,
+  "completed_runs": 28,
+  "completed_secondary_rounds": 0,
+  "elapsed_seconds": 269.398069782,
+  "ils": 8,
+  "ils_candidates": 4,
+  "iters": 200000,
+  "max_valid": 8,
+  "min_layout_distance": 4,
+  "polish_candidates": 4,
+  "polish_rounds": null,
+  "primary_corpora": [
+    "shai"
+  ],
+  "primary_sacrifice_metrics": {
+    "alternation": 1.0,
+    "finger_balance": 1.0,
+    "redirects": 1.0,
+    "repeat_adjacent": 1.0,
+    "rolls": 1.0,
+    "scissors": 1.0,
+    "sfb_sft": 1.0,
+    "sfs_true": 1.0
+  },
+  "primary_sacrifice_pct": 0.00023,
+  "reference_added": null,
+  "references": "/tmp/opencode/w5-refs.toml",
+  "references_added": [],
+  "results": [
+    {
+      "final": 4.38033644197296,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": 4.607849144844175,
+      "start": "polish:rand1004"
+    },
+    {
+      "final": 4.380336441972967,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1006"
+    },
+    {
+      "final": 4.380336441972967,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS1:rand1006"
+    },
+    {
+      "final": 4.380336441972977,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS2:rand1002"
+    },
+    {
+      "final": 4.380336441972987,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1023"
+    },
+    {
+      "final": 4.380336441973078,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1004"
+    },
+    {
+      "final": 4.381317657863487,
+      "layout": "bthcrmdisjnply;eougavkzqx,.wf/",
+      "primary": 4.381317657863446,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1011"
+    },
+    {
+      "final": 4.396763279004688,
+      "layout": "vhrscmuen;tdlg,oaqpifxzykw.bj/",
+      "primary": 4.396763279004731,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1002"
+    },
+    {
+      "final": 4.40025652946525,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1026"
+    },
+    {
+      "final": 4.40025652946525,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS3:rand1026"
+    },
+    {
+      "final": 4.400256529465263,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1009"
+    },
+    {
+      "final": 4.400256529465327,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1001"
+    },
+    {
+      "final": 4.40025652946539,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1019"
+    },
+    {
+      "final": 4.400256529465401,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1025"
+    },
+    {
+      "final": 4.405299100919044,
+      "layout": "gchtsmuen;rdlf,oawpiyqzvxj.kb/",
+      "primary": 4.405299100919109,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1012"
+    },
+    {
+      "final": 4.405299100919044,
+      "layout": "gchtsmuen;rdlf,oawpiyqzvxj.kb/",
+      "primary": 4.405299100919109,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS4:rand1012"
+    },
+    {
+      "final": 4.405299100919047,
+      "layout": "gchtsmuen;rdlf,oawpiyqzvxj.kb/",
+      "primary": 4.405299100919109,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1022"
+    },
+    {
+      "final": 4.410544733844514,
+      "layout": "vtrdgwaneksplc;iou,hmqxyzj./bf",
+      "primary": 4.410544733844525,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1005"
+    },
+    {
+      "final": 4.414118670793828,
+      "layout": "kthcmwarnjsdlg;eoupivzxyfq,.b/",
+      "primary": 4.414118670793829,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1007"
+    },
+    {
+      "final": 4.414118670793898,
+      "layout": "kthcmwarnjsdlg;eoupivzxyfq,.b/",
+      "primary": 4.414118670793829,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1021"
+    },
+    {
+      "final": 4.42102467166576,
+      "layout": "ftrdgwaneksmlc;iop,hvqxyzj./bu",
+      "primary": 4.421024671665763,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1016"
+    },
+    {
+      "final": 4.4230202756551185,
+      "layout": "ftrscmueh;nplg,oajdivqxyzw.kb/",
+      "primary": 4.423020275655157,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1010"
+    },
+    {
+      "final": 4.423020275655159,
+      "layout": "ftrscmueh;nplg,oajdivqxyzw.kb/",
+      "primary": 4.423020275655157,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1018"
+    },
+    {
+      "final": 4.423337263875483,
+      "layout": "xflyvwonekstrc;iap,hdqzgm./jbu",
+      "primary": 4.423337263875441,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1020"
+    },
+    {
+      "final": 4.427021912131136,
+      "layout": "xvhcmdarnjstlg;eoupifkzywq,.b/",
+      "primary": 4.42702191213114,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1013"
+    },
+    {
+      "final": 4.427920203250623,
+      "layout": "fthcrmaun;sdly,eowpivzxgqj.bk/",
+      "primary": 4.42792020325061,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1024"
+    },
+    {
+      "final": 4.434987719149818,
+      "layout": "pgtcmdarh;nsyw,eoluibzxvfq.kj/",
+      "primary": 4.434987719149833,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1017"
+    },
+    {
+      "final": 4.437179491084514,
+      "layout": "brtcpmdisjnlvh;eougay,zkxq.wf/",
+      "primary": 4.437179491084495,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1008"
+    },
+    {
+      "final": 4.440899768648304,
+      "layout": "btrgvwmiaqndlc;esuohpzxyk,./jf",
+      "primary": 4.440899768648201,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1015"
+    },
+    {
+      "final": 4.446423726563124,
+      "layout": "pgtucmorhjnsfw;ealdiy,xvzq.kb/",
+      "primary": 4.446423726563126,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1003"
+    },
+    {
+      "final": 4.454160685866395,
+      "layout": "xaicvjgrhwouyt;esldfq,.z/bkmpn",
+      "primary": 4.454160685866416,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1027"
+    },
+    {
+      "final": 4.456687267250492,
+      "layout": "pghtcmkoiwnsly;reduabxzfvj,.q/",
+      "primary": 4.456687267250563,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1014"
+    },
+    {
+      "final": 4.456941207159406,
+      "layout": "ouitcwgrnfavyd;eslphx,./zkqjbm",
+      "primary": 4.456941207159377,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1028"
+    }
+  ],
+  "runs": 28,
+  "secondary_corpora": [
+    "douglas"
+  ],
+  "secondary_rounds": null,
+  "secondary_tolerance": 0.005,
+  "seed": 1,
+  "seed_generated": false,
+  "selected": {
+    "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+    "primary": 4.38033644197296,
+    "secondary": 4.607849144844175
+  },
+  "selection_status": "clear_winner",
+  "stop_hits": 0,
+  "stop_reason": "completed planned starts",
+  "stop_stale_batches": 0,
+  "time_budget_seconds": null,
+  "valid_layouts": [
+    {
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "name": "shiro-0",
+      "primary": 4.38033644197296,
+      "secondary": 4.607849144844175,
+      "start": "rand1004"
+    }
+  ],
+  "valid_layouts_truncated": false,
+  "valid_tolerance": 0.002,
+  "xkb": null
+}
