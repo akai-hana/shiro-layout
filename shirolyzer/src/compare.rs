@@ -32,6 +32,17 @@ pub fn run(
         }
     };
     eprintln!("loaded model {}", ctx.cfg.parameters_path.display());
+    if ctx.cfg.sfb_impossible {
+        eprintln!("warning: compare is using a config with general.sfb_impossible=true;");
+        eprintln!(
+            "         any reference layout with a same-finger bigram receives a fixed 1e9 penalty,"
+        );
+        eprintln!("         so these rows are not comparable across layouts.");
+        eprintln!("         Re-run with --config config/config.fixed.yaml or another permissive");
+        eprintln!(
+            "         config that sets general.sfb_impossible: false for cross-layout scores."
+        );
+    }
     let refs = references::load_references(refs_path)?;
     let mut rows: Vec<(f64, String, String)> = refs
         .iter()

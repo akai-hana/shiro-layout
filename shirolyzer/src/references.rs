@@ -9,12 +9,45 @@ use anyhow::{anyhow, Result};
 
 use crate::paths;
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ScoreConfig {
+    Shipped,
+    Reference,
+    Permissive,
+}
+
+impl ScoreConfig {
+    pub fn parse(value: &str) -> Option<Self> {
+        match value {
+            "shipped" => Some(Self::Shipped),
+            "reference" => Some(Self::Reference),
+            "permissive" => Some(Self::Permissive),
+            _ => None,
+        }
+    }
+
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::Shipped => "shipped",
+            Self::Reference => "reference",
+            Self::Permissive => "permissive",
+        }
+    }
+}
+
+impl std::fmt::Display for ScoreConfig {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.label())
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Reference {
     pub name: String,
     pub layout: String,
     pub primary_score: Option<f64>,
     pub secondary_score: Option<f64>,
+    pub score_config: Option<ScoreConfig>,
     pub seed: Option<i64>,
 }
 
@@ -72,11 +105,42 @@ pub fn load_references(path: Option<&Path>) -> Result<Vec<Reference>> {
                 name
             ));
         }
+        let primary_score = table.get("primary_score").and_then(toml::Value::as_float);
+        let secondary_score = table.get("secondary_score").and_then(toml::Value::as_float);
+        let score_config = match table.get("score_config") {
+            Some(value) => {
+                let value = value.as_str().ok_or_else(|| {
+                    anyhow!(
+                        "{}: reference {:?} score_config must be a string",
+                        path.display(),
+                        name
+                    )
+                })?;
+                Some(ScoreConfig::parse(value).ok_or_else(|| {
+                    anyhow!(
+                        "{}: reference {:?} score_config must be one of \
+                         shipped, reference, permissive",
+                        path.display(),
+                        name
+                    )
+                })?)
+            }
+            None => None,
+        };
+        if (primary_score.is_some() || secondary_score.is_some()) && score_config.is_none() {
+            return Err(anyhow!(
+                "{}: reference {:?} has a stored score but no score_config; \
+                 add score_config = \"shipped\", \"reference\", or \"permissive\"",
+                path.display(),
+                name
+            ));
+        }
         out.push(Reference {
             name,
             layout,
-            primary_score: table.get("primary_score").and_then(toml::Value::as_float),
-            secondary_score: table.get("secondary_score").and_then(toml::Value::as_float),
+            primary_score,
+            secondary_score,
+            score_config,
             seed: table.get("seed").and_then(toml::Value::as_integer),
         });
     }
@@ -113,12 +177,23 @@ fn unique_name(name: &str, existing: &HashSet<String>) -> String {
     }
 }
 
+pub fn score_config_for(cfg: &crate::config::Config) -> ScoreConfig {
+    if cfg.sfb_impossible {
+        ScoreConfig::Shipped
+    } else if cfg.fingering == crate::config::FingeringMode::Fixed {
+        ScoreConfig::Permissive
+    } else {
+        ScoreConfig::Reference
+    }
+}
+
 /// Append one `[[reference]]` table without rewriting existing content.
 pub fn append_reference(
     name: &str,
     layout: &str,
     primary_score: Option<f64>,
     secondary_score: Option<f64>,
+    score_config: ScoreConfig,
     seed: Option<i64>,
     path: Option<&Path>,
 ) -> Result<Option<String>> {
@@ -147,6 +222,7 @@ pub fn append_reference(
             None => "nan".to_string(),
         }
     ));
+    lines.push(format!("score_config = \"{}\"", score_config.label()));
     if let Some(seed) = seed {
         lines.push(format!("seed = {}", seed));
     }
