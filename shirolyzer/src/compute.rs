@@ -50,6 +50,9 @@ pub fn parse_budget(value: &str) -> Result<f64> {
 #[derive(Clone, Copy, Debug, Default)]
 struct Metrics {
     sfb_sft: f64,
+    sfb_sft_true: f64,
+    repeat_adjacent: f64,
+    sfs_true: f64,
     scissors: f64,
     redirects: f64,
     rolls: f64,
@@ -63,11 +66,14 @@ impl Metrics {
         corpus: &Corpus,
         tables: &Tables,
         geom: &Geometry,
+        default_finger: &[usize; crate::geometry::NK],
         targets: &std::collections::HashMap<char, f64>,
         redirect_tiers: Option<&RedirectTiers>,
     ) -> Self {
         let cat = category_report(layout, corpus, tables, geom);
         let pats = trigram_patterns(layout, corpus, tables, geom, redirect_tiers);
+        let true_metrics =
+            crate::analyze::true_same_finger_metrics(layout, corpus, tables, default_finger);
         let usage = finger_usage(layout, corpus, tables, geom);
         let sfb = cat.cats.get("sfb").copied().unwrap_or(0.0);
         let sfb_tri = pats.get("sfb_tri").copied().unwrap_or(0.0);
@@ -91,6 +97,9 @@ impl Metrics {
         }
         Self {
             sfb_sft: sfb + sfb_tri + 2.0 * sft,
+            sfb_sft_true: true_metrics["sfb_sft_true"],
+            repeat_adjacent: true_metrics["repeat_adjacent"],
+            sfs_true: true_metrics["sfs_true"],
             scissors,
             redirects: pats.get("total_redirects").copied().unwrap_or(0.0),
             rolls: pats.get("total_rolls").copied().unwrap_or(0.0),
@@ -103,6 +112,8 @@ impl Metrics {
 #[derive(Clone, Copy, Debug, Default)]
 struct MetricLimits {
     sfb_sft: Option<f64>,
+    repeat_adjacent: Option<f64>,
+    sfs_true: Option<f64>,
     scissors: Option<f64>,
     redirects: Option<f64>,
     rolls: Option<f64>,
@@ -117,8 +128,15 @@ impl MetricLimits {
         let higher = |percent: Option<f64>, value: f64| {
             percent.map(|p| (value - value.abs() * p / 100.0).max(0.0))
         };
+        let sfb_sft_base = if sacrifice.repeat_aware() {
+            base.sfb_sft_true
+        } else {
+            base.sfb_sft
+        };
         Self {
-            sfb_sft: lower(sacrifice.sfb_sft, base.sfb_sft),
+            sfb_sft: lower(sacrifice.sfb_sft, sfb_sft_base),
+            repeat_adjacent: lower(sacrifice.repeat_adjacent, base.repeat_adjacent),
+            sfs_true: lower(sacrifice.sfs_true, base.sfs_true),
             scissors: lower(sacrifice.scissors, base.scissors),
             redirects: lower(sacrifice.redirects, base.redirects),
             rolls: higher(sacrifice.rolls, base.rolls),
@@ -133,6 +151,8 @@ impl MetricLimits {
         let above =
             |limit: Option<f64>, value: f64| limit.map(|l| value + 1e-12 >= l).unwrap_or(true);
         below(self.sfb_sft, metrics.sfb_sft)
+            && below(self.repeat_adjacent, metrics.repeat_adjacent)
+            && below(self.sfs_true, metrics.sfs_true)
             && below(self.scissors, metrics.scissors)
             && below(self.redirects, metrics.redirects)
             && above(self.rolls, metrics.rolls)
@@ -1172,6 +1192,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                 &primary_corpus,
                 &ctx.tables,
                 &ctx.geom,
+                &ctx.model.default_finger,
                 &ctx.cfg.finger_balance,
                 ctx.cfg.redirect_tiers.as_ref(),
             )
@@ -1188,6 +1209,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
                         &primary_corpus,
                         &ctx.tables,
                         &ctx.geom,
+                        &ctx.model.default_finger,
                         &ctx.cfg.finger_balance,
                         ctx.cfg.redirect_tiers.as_ref(),
                     ))
@@ -1543,6 +1565,8 @@ pub fn run(args: ComputeArgs) -> Result<()> {
         "primary_sacrifice_pct": sacrifice.score,
         "primary_sacrifice_metrics": {
             "sfb_sft": sacrifice.sfb_sft,
+            "repeat_adjacent": sacrifice.repeat_adjacent,
+            "sfs_true": sacrifice.sfs_true,
             "scissors": sacrifice.scissors,
             "redirects": sacrifice.redirects,
             "rolls": sacrifice.rolls,
@@ -1665,5 +1689,36 @@ mod tests {
         assert_eq!(bump_stale(Some(3.5), 3.5, 0), 1);
         assert_eq!(bump_stale(Some(3.5), 3.5, 2), 3);
         assert_eq!(bump_stale(Some(3.5), 3.4, 2), 0);
+    }
+
+    #[test]
+    fn repeat_aware_budget_splits_legacy_sfb_sft() {
+        let base = Metrics {
+            sfb_sft: 6.0,
+            sfb_sft_true: 1.0,
+            repeat_adjacent: 5.0,
+            sfs_true: 2.0,
+            scissors: 1.0,
+            redirects: 2.0,
+            rolls: 50.0,
+            alternation: 40.0,
+            finger_balance: 1.0,
+        };
+        let mut legacy = Sacrifice::score_only(0.1);
+        legacy.sfb_sft = Some(1.0);
+        assert!(!legacy.repeat_aware());
+        let limits = MetricLimits::new(&base, &legacy);
+        assert_eq!(limits.sfb_sft, Some(6.06));
+        assert!(limits.repeat_adjacent.is_none());
+        assert!(limits.sfs_true.is_none());
+
+        let mut split = legacy.clone();
+        split.repeat_adjacent = Some(1.0);
+        split.sfs_true = Some(1.0);
+        assert!(split.repeat_aware());
+        let limits = MetricLimits::new(&base, &split);
+        assert_eq!(limits.sfb_sft, Some(1.01));
+        assert_eq!(limits.repeat_adjacent, Some(5.05));
+        assert_eq!(limits.sfs_true, Some(2.02));
     }
 }

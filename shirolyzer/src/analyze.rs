@@ -280,7 +280,8 @@ fn add_trigram_terms(
             W_SFS_1U
         } else {
             W_SFS_FAR
-        } * model.scales.sfb;
+        } * model.scales.sfb
+            * model.scales.sfs;
         out.trigram_sfs += sfs * count;
     }
 }
