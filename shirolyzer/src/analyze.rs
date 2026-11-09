@@ -831,6 +831,224 @@ pub struct GuideEntry {
     pub alt_contexts: Vec<(usize, Vec<(String, f64)>)>,
 }
 
+#[derive(Debug)]
+pub struct CrossHandRow {
+    pub letter: char,
+    pub key: String,
+    pub default: usize,
+    pub default_share: f64,
+    pub cross_share: f64,
+    pub contexts: Vec<(String, usize, f64)>,
+}
+
+#[derive(Debug)]
+pub struct CrossHandReport {
+    pub total_share: f64,
+    pub rows: Vec<CrossHandRow>,
+}
+
+/// Report-only cross-hand alt usage, weighted by the primary corpus letters.
+pub fn cross_hand_report(
+    layout: &str,
+    corpus: &crate::corpus::Corpus,
+    guide: &HashMap<char, GuideEntry>,
+) -> CrossHandReport {
+    let m = keymap(layout);
+    let total_letters: f64 = corpus.letters.values().sum();
+    let mut weighted_cross = 0.0;
+    let mut rows = Vec::new();
+    for ch in LETTERS.chars() {
+        let Some(key) = m[letter_id(ch).unwrap()] else {
+            continue;
+        };
+        let Some(entry) = guide.get(&ch) else {
+            continue;
+        };
+        let default_hand = finger_hand(entry.default);
+        let mut default_share = 0.0;
+        let mut cross_share = 0.0;
+        for &(finger, share) in &entry.share {
+            if finger == entry.default {
+                default_share += share;
+            }
+            if finger_hand(finger) != default_hand {
+                cross_share += share;
+            }
+        }
+        if cross_share <= 1e-9 {
+            continue;
+        }
+        let mut contexts: Vec<(String, usize, f64)> = Vec::new();
+        for (finger, items) in &entry.alt_contexts {
+            if finger_hand(*finger) == default_hand {
+                continue;
+            }
+            for (trigram, count) in items {
+                contexts.push((trigram.clone(), *finger, *count));
+            }
+        }
+        contexts.sort_by(|a, b| {
+            b.2.partial_cmp(&a.2)
+                .unwrap_or(std::cmp::Ordering::Equal)
+                .then_with(|| a.0.cmp(&b.0))
+        });
+        contexts.truncate(8);
+        weighted_cross += cross_share / 100.0 * corpus.letters.get(&ch).copied().unwrap_or(0.0);
+        rows.push(CrossHandRow {
+            letter: ch,
+            key: KEYS[key].to_string(),
+            default: entry.default,
+            default_share,
+            cross_share,
+            contexts,
+        });
+    }
+    rows.sort_by(|a, b| {
+        b.cross_share
+            .partial_cmp(&a.cross_share)
+            .unwrap_or(std::cmp::Ordering::Equal)
+    });
+    CrossHandReport {
+        total_share: if total_letters > 0.0 {
+            weighted_cross / total_letters * 100.0
+        } else {
+            0.0
+        },
+        rows,
+    }
+}
+
+#[derive(Debug)]
+pub struct DeadKeyRow {
+    pub key: String,
+    pub symbol: char,
+    pub shifted: Option<char>,
+}
+
+#[derive(Debug)]
+pub struct HumanFactorBigram {
+    pub bigram: String,
+    pub kind: &'static str,
+    pub keys: Vec<String>,
+}
+
+#[derive(Debug)]
+pub struct PunctuationReport {
+    pub dead_keys: Vec<DeadKeyRow>,
+    pub apostrophe_symbol: char,
+    pub apostrophe_shifted: char,
+    pub apostrophe_keys: Vec<String>,
+    pub apostrophe_modeled: bool,
+    pub bigrams: Vec<HumanFactorBigram>,
+}
+
+const APOSTROPHE_KEY: &str = "AC11/LSGT";
+
+const HUMAN_FACTOR_BIGRAMS: &[(&str, &str)] = &[
+    ("; ", "prose"),
+    (", ", "prose"),
+    (". ", "prose"),
+    ("? ", "prose"),
+    (": ", "prose"),
+    ("'s", "prose"),
+    ("n't", "prose"),
+    (");", "programming"),
+    ("};", "programming"),
+    ("//", "programming"),
+    ("/*", "programming"),
+    ("*/", "programming"),
+    ("<=", "programming"),
+    ("=>", "programming"),
+];
+
+fn shifted_symbol(ch: char) -> Option<char> {
+    match ch {
+        ';' => Some(':'),
+        ',' => Some('<'),
+        '.' => Some('>'),
+        '/' => Some('?'),
+        '\'' => Some('"'),
+        _ => None,
+    }
+}
+
+fn punctuation_base(ch: char) -> Option<char> {
+    match ch {
+        ':' => Some(';'),
+        '<' => Some(','),
+        '>' => Some('.'),
+        '?' => Some('/'),
+        '"' => Some('\''),
+        _ => None,
+    }
+}
+
+fn key_for_char(layout: &str, ch: char) -> Option<String> {
+    if ch == ' ' {
+        return Some("SPACE".to_string());
+    }
+    if ch == '\'' {
+        return Some(APOSTROPHE_KEY.to_string());
+    }
+    if ch.is_ascii_alphabetic() {
+        let m = keymap(layout);
+        return m[letter_id(ch)?].map(|key| KEYS[key].to_string());
+    }
+    let base = punctuation_base(ch).unwrap_or(ch);
+    layout
+        .chars()
+        .position(|c| c == base)
+        .map(|slot| KEYS[slot].to_string())
+}
+
+/// Report-only punctuation and shift-layer coverage.
+pub fn punctuation_report(layout: &str) -> PunctuationReport {
+    let mut dead_keys = Vec::new();
+    for (slot, ch) in layout.chars().enumerate() {
+        if !ch.is_ascii_alphabetic() {
+            dead_keys.push(DeadKeyRow {
+                key: KEYS[slot].to_string(),
+                symbol: ch,
+                shifted: shifted_symbol(ch),
+            });
+        }
+    }
+    let apostrophe_slot = layout.chars().position(|ch| ch == '\'');
+    let apostrophe_modeled = apostrophe_slot.is_some();
+    let apostrophe_keys = apostrophe_slot
+        .map(|slot| vec![KEYS[slot].to_string()])
+        .unwrap_or_else(|| vec![APOSTROPHE_KEY.to_string()]);
+    let mut bigrams = Vec::new();
+    for &(bigram, kind) in HUMAN_FACTOR_BIGRAMS {
+        let mut keys = Vec::new();
+        for ch in bigram.chars() {
+            let Some(key) = key_for_char(layout, ch) else {
+                continue;
+            };
+            if !keys.contains(&key) {
+                keys.push(key);
+            }
+        }
+        if keys.iter().any(|key| {
+            dead_keys.iter().any(|dead| &dead.key == key) || apostrophe_keys.contains(key)
+        }) {
+            bigrams.push(HumanFactorBigram {
+                bigram: bigram.to_string(),
+                kind,
+                keys,
+            });
+        }
+    }
+    PunctuationReport {
+        dead_keys,
+        apostrophe_symbol: '\'',
+        apostrophe_shifted: '"',
+        apostrophe_keys,
+        apostrophe_modeled,
+        bigrams,
+    }
+}
+
 pub struct ShortcutRow {
     pub letter: char,
     pub key: String,
@@ -1324,6 +1542,8 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         out(format!("  {}: {}", h, parts.join("  ")));
     }
     let shortcuts = shortcut_report(layout, &guide, &ctx.model);
+    let cross_hand = cross_hand_report(layout, &corpus, &guide);
+    let punctuation = punctuation_report(layout);
     out(String::new());
     out("== shortcut constraints (left Ctrl + key) ==".to_string());
     for row in &shortcuts {
@@ -1340,6 +1560,57 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         ));
     }
     out("  note: left Ctrl is treated as LP; this section is report-only".to_string());
+    out(String::new());
+    out("== human factors (report-only) ==".to_string());
+    out(format!(
+        "  cross-hand alt usage: {:.2}% of letter strokes",
+        cross_hand.total_share
+    ));
+    for row in &cross_hand.rows {
+        let contexts: Vec<String> = row
+            .contexts
+            .iter()
+            .take(5)
+            .map(|(trigram, finger, count)| {
+                format!("{}:{}:{:.0}", trigram, finger_label(*finger), count)
+            })
+            .collect();
+        out(format!(
+            "  {}@{} default {} {:.2}%  cross {:.2}%  {}",
+            row.letter,
+            row.key,
+            finger_label(row.default),
+            row.default_share,
+            row.cross_share,
+            contexts.join(", ")
+        ));
+    }
+    let dead: Vec<String> = punctuation
+        .dead_keys
+        .iter()
+        .map(|key| match key.shifted {
+            Some(shifted) => format!("{}='{}' shift='{}'", key.key, key.symbol, shifted),
+            None => format!("{}='{}'", key.key, key.symbol),
+        })
+        .collect();
+    out("  punctuation and shift layer are unscored".to_string());
+    out(format!("  dead keys: {}", dead.join("  ")));
+    out(format!(
+        "  apostrophe {:?} (shift {:?}) modeled={} keys={}",
+        punctuation.apostrophe_symbol,
+        punctuation.apostrophe_shifted,
+        punctuation.apostrophe_modeled,
+        punctuation.apostrophe_keys.join("/")
+    ));
+    for bigram in &punctuation.bigrams {
+        out(format!(
+            "  bigram {:?} ({}) crosses {}",
+            bigram.bigram,
+            bigram.kind,
+            bigram.keys.join("+")
+        ));
+    }
+    out("  note: alt fingering is not penalised; punctuation is not scored".to_string());
     out(String::new());
     out("== preference metrics (primary) ==".to_string());
     for line in preferences::top_summary(&preference_primary) {
@@ -1454,6 +1725,48 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
                 }),
             )
         }).collect::<serde_json::Map<_, _>>(),
+        "human_factors": {
+            "cross_hand": {
+                "total_share": cross_hand.total_share,
+                "letters": cross_hand.rows.iter().map(|row| {
+                    (
+                        row.letter.to_string(),
+                        json!({
+                            "key": row.key,
+                            "default": finger_label(row.default),
+                            "default_share": row.default_share,
+                            "cross_share": row.cross_share,
+                            "contexts": row.contexts.iter().map(|(trigram, finger, count)| {
+                                json!([trigram, finger_label(*finger), count])
+                            }).collect::<Vec<_>>(),
+                        }),
+                    )
+                }).collect::<serde_json::Map<_, _>>(),
+            },
+            "punctuation": {
+                "dead_keys": punctuation.dead_keys.iter().map(|key| {
+                    json!({
+                        "key": key.key,
+                        "symbol": key.symbol.to_string(),
+                        "shifted": key.shifted.map(|ch| ch.to_string()),
+                    })
+                }).collect::<Vec<_>>(),
+                "apostrophe": {
+                    "symbol": punctuation.apostrophe_symbol.to_string(),
+                    "shifted": punctuation.apostrophe_shifted.to_string(),
+                    "modeled": punctuation.apostrophe_modeled,
+                    "keys": &punctuation.apostrophe_keys,
+                },
+                "shift_layer_scored": false,
+                "bigrams": punctuation.bigrams.iter().map(|bigram| {
+                    json!({
+                        "bigram": bigram.bigram,
+                        "kind": bigram.kind,
+                        "keys": &bigram.keys,
+                    })
+                }).collect::<Vec<_>>(),
+            },
+        },
         "preference": {
             "primary": preference_primary.to_json(),
             "secondary": preference_secondary.as_ref().map(|report| report.to_json()),
@@ -1658,4 +1971,37 @@ mod tests {
         assert_eq!(pattern.label(None), "redirect");
     }
 
+    #[test]
+    fn human_factor_reports_pin_cross_hand_and_punctuation() {
+        let ctx = crate::context::Context::load(None).expect("context");
+        let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
+        let layout = "bthcrmdisjnply;eougavkxz,q.wf/";
+        let guide = super::fingering_guide(layout, &corpus, &ctx.tables, &ctx.model);
+        let cross = super::cross_hand_report(layout, &corpus, &guide);
+        let m = cross.rows.iter().find(|row| row.letter == 'm').unwrap();
+        assert_eq!(m.key, "Y");
+        assert!((m.cross_share - 99.48).abs() < 0.1, "{m:?}");
+        let e = cross.rows.iter().find(|row| row.letter == 'e').unwrap();
+        assert_eq!(e.key, "H");
+        assert!((e.cross_share - 30.83).abs() < 0.1, "{e:?}");
+        assert!((cross.total_share - 6.20).abs() < 0.05, "{cross:?}");
+
+        let punctuation = super::punctuation_report(layout);
+        let dead: Vec<&str> = punctuation
+            .dead_keys
+            .iter()
+            .map(|row| row.key.as_str())
+            .collect();
+        assert_eq!(dead, ["G", "B", "M", "/"]);
+        assert!(!punctuation.apostrophe_modeled);
+        assert_eq!(punctuation.apostrophe_keys, ["AC11/LSGT"]);
+        assert!(punctuation
+            .bigrams
+            .iter()
+            .any(|bigram| bigram.bigram == "; "));
+        assert!(punctuation
+            .bigrams
+            .iter()
+            .any(|bigram| bigram.bigram == "'s"));
+    }
 }
