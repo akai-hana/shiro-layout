@@ -31,14 +31,14 @@ fn config_path() -> String {
     common::reference_config().to_string_lossy().into_owned()
 }
 
-const SHIRO: &str = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
+const SHIRO: &str = "bthcrmdisjnply;eougavkxz,q.wf/";
 
 #[test]
 fn render_matches_reference() {
     let config = config_path();
     let out = run(&["render", SHIRO, "--config", config.as_str()]);
     assert!(out.status.success());
-    let expected = "gR wR hM tM sM  mM uM eM nR qR\n lP rR dM vI ;I  oI aI jM pR iP\n  cP xR kI fI zI  ,I .I bR yR /P\n";
+    let expected = "bR tR hM cM rM  mM dM iM sR jR\n nP pR lM yI ;I  eI oI uM gR aP\n  vP kR xI zI ,I  qI .I wR fR /P\n";
     assert_eq!(stdout(&out), expected);
 }
 
@@ -79,7 +79,7 @@ fn analyze_score_matches_baseline() {
     assert!(out.status.success());
     let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
     let score = value["primary_score"].as_f64().unwrap();
-    assert!((score - 3.907_860_887_460_961).abs() < 1e-12);
+    assert!((score - 3.960_357_335_158_009).abs() < 1e-12);
     for entry in value["guide"].as_object().unwrap().values() {
         for contexts in entry["alt_contexts"].as_object().unwrap().values() {
             for item in contexts.as_array().unwrap() {
@@ -122,6 +122,26 @@ fn analyze_score_matches_baseline() {
     assert!(
         legacy_sfb_sft + 1e-9 >= repeat_adjacent,
         "legacy sfb_sft should include all adjacent repeats"
+    );
+
+    let shortcuts = value["shortcuts"].as_object().unwrap();
+    for letter in ["z", "x", "c", "v", "t", "y"] {
+        let row = shortcuts
+            .get(letter)
+            .unwrap_or_else(|| panic!("missing {letter}"));
+        assert!(row["key"].is_string(), "{letter} key");
+        assert!(row["chosen"].is_string(), "{letter} chosen");
+        assert!(row["default"].is_string(), "{letter} default");
+        assert!(row["ctrl_same_hand"].is_boolean(), "{letter} same_hand");
+        assert!(row["ctrl_same_finger"].is_boolean(), "{letter} same_finger");
+        assert!(
+            row["ctrl_same_hand"].as_bool().unwrap(),
+            "{letter} must stay on the left hand"
+        );
+    }
+    assert!(
+        !shortcuts["c"]["ctrl_same_finger"].as_bool().unwrap(),
+        "Ctrl+C must not be same-finger"
     );
     let tier_total: f64 = (1..=5)
         .map(|tier| pats[&format!("redirect_tier_{tier}")].as_f64().unwrap())
@@ -307,7 +327,7 @@ fn compare_reports_baseline_scores() {
     assert!(out.status.success());
     let text = stdout(&out);
     assert!(text.contains("shiro"));
-    assert!(text.contains("3.907861"));
+    assert!(text.contains("3.960357"));
 }
 
 #[test]
@@ -414,7 +434,7 @@ fn compute_smoke() {
     assert_eq!(value["completed_runs"], 1);
     assert_eq!(value["valid_layouts"].as_array().unwrap().len(), 1);
     let primary = value["best_primary"]["primary"].as_f64().unwrap();
-    assert!((primary - 3.586_719_175_352_358).abs() < 1e-6);
+    assert!((primary - 3.561_684_071_761_569).abs() < 1e-6);
 }
 
 #[test]

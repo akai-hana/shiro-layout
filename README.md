@@ -51,13 +51,13 @@ python3 corpora/douglas/parse_douglas.py
 Analyze a layout:
 
 ```bash
-shirolyzer/target/release/shirolyzer analyze "gwhtsmuenqlrdv;oajpicxkfz,.by/"
+shirolyzer/target/release/shirolyzer analyze "bthcrmdisjnply;eougavkxz,q.wf/"
 ```
 
 Render it as a staggered ASCII grid with its configured fingers:
 
 ```bash
-shirolyzer/target/release/shirolyzer render "gwhtsmuenqlrdv;oajpicxkfz,.by/"
+shirolyzer/target/release/shirolyzer render "bthcrmdisjnply;eougavkxz,q.wf/"
 ```
 
 Generate a layout and write it to XKB:
