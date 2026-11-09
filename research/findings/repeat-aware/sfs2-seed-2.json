@@ -1,0 +1,336 @@
+{
+  "append_references": "/tmp/opencode/w5-appended.toml",
+  "batch_size": 8,
+  "best_primary": {
+    "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+    "primary": 4.38033644197296
+  },
+  "best_secondary": null,
+  "completed_batches": 4,
+  "completed_ils_rounds": 32,
+  "completed_iterations": 9000000,
+  "completed_polish_rounds": 1,
+  "completed_runs": 28,
+  "completed_secondary_rounds": 0,
+  "elapsed_seconds": 259.302852086,
+  "ils": 8,
+  "ils_candidates": 4,
+  "iters": 200000,
+  "max_valid": 8,
+  "min_layout_distance": 4,
+  "polish_candidates": 4,
+  "polish_rounds": null,
+  "primary_corpora": [
+    "shai"
+  ],
+  "primary_sacrifice_metrics": {
+    "alternation": 1.0,
+    "finger_balance": 1.0,
+    "redirects": 1.0,
+    "repeat_adjacent": 1.0,
+    "rolls": 1.0,
+    "scissors": 1.0,
+    "sfb_sft": 1.0,
+    "sfs_true": 1.0
+  },
+  "primary_sacrifice_pct": 0.00023,
+  "reference_added": null,
+  "references": "/tmp/opencode/w5-refs.toml",
+  "references_added": [],
+  "results": [
+    {
+      "final": 4.380336441972899,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS3:rand1009"
+    },
+    {
+      "final": 4.380336441972906,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1008"
+    },
+    {
+      "final": 4.380336441972906,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS1:rand1008"
+    },
+    {
+      "final": 4.38033644197296,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1018"
+    },
+    {
+      "final": 4.38033644197296,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": 4.607849144844175,
+      "start": "polish:rand1007"
+    },
+    {
+      "final": 4.380336441972989,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1014"
+    },
+    {
+      "final": 4.380336441973,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1007"
+    },
+    {
+      "final": 4.380336441973013,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1013"
+    },
+    {
+      "final": 4.380336441973026,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS4:rand1023"
+    },
+    {
+      "final": 4.380336441973121,
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "primary": 4.38033644197296,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1024"
+    },
+    {
+      "final": 4.397971827175673,
+      "layout": "vhrscmuen;tdlg,oaqpifkxyzw.bj/",
+      "primary": 4.397971827175673,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1002"
+    },
+    {
+      "final": 4.397971827175673,
+      "layout": "vhrscmuen;tdlg,oaqpifkxyzw.bj/",
+      "primary": 4.397971827175673,
+      "reference_name": null,
+      "secondary": null,
+      "start": "ILS2:rand1002"
+    },
+    {
+      "final": 4.400256529465255,
+      "layout": "fthrcmuen;sdlg,oakpivqxyzw.bj/",
+      "primary": 4.400256529465316,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1009"
+    },
+    {
+      "final": 4.4105447338443655,
+      "layout": "vtrdgwaneksplc;iou,hmqxyzj./bf",
+      "primary": 4.410544733844525,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1023"
+    },
+    {
+      "final": 4.410544733844519,
+      "layout": "vtrdgwaneksplc;iou,hmqxyzj./bf",
+      "primary": 4.410544733844525,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1010"
+    },
+    {
+      "final": 4.410544733844538,
+      "layout": "vtrdgwaneksplc;iou,hmqxyzj./bf",
+      "primary": 4.410544733844525,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1026"
+    },
+    {
+      "final": 4.410544733844542,
+      "layout": "vtrdgwaneksplc;iou,hmqxyzj./bf",
+      "primary": 4.410544733844525,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1004"
+    },
+    {
+      "final": 4.414118670793828,
+      "layout": "kthcmwarnjsdlg;eoupivzxyfq,.b/",
+      "primary": 4.414118670793829,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1011"
+    },
+    {
+      "final": 4.414118670793831,
+      "layout": "kthcmwarnjsdlg;eoupivzxyfq,.b/",
+      "primary": 4.414118670793829,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1006"
+    },
+    {
+      "final": 4.414118670793831,
+      "layout": "kthcmwarnjsdlg;eoupivzxyfq,.b/",
+      "primary": 4.414118670793829,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1028"
+    },
+    {
+      "final": 4.418579826898636,
+      "layout": "ftrcdmunebsplg;oah,ivzxykq.jw/",
+      "primary": 4.418579826898569,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1019"
+    },
+    {
+      "final": 4.42161935744564,
+      "layout": "xvhscmuen;rtdw,oakpilzgfyq.bj/",
+      "primary": 4.421619357445593,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1012"
+    },
+    {
+      "final": 4.428874610032173,
+      "layout": "ftrcmwaniqsdlg;eoujhvzxyk,./bp",
+      "primary": 4.428874610032171,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1016"
+    },
+    {
+      "final": 4.429892822725538,
+      "layout": "fvlygwanekstrc;iob,hdxzpmj./qu",
+      "primary": 4.429892822725556,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1020"
+    },
+    {
+      "final": 4.431457265232985,
+      "layout": "fvrpcmunebstlg;oah,idxzywq.jk/",
+      "primary": 4.431457265233045,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1005"
+    },
+    {
+      "final": 4.439404417848657,
+      "layout": "wgsthmarnjdlyf;eoupiczvkxq,.b/",
+      "primary": 4.439404417848694,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1017"
+    },
+    {
+      "final": 4.450998087494276,
+      "layout": "btrgvwmaikndlc;ehouspzxyqj,./f",
+      "primary": 4.450998087494219,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1003"
+    },
+    {
+      "final": 4.461756812031944,
+      "layout": "ouickjrshwavyt;elgdbz,./xqfpmn",
+      "primary": 4.461756812031926,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1021"
+    },
+    {
+      "final": 4.463317434160777,
+      "layout": "ouicvjbrhgawyt;enlpsz,./xkqdfm",
+      "primary": 4.463317434160794,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1027"
+    },
+    {
+      "final": 4.469476612179139,
+      "layout": "kthdyglen;smoc,ar.pivqxzfj/ubw",
+      "primary": 4.469476612179104,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1015"
+    },
+    {
+      "final": 4.472487792664525,
+      "layout": "jtecuonswfavyx;irgdhq,.z/bkmpl",
+      "primary": 4.472487792664727,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1022"
+    },
+    {
+      "final": 4.495540506031922,
+      "layout": "yctoxf;rnksdvawielphg,q.zj/bmu",
+      "primary": 4.495540506031924,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1025"
+    },
+    {
+      "final": 4.496581885839526,
+      "layout": "pyocdkrah;tibg,enulsv.zwxj/mqf",
+      "primary": 4.496581885839447,
+      "reference_name": null,
+      "secondary": null,
+      "start": "rand1029"
+    }
+  ],
+  "runs": 28,
+  "secondary_corpora": [
+    "douglas"
+  ],
+  "secondary_rounds": null,
+  "secondary_tolerance": 0.005,
+  "seed": 2,
+  "seed_generated": false,
+  "selected": {
+    "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+    "primary": 4.38033644197296,
+    "secondary": 4.607849144844175
+  },
+  "selection_status": "clear_winner",
+  "stop_hits": 0,
+  "stop_reason": "completed planned starts",
+  "stop_stale_batches": 0,
+  "time_budget_seconds": null,
+  "valid_layouts": [
+    {
+      "layout": "bthcrmdisjnply;eougavk,zxq.wf/",
+      "name": "shiro-0",
+      "primary": 4.38033644197296,
+      "secondary": 4.607849144844175,
+      "start": "rand1007"
+    }
+  ],
+  "valid_layouts_truncated": false,
+  "valid_tolerance": 0.002,
+  "xkb": null
+}

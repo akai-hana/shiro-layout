@@ -189,6 +189,7 @@ pub fn pair_feature(geom: &Geometry, a: usize, fa: usize, b: usize, fb: usize) -
 pub struct Scales {
     pub sfb: f64,
     pub sfb_impossible: bool,
+    pub sfs: f64,
     pub scissor: f64,
     pub redirect: f64,
     pub roll: f64,
@@ -203,6 +204,7 @@ impl Default for Scales {
         Self {
             sfb: 1.0,
             sfb_impossible: false,
+            sfs: 1.0,
             scissor: 1.0,
             redirect: 1.0,
             roll: 1.0,
@@ -701,7 +703,8 @@ impl Model {
             let kb = b[i];
             let kc = c[i];
             let d_ac = geom.distance(ka, kc);
-            let sfs = if d_ac <= 1.3 { W_SFS_1U } else { W_SFS_FAR } * self.scales.sfb;
+            let sfs =
+                if d_ac <= 1.3 { W_SFS_1U } else { W_SFS_FAR } * self.scales.sfb * self.scales.sfs;
             for f1 in 0..NF {
                 for f2 in 0..NF {
                     for f3 in 0..NF {

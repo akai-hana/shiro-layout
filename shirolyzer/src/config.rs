@@ -119,6 +119,8 @@ pub struct AltRule {
 pub struct Sacrifice {
     pub score: Option<f64>,
     pub sfb_sft: Option<f64>,
+    pub repeat_adjacent: Option<f64>,
+    pub sfs_true: Option<f64>,
     pub scissors: Option<f64>,
     pub redirects: Option<f64>,
     pub rolls: Option<f64>,
@@ -136,6 +138,8 @@ impl Sacrifice {
 
     pub fn has_metrics(&self) -> bool {
         self.sfb_sft.is_some()
+            || self.repeat_adjacent.is_some()
+            || self.sfs_true.is_some()
             || self.scissors.is_some()
             || self.redirects.is_some()
             || self.rolls.is_some()
@@ -143,8 +147,16 @@ impl Sacrifice {
             || self.finger_balance.is_some()
     }
 
+    /// True when the budget uses repeat-free true metrics and separate repeat
+    /// and SFS terms. Absent new terms keep the legacy combined SFB/SFT budget.
+    pub fn repeat_aware(&self) -> bool {
+        self.repeat_adjacent.is_some() || self.sfs_true.is_some()
+    }
+
     pub fn all_metrics(&self) -> bool {
         self.sfb_sft.is_some()
+            && self.repeat_adjacent.is_some()
+            && self.sfs_true.is_some()
             && self.scissors.is_some()
             && self.redirects.is_some()
             && self.rolls.is_some()
@@ -183,6 +195,8 @@ pub struct Config {
     pub parameters_path: PathBuf,
     pub fingering: FingeringMode,
     pub alt_finger_penalty: f64,
+    /// Experimental multiplier on the fitted repeat-free SFS term (1.0 = fitted).
+    pub sfs_scale: f64,
     pub sfb_impossible: bool,
     pub fingermap: [usize; NK],
     pub finger_tokens: Vec<char>,
@@ -210,6 +224,7 @@ impl Config {
             sfb: m["sfbs-sfts"],
             sfb_impossible: self.sfb_impossible,
             scissor: m["scissors"],
+            sfs: self.sfs_scale,
             redirect: m["redirects"]
                 * if self
                     .redirect_tiers
@@ -471,6 +486,8 @@ fn parse_sacrifice(path: &Path, value: Option<&Value>) -> Result<Sacrifice> {
         match key {
             "score" => out.score = Some(parsed),
             "sfb" | "sfbs" | "sft" | "sfts" | "sfb_sft" => out.sfb_sft = Some(parsed),
+            "repeat" | "repeats" | "repeat_adjacent" => out.repeat_adjacent = Some(parsed),
+            "sfs" | "sfs_true" => out.sfs_true = Some(parsed),
             "scissors" => out.scissors = Some(parsed),
             "redirects" => out.redirects = Some(parsed),
             "rolls" => out.rolls = Some(parsed),
@@ -481,7 +498,7 @@ fn parse_sacrifice(path: &Path, value: Option<&Value>) -> Result<Sacrifice> {
                     path,
                     "general.primary_sacrifice",
                     &format!(
-                        "unknown metric {key:?}; expected score, sfb/sfts, scissors, redirects, rolls, alternation, or finger_balance"
+                        "unknown metric {key:?}; expected score, sfb/sfts, repeat_adjacent, sfs, scissors, redirects, rolls, alternation, or finger_balance"
                     ),
                 ))
             }
@@ -491,7 +508,7 @@ fn parse_sacrifice(path: &Path, value: Option<&Value>) -> Result<Sacrifice> {
         return Err(fail(
             path,
             "general.primary_sacrifice",
-            "omit score only when every metric (sfbs/sfts, scissors, redirects, rolls, alternation, finger_balance) is present",
+            "omit score only when every metric (sfbs/sfts, repeat_adjacent, sfs, scissors, redirects, rolls, alternation, finger_balance) is present",
         ));
     }
     Ok(out)
@@ -1546,6 +1563,10 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         Some(value) => as_number(&path, "general.alt_finger_penalty", value, Some(0.0), None)?,
         None => 0.0,
     };
+    let sfs_scale = match get(general, "sfs_scale") {
+        Some(value) => as_number(&path, "general.sfs_scale", value, Some(0.0), None)?,
+        None => 1.0,
+    };
     let sfb_impossible = match get(general, "sfb_impossible") {
         Some(value) => as_bool(&path, "general.sfb_impossible", value)?,
         None => false,
@@ -1678,6 +1699,7 @@ pub fn load(path: Option<&Path>) -> Result<Config> {
         parameters_path,
         fingering,
         alt_finger_penalty,
+        sfs_scale,
         sfb_impossible,
         fingermap,
         finger_tokens,
@@ -2124,6 +2146,19 @@ mod cross_hand_tests {
         let cfg = load(None).unwrap();
         let tiers = cfg.scissor_tiers.as_ref().expect("scissor tiers");
         assert_eq!(tiers.multipliers(), [0.5, 0.75, 1.0, 0.12]);
+    }
+
+    #[test]
+    fn repeat_aware_experiment_splits_the_budget() {
+        let path = paths::config_dir().join("experiments/repeat_aware.yaml");
+        let cfg = load(Some(&path)).unwrap();
+        assert!(cfg.primary_sacrifice.repeat_aware());
+        assert_eq!(cfg.primary_sacrifice.repeat_adjacent, Some(1.0));
+        assert_eq!(cfg.primary_sacrifice.sfs_true, Some(1.0));
+        assert_eq!(cfg.sfs_scale, 2.0);
+        let shipped = load(None).unwrap();
+        assert!(!shipped.primary_sacrifice.repeat_aware());
+        assert_eq!(shipped.sfs_scale, 1.0);
     }
 
     #[test]
