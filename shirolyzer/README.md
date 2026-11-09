@@ -531,6 +531,9 @@ The **shirolyzer** analyzer uses the same configuration, geometry, model, and fi
 - a report-only Ctrl shortcut check for `z, x, c, v, t, y`: the physical key,
   hand, chosen and default finger, and whether left Ctrl (treated as LP) plus
   that key is same-hand or same-finger;
+- a report-only human-factors section: cross-hand alt shares and contexts,
+  dead punctuation keys, the unmodeled apostrophe, shifted symbols, and common
+  punctuation bigrams;
 - the pattern-model score, including priority-tier weighting;
 - a per-term score decomposition (`score_breakdown` in JSON and a text table)
   that reconstructs the primary score from key effort, pair terms, trigram
@@ -561,6 +564,14 @@ shirolyzer/target/release/shirolyzer worst "bthcrmdisjnply;eougavkxz,q.wf/"
 ```
 
 On the shipped `shiro` layout the chosen flexible fingering reports `sfb_true = sft_true = sfb_sft_true = 0`, `sfs_true = 2.306%`, and `repeat_adjacent = 6.673%`. The default fingermap reports `sfb_true = 7.217%`, `sft_true = 0.213%`, and `sfs_true = 8.185%`, which is the alt-fingering effect the flexible model is designed to capture.
+
+### Human-factors diagnostics
+
+The human-factors section is report-only. It never changes the primary score, the budget, or the search.
+
+- Cross-hand alt use lists the total share of letter strokes, then per-letter chosen share, default-finger share, and the top contexts. On the shipped layout `m` and `e` are the main cross-hand users (`m` is about `99.5%` left index on physical `Y`, `e` about `30.8%` left index on physical `H`, and the total is about `6.2%`).
+- Punctuation reports every physical punctuation key that is dead in the current layout, the shifted symbol for each moved punctuation key, the apostrophe key, and a fixed short list of programming/prose bigrams that cross those keys. On the shipped layout the dead keys are `G`, `B`, `M`, and `/`; the apostrophe is on `AC11/LSGT` and is explicitly unmodeled.
+- Flow and finger travel already price cross-hand reach, and alt fingering is not penalised. This section exposes the tradeoff; it does not add a cross-hand penalty or a punctuation score.
 
 ### Preference metrics
 

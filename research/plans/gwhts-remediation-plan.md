@@ -13,7 +13,7 @@ immediate cleanup of the uncommitted layout work and the stale issue tracker.
 - [x] W1 — True same-finger metrics with alt-aware reporting.
 - [x] W2 — Enforce the Ctrl shortcut constraints.
 - [x] W3 — Comparison and reference-score integrity.
-- [ ] W4 — Human-factors reporting.
+- [x] W4 — Human-factors reporting.
 - [ ] W5 — Repeat-aware budget decision and SFS re-anneal.
 - [ ] W6 — Final release and tracker cleanup.
 
