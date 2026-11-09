@@ -38,12 +38,14 @@ name = "shiro"
 layout = "bthcrmdisjnply;eougavkxz,q.wf/"
 primary_score = 4.264577545
 secondary_score = 4.464992638
+score_config = "shipped"
 
 [[reference]]
 name = "t5-diversity-2"
 layout = ";dnpfjoitkrchsmuaygelbqvwxz,./"
 primary_score = 3.521783725
 secondary_score = 3.645483980
+score_config = "permissive"
 seed = 20261030
 
 [[reference]]
@@ -51,6 +53,7 @@ name = "shiro-571587344"
 layout = "ftrng;uahksdlpcwiomevxqbzj,./y"
 primary_score = 3.568168860
 secondary_score = 3.653876736
+score_config = "permissive"
 seed = 571587344
 
 [[reference]]
@@ -58,6 +61,7 @@ name = "shiro-571587344-2"
 layout = "ftrng.uahksdlpcwiomevxqbzj/;,y"
 primary_score = 3.568168860
 secondary_score = nan
+score_config = "permissive"
 seed = 571587344
 
 [[reference]]
@@ -65,6 +69,7 @@ name = "shiro-793812842-2"
 layout = "ftrng.uahksdlpcwiomevxqbzj;/,y"
 primary_score = 3.568168860
 secondary_score = nan
+score_config = "permissive"
 seed = 793812842
 
 [[reference]]
@@ -72,6 +77,7 @@ name = "shiro-504784386-2"
 layout = "ftrng.uahksdlpcwiomevxqbzj/,;y"
 primary_score = 3.568168860
 secondary_score = nan
+score_config = "permissive"
 seed = 504784386
 
 [[reference]]
@@ -79,6 +85,7 @@ name = "shiro-504784386-3"
 layout = "ftrng,uahksdlpcwiomevxqbzj;/.y"
 primary_score = 3.568168860
 secondary_score = nan
+score_config = "permissive"
 seed = 504784386
 
 [[reference]]
@@ -86,6 +93,7 @@ name = "shiro-365801268"
 layout = "ctnhfqura;smldgwekoivzxpb,./jy"
 primary_score = 3.586792824
 secondary_score = 3.695100331
+score_config = "permissive"
 seed = 365801268
 
 [[reference]]
@@ -93,6 +101,7 @@ name = "shiro-365801268-2"
 layout = "ctnhfqura,smldgwekoivzxpb/;.jy"
 primary_score = 3.586792824
 secondary_score = nan
+score_config = "permissive"
 seed = 365801268
 
 [[reference]]
@@ -100,6 +109,7 @@ name = "shiro-853791295"
 layout = "phtcgqura;nldsmkewoibxzfv,./jy"
 primary_score = 3.520702297
 secondary_score = 3.726134652
+score_config = "permissive"
 seed = 853791295
 
 [[reference]]
@@ -107,6 +117,7 @@ name = "shiro-853791295-2"
 layout = "phtcgqura.nldsmkewoibxzfv,/;jy"
 primary_score = 3.520702297
 secondary_score = nan
+score_config = "permissive"
 seed = 853791295
 
 [[reference]]
@@ -114,6 +125,7 @@ name = "shiro-312481206"
 layout = "mhtcgqura;lndspbewoivxzfk,./jy"
 primary_score = 3.591343816
 secondary_score = 3.712837847
+score_config = "permissive"
 seed = 312481206
 
 [[reference]]
@@ -121,6 +133,7 @@ name = "shiro-53511846-2"
 layout = "phtcgqura.nldsmkewoibxzfv,;/jy"
 primary_score = 3.520702297
 secondary_score = nan
+score_config = "permissive"
 seed = 53511846
 
 [[reference]]
@@ -128,6 +141,7 @@ name = "shiro-178845002-2"
 layout = "mhtcgqura,lndspbewoivxzfk;/.jy"
 primary_score = 3.591343816
 secondary_score = nan
+score_config = "permissive"
 seed = 178845002
 
 [[reference]]
@@ -135,6 +149,7 @@ name = "shiro-837512524"
 layout = "bhtcfqainjrldsmwoupekxgvzy;,./"
 primary_score = 3.625081754
 secondary_score = 3.775129146
+score_config = "permissive"
 seed = 837512524
 
 [[reference]]
@@ -142,6 +157,7 @@ name = "shiro-837512524-2"
 layout = "bhtcfqainjrldsmwoupekxgvzy./;,"
 primary_score = 3.625081754
 secondary_score = nan
+score_config = "permissive"
 seed = 837512524
 
 [[reference]]
@@ -149,6 +165,7 @@ name = "shiro-281472432-2"
 layout = "mhtcgqura,lndspbewoivxzfk.;/jy"
 primary_score = 3.591343816
 secondary_score = nan
+score_config = "permissive"
 seed = 281472432
 
 [[reference]]
@@ -156,6 +173,7 @@ name = "shiro-560136193"
 layout = "pdrmv;koifnsltcgehuabxqzwy,./j"
 primary_score = 4.033667862
 secondary_score = 4.204350063
+score_config = "permissive"
 seed = 560136193
 
 [[reference]]
@@ -163,6 +181,7 @@ name = "shiro-513360791"
 layout = "mpslkqyoiftndrcwehuavbxzg;,./j"
 primary_score = 4.016235467
 secondary_score = 4.339497489
+score_config = "permissive"
 seed = 513360791
 
 [[reference]]
@@ -170,6 +189,7 @@ name = "shiro-335839468"
 layout = "gwhtsmuen;lrdv,oajpicxkfqz.by/"
 primary_score = 4.284872992
 secondary_score = 4.547747895
+score_config = "permissive"
 seed = 335839468
 
 [[reference]]
@@ -177,4 +197,5 @@ name = "shiro-66332091"
 layout = "bthcrmdisjnply;eougavk,z.q/wfx"
 primary_score = 4.304738657
 secondary_score = 4.520032006
+score_config = "permissive"
 seed = 66332091

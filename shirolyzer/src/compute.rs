@@ -1426,6 +1426,7 @@ pub fn run(args: ComputeArgs) -> Result<()> {
             &row.layout,
             Some(row.primary),
             row.secondary,
+            references::score_config_for(&ctx.cfg),
             Some(seed as i64),
             Some(&append_path),
         )? {
