@@ -74,7 +74,7 @@ fingermap: |
 # only be placed on keys of that hand by `compute`. Unlisted characters are
 # free. Empty lists disable the restriction.
 hand_restrictions:
-  left: [z, x, c, v]
+  left: [z, x, c, v, t, y]
   right: []
 
 # Alt-finger ngram rules.  Each entry names an ordered sequence of QWERTY

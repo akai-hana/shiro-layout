@@ -831,6 +831,55 @@ pub struct GuideEntry {
     pub alt_contexts: Vec<(usize, Vec<(String, f64)>)>,
 }
 
+pub struct ShortcutRow {
+    pub letter: char,
+    pub key: String,
+    pub hand: &'static str,
+    pub chosen: usize,
+    pub chosen_share: f64,
+    pub default: usize,
+    pub ctrl_same_hand: bool,
+    pub ctrl_same_finger: bool,
+}
+
+/// Report-only check for one-handed left-Ctrl shortcuts.
+///
+/// Left Ctrl is treated as left-pinky (`LP`). The chosen finger is the most
+/// frequent DP finger for the letter; the default finger comes from the
+/// configured fingermap.
+pub fn shortcut_report(
+    layout: &str,
+    guide: &HashMap<char, GuideEntry>,
+    model: &crate::model::Model,
+) -> Vec<ShortcutRow> {
+    let m = keymap(layout);
+    ['z', 'x', 'c', 'v', 't', 'y']
+        .iter()
+        .filter_map(|&letter| {
+            let key = m[letter_id(letter)?]?;
+            let default = model.default_finger[key];
+            let (chosen, chosen_share) = guide
+                .get(&letter)
+                .and_then(|entry| entry.share.first().copied())
+                .unwrap_or((default, 0.0));
+            Some(ShortcutRow {
+                letter,
+                key: KEYS[key].to_string(),
+                hand: if finger_hand(default) == 0 {
+                    "left"
+                } else {
+                    "right"
+                },
+                chosen,
+                chosen_share,
+                default,
+                ctrl_same_hand: finger_hand(chosen) == 0,
+                ctrl_same_finger: chosen == 0,
+            })
+        })
+        .collect()
+}
+
 pub fn fingering_guide(
     layout: &str,
     corpus: &crate::corpus::Corpus,
@@ -1274,6 +1323,23 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
             .collect();
         out(format!("  {}: {}", h, parts.join("  ")));
     }
+    let shortcuts = shortcut_report(layout, &guide, &ctx.model);
+    out(String::new());
+    out("== shortcut constraints (left Ctrl + key) ==".to_string());
+    for row in &shortcuts {
+        out(format!(
+            "  {}  key={:<2} hand={:<5} chosen={:<2} ({:5.1}%)  default={:<2}  same_hand={:<3}  same_finger={}",
+            row.letter,
+            row.key,
+            row.hand,
+            finger_label(row.chosen),
+            row.chosen_share,
+            finger_label(row.default),
+            if row.ctrl_same_hand { "yes" } else { "no" },
+            if row.ctrl_same_finger { "yes" } else { "no" },
+        ));
+    }
+    out("  note: left Ctrl is treated as LP; this section is report-only".to_string());
     out(String::new());
     out("== preference metrics (primary) ==".to_string());
     for line in preferences::top_summary(&preference_primary) {
@@ -1374,6 +1440,20 @@ pub fn run(args: AnalyzeArgs) -> Result<()> {
         "trigram_patterns": pats,
         "usage": use_,
         "guide": guide_json,
+        "shortcuts": shortcuts.iter().map(|row| {
+            (
+                row.letter.to_string(),
+                json!({
+                    "key": row.key,
+                    "hand": row.hand,
+                    "chosen": finger_label(row.chosen),
+                    "chosen_share": row.chosen_share,
+                    "default": finger_label(row.default),
+                    "ctrl_same_hand": row.ctrl_same_hand,
+                    "ctrl_same_finger": row.ctrl_same_finger,
+                }),
+            )
+        }).collect::<serde_json::Map<_, _>>(),
         "preference": {
             "primary": preference_primary.to_json(),
             "secondary": preference_secondary.as_ref().map(|report| report.to_json()),
@@ -1403,7 +1483,7 @@ mod tests {
     fn score_breakdown_reconstructs_the_primary_score() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
+        let layout = "bthcrmdisjnply;eougavkxz,q.wf/";
         let score = crate::evaluate::score_layout(layout, &corpus, &ctx.tables);
         let breakdown = super::score_breakdown(
             layout,
@@ -1429,7 +1509,7 @@ mod tests {
     fn finger_strength_term_is_corpus_weighted_and_geometry_independent() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
+        let layout = "bthcrmdisjnply;eougavkxz,q.wf/";
         let breakdown = super::score_breakdown(
             layout,
             &corpus,
@@ -1518,7 +1598,7 @@ mod tests {
     fn true_metrics_are_repeat_free_on_the_shipped_layout() {
         let ctx = crate::context::Context::load(None).expect("context");
         let (corpus, _) = crate::context::load_role(&ctx.cfg, "primary").expect("corpus");
-        let layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/";
+        let layout = "bthcrmdisjnply;eougavkxz,q.wf/";
         let pats = super::trigram_patterns(
             layout,
             &corpus,
@@ -1577,4 +1657,5 @@ mod tests {
         assert_eq!(pattern.label(Some(&tiers)), "redirect_unclassified:1-3-2");
         assert_eq!(pattern.label(None), "redirect");
     }
+
 }

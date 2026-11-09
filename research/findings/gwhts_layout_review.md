@@ -2,6 +2,11 @@
 
 Date: 2026-11-07
 
+> **W2 update:** the shortcut-constrained layout was adopted on 2026-11-07.
+> The metrics below describe the superseded layout. See
+> [W2 adoption](#w2-adoption-shortcut-constrained-layout) for the retained
+> layout and its metrics.
+
 Layout:
 
 ```text
@@ -14,7 +19,7 @@ This review treats flexible, context-dependent fingering as the intended
 typing model. Fixed-fingering results are diagnostic only and are not an
 optimization target.
 
-## Current metrics
+## Current metrics (original layout)
 
 Shipped config (`shirolyzer/config/config.yaml`), primary corpus Shai:
 
@@ -188,3 +193,70 @@ and explicit alt rules, is the design target.
 - Do not reduce finger travel by discarding the alt-fingering model; travel is
   already priced in the flexible model.
 - Do not treat `sfb_sft = 6.673%` as a conventional SFS/SFB comparison.
+
+
+## W2 adoption: shortcut-constrained layout
+
+`hand_restrictions.left` now lists `z, x, c, v, t, y`. A constrained
+`compute` run (28 starts, 200k iterations, 8 ILS) produced the same best layout
+across three seeds, so it was adopted without a hand-forced swap:
+
+```text
+b t h c r | m d i s j
+n p l y ; | e o u g a
+v k x z , | q . w f /
+```
+
+Shipped config (`shirolyzer/config/config.yaml`), primary corpus Shai:
+
+| Metric | Value |
+|--------|------:|
+| Primary score | `4.264577` |
+| Secondary score | `4.464993` |
+| Conventional bigram SFB | `0.000%` |
+| Legacy trigram same-finger (`sfb_sft`) | `6.673%` |
+| True SFT (`sft_true`) | `0.000%` |
+| Legacy SFT (`sft`) | `0.030%` |
+| Adjacent SFB class (`sfb_tri`) | `6.643%` |
+| True SFS (`sfs_true`) | `2.306%` |
+| Legacy skipgrams (`sfs`) | `5.701%` (upper bound; includes repeats) |
+| Redirects | `3.956%` |
+| Weak redirects | `0.683%` |
+| Rolls | `47.281%` |
+| Bigram alternation | `65.0%` |
+| Mild scissor cost | `0.179` |
+| Frequency-weighted strength | `0.176` |
+
+Per-letter finger loads:
+
+| Finger | Load |
+|--------|-----:|
+| LP | `8.00` |
+| LR | `13.57` |
+| LM | `13.60` |
+| LI | `13.94` |
+| RP | `7.87` |
+| RR | `10.53` |
+| RM | `14.79` |
+| RI | `17.70` |
+
+Shortcut report under the shipped config:
+
+| Letter | Key | Chosen | Default | Same hand | Same finger |
+|--------|-----|--------|---------|-----------|-------------|
+| `z` | V | LI (`86.8%`) | LI | yes | no |
+| `x` | C | LI (`88.0%`) | LI | yes | no |
+| `c` | R | LM (`77.2%`) | LM | yes | no |
+| `v` | Z | LP (`87.4%`) | LP | yes | yes |
+| `t` | W | LR (`98.9%`) | LR | yes | no |
+| `y` | F | LI (`86.1%`) | LI | yes | no |
+
+All six shortcut letters are on the left hand, and Ctrl+C is no longer
+same-finger. Ctrl+V remains same-finger because `v` is on the left pinky; the
+stated requirement is hand-only, so this collision is accepted and documented
+here.
+
+Cross-hand alt usage moved to `m` (`99.48%` LI on physical `Y`) and `e`
+(`30.83%` LI on physical `H`). The total cross-hand share is `6.20%`, and
+non-default fingers are used on `18.81%` of letter strokes. The fixed-fingering
+diagnostic is unchanged and remains a non-objective.

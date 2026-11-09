@@ -35,9 +35,9 @@ layout = "flhvzqwuoysrntkcdeaix'bmjpg/,/"
 
 [[reference]]
 name = "shiro"
-layout = "gwhtsmuenqlrdv;oajpicxkfz,.by/"
-primary_score = 4.261835101
-secondary_score = 4.499064286
+layout = "bthcrmdisjnply;eougavkxz,q.wf/"
+primary_score = 4.264577545
+secondary_score = 4.464992638
 
 [[reference]]
 name = "t5-diversity-2"
@@ -164,3 +164,17 @@ layout = "mpslkqyoiftndrcwehuavbxzg;,./j"
 primary_score = 4.016235467
 secondary_score = 4.339497489
 seed = 513360791
+
+[[reference]]
+name = "shiro-335839468"
+layout = "gwhtsmuen;lrdv,oajpicxkfqz.by/"
+primary_score = 4.284872992
+secondary_score = 4.547747895
+seed = 335839468
+
+[[reference]]
+name = "shiro-66332091"
+layout = "bthcrmdisjnply;eougavk,z.q/wfx"
+primary_score = 4.304738657
+secondary_score = 4.520032006
+seed = 66332091
