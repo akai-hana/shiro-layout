@@ -150,6 +150,16 @@ shirolyzer analyze "layout" --config shirolyzer/config/config.fixed.yaml
 shirolyzer compare --config shirolyzer/config/config.fixed.yaml
 ```
 
+#### Reference scores and comparison configs
+
+Scores stored in `config/references.toml` record the config that produced them with `score_config`:
+
+- `shipped` — `config/config.yaml`, the flexible hard-SFB config used for the shipped layout.
+- `reference` — a comparable flexible reference config.
+- `permissive` — a config without the hard-SFB penalty, including fixed-fingering comparisons.
+
+A stored score without `score_config` is rejected, and the `shiro` entry is pinned to the shipped config by the test suite. `compare` prints a warning when the active config sets `general.sfb_impossible: true`, because any layout with a conventional same-finger bigram receives the fixed hard-SFB penalty and the rows are not comparable. Use `config/config.fixed.yaml` or another permissive config for cross-layout score comparisons.
+
 ### Compute scheduling
 
 `compute` runs random anneals, keeps the best distinct layouts, refines them
