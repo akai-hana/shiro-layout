@@ -331,6 +331,58 @@ fn compare_reports_baseline_scores() {
 }
 
 #[test]
+fn compare_warns_about_hard_sfb_config() {
+    let config = shirolyzer::paths::config_dir().join("config.yaml");
+    let out = run(&["compare", "--config", config.to_str().unwrap()]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let err = String::from_utf8_lossy(&out.stderr);
+    assert!(err.contains("sfb_impossible=true"), "{err}");
+    assert!(err.contains("not comparable"), "{err}");
+    assert!(err.contains("config.fixed.yaml"), "{err}");
+}
+
+#[test]
+fn stored_shiro_score_matches_shipped_config() {
+    let refs_text =
+        std::fs::read_to_string(root().join("shirolyzer/config/references.toml")).unwrap();
+    let refs: toml::Value = toml::from_str(&refs_text).unwrap();
+    let shiro = refs["reference"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["name"].as_str() == Some("shiro"))
+        .expect("shiro reference");
+    assert_eq!(shiro["score_config"].as_str(), Some("shipped"));
+    let stored_primary = shiro["primary_score"].as_float().unwrap();
+    let stored_secondary = shiro["secondary_score"].as_float().unwrap();
+
+    let path = tmp("shipped-analyze.json");
+    let out = run(&["analyze", SHIRO, "--out-json", path.to_str().unwrap()]);
+    assert!(
+        out.status.success(),
+        "{}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    let value: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
+    let primary = value["primary_score"].as_f64().unwrap();
+    let secondary = value["secondary_score"].as_f64().unwrap();
+    assert!(
+        (primary - stored_primary).abs() < 5e-9,
+        "stored shiro primary {stored_primary:.12} != analyze {primary:.12}; \
+         regenerate references.toml under the shipped config"
+    );
+    assert!(
+        (secondary - stored_secondary).abs() < 5e-9,
+        "stored shiro secondary {stored_secondary:.12} != analyze {secondary:.12}; \
+         regenerate references.toml under the shipped config"
+    );
+}
+
+#[test]
 fn audit_and_check_baseline_pass() {
     let config = config_path();
     let out_json = tmp("audit.json");
