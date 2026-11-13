@@ -1,3 +1,0 @@
-can you give the commits "temp" and "temp2" descriptive names, as well as place them on a belonging branch? (either existing or new ones).
-
-after you do that, please merge to main, and clean the git branches on this project. I only want to have main in the end. the other branches served during development, but now only pollute the branch list with noise for any future development.

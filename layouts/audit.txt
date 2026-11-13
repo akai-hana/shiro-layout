@@ -1,0 +1,480 @@
+config /home/akai/git/layout-opencode-investigation/shirolyzer/config/config.yaml  (explicit alt-licence table: ["AX:LMLI:Allow", "AX:LPLM:Allow", "AX:LRLI:Allow", "AX:LRLM:Allow", "CHX:LRLILP:Allow", "CR:LMLI:Block", "CR:LMLM:Block", "CR:LMLP:Block", "CR:LMLR:Block", "CX:LILM:Allow", "CX:LMLM:Allow", "CX:LPLM:Allow", "CX:LRLM:Allow", "CXX:LILMLM:Allow", "CXX:LMLMLM:Allow", "CXX:LPLMLM:Allow", "CXX:LRLMLM:Allow", "G:LM:Block", "GJ:LIRM:Block", "GJ:LMRM:Block", "GJ:LPRM:Block", "GJ:LRRM:Block", "GSW:LILMLR:Allow", "GV:LILM:Block", "GV:LMLM:Block", "GV:LPLM:Block", "GV:LRLM:Block", "H:LI:Permit", "HX:LILP:Allow", "HXA:LILPLM:Allow", "HXA:LILPLP:Allow", "HXA:LILPLR:Allow", "HXC:LILPLI:Allow", "HXC:LILPLM:Allow", "HXC:LILPLP:Allow", "HXC:LILPLR:Allow", "HXX:LILPLP:Allow", "IJ:RIRM:Block", "IJ:RMRM:Block", "IJ:RPRM:Block", "IJ:RRRM:Block", "JG:RMLI:Block", "JG:RMLM:Block", "JG:RMLP:Block", "JG:RMLR:Block", "JI:RMRI:Block", "JI:RMRM:Block", "JI:RMRP:Block", "JI:RMRR:Block", "JM:RIRM:Block", "JM:RMRM:Block", "JM:RPRM:Block", "JM:RRRM:Block", "JT:RMLI:Block", "JT:RMLM:Block", "JT:RMLP:Block", "JT:RMLR:Block", "L:RI:Block", "LLO:RIRIRI:Allow", "LLO:RIRIRM:Allow", "LLO:RIRIRP:Allow", "LLO:RIRIRR:Allow", "LO:RIRI:Allow", "LO:RIRM:Allow", "LO:RIRP:Allow", "LO:RIRR:Allow", "M:RM:Block", "M:RR:Permit", "MJ:RMRI:Block", "MJ:RMRM:Block", "MJ:RMRP:Block", "MJ:RMRR:Block", "OL:RIRI:Allow", "OL:RMRI:Allow", "OL:RPRI:Allow", "OL:RRRI:Allow", "OLL:RIRIRI:Allow", "OLL:RMRIRI:Allow", "OLL:RPRIRI:Allow", "OLL:RRRIRI:Allow", "QW:LILM:Allow", "QW:LMLM:Allow", "QW:LPLM:Allow", "QW:LRLM:Allow", "QWW:LILMLM:Allow", "QWW:LMLMLM:Allow", "QWW:LPLMLM:Allow", "QWW:LRLMLM:Allow", "RC:LILM:Block", "RC:LMLM:Block", "RC:LPLM:Block", "RC:LRLM:Block", "SW:LILM:Allow", "SW:LMLM:Allow", "SW:LPLM:Allow", "SW:LRLM:Allow", "SWW:LILMLM:Allow", "SWW:LMLMLM:Allow", "SWW:LPLMLM:Allow", "SWW:LRLMLM:Allow", "TJ:LIRM:Block", "TJ:LMRM:Block", "TJ:LPRM:Block", "TJ:LRRM:Block", "UH:RMLI:Allow", "VG:LMLI:Block", "VG:LMLM:Block", "VG:LMLP:Block", "VG:LMLR:Block", "W:LM:Block", "WQ:LMLI:Allow", "WQ:LMLM:Allow", "WQ:LMLP:Allow", "WQ:LMLR:Allow", "WS:LMLI:Allow", "WS:LMLM:Allow", "WS:LMLP:Allow", "WS:LMLR:Allow", "WWQ:LMLMLI:Allow", "WWQ:LMLMLM:Allow", "WWQ:LMLMLP:Allow", "WWQ:LMLMLR:Allow", "WWS:LMLMLI:Allow", "WWS:LMLMLM:Allow", "WWS:LMLMLP:Allow", "WWS:LMLMLR:Allow", "WWX:LMLMLI:Allow", "WWX:LMLMLM:Allow", "WWX:LMLMLP:Allow", "WWX:LMLMLR:Allow", "WX:LMLI:Allow", "WX:LMLM:Allow", "WX:LMLP:Allow", "WX:LMLR:Allow", "X:LM:Block", "XA:LILM:Allow", "XA:LILR:Allow", "XA:LMLP:Allow", "XA:LMLR:Allow", "XA:LMLR:Block", "XC:LMLI:Allow", "XC:LMLM:Allow", "XC:LMLP:Allow", "XC:LMLR:Allow", "XHX:LPLILP:Allow", "XW:LILM:Allow", "XW:LMLM:Allow", "XW:LPLM:Allow", "XW:LRLM:Allow", "XWW:LILMLM:Allow", "XWW:LMLMLM:Allow", "XWW:LPLMLM:Allow", "XWW:LRLMLM:Allow", "XXC:LMLMLI:Allow", "XXC:LMLMLM:Allow", "XXC:LMLMLP:Allow", "XXC:LMLMLR:Allow", "Y:LI:Allow", "Y:RM:Allow"])
+=== questionnaire hard probes (physical keys; * = non-default finger) ===
+  OL:
+       4.577  O:RM* -> L:RI*
+      23.647  O:RR -> L:RI*
+      40.316  O:RP* -> L:RI*
+      45.796  O:RI* -> L:RI*
+  LO:
+       4.577  L:RI* -> O:RM*
+      23.647  L:RI* -> O:RR
+      40.316  L:RI* -> O:RP*
+      45.496  L:RI* -> O:RI*
+  KJM:
+       7.497  K:RR* -> J:RM* -> M:RR*
+       9.761  K:RR* -> J:RM* -> M:RI
+       9.914  K:RM -> J:RI -> M:RI
+      11.208  K:RM -> J:RM* -> M:RI
+      14.488  K:RR* -> J:RI -> M:RI
+  FJM:
+       4.737  F:LI -> J:RM* -> M:RR*
+       5.696  F:LM* -> J:RM* -> M:RR*
+       5.804  F:LI -> J:RM* -> M:RI
+       6.764  F:LM* -> J:RM* -> M:RI
+       9.420  F:LI -> J:RI -> M:RI
+  MJ:
+       3.607  M:RR* -> J:RM*
+       4.924  M:RI -> J:RM*
+       8.240  M:RI -> J:RI
+      11.145  M:RR* -> J:RI
+  MJI:
+       9.625  M:RI -> J:RI -> I:RM
+      15.800  M:RI -> J:RI -> I:RR*
+      17.460  M:RR* -> J:RI -> I:RM
+      17.602  M:RR* -> J:RI -> I:RR*
+  HTJ:
+       3.459  H:LI* -> T:LM -> J:RI
+       5.862  H:RI -> T:LM -> J:RI
+       5.898  H:RI -> T:LI* -> J:RI
+       9.815  H:LI* -> T:LI* -> J:RI
+      19.000  H:RM* -> T:LM -> J:RI
+  HWJ:
+       3.527  H:LI* -> W:LR -> J:RI
+       4.254  H:RI -> W:LR -> J:RM*
+       4.387  H:LI* -> W:LR -> J:RM*
+       5.460  H:RI -> W:LR -> J:RI
+       7.199  H:RM* -> W:LR -> J:RM*
+  HL:
+       2.540  H:RI -> L:RR
+       2.567  H:LI* -> L:RR
+       2.863  H:LI* -> L:RM*
+       6.270  H:RM* -> L:RR
+       8.566  H:RM* -> L:RM*
+  IUJ:
+       5.092  I:RR* -> U:RM -> J:RI
+       8.076  I:RR* -> U:RI* -> J:RM*
+       8.722  I:RM -> U:RI* -> J:RM*
+       9.547  I:RM -> U:RM -> J:RI
+       9.587  I:RM -> U:RI* -> J:RI
+  NLJ:
+       4.720  N:RI -> L:RR -> J:RM*
+       6.530  N:RI -> L:RR -> J:RI
+       6.864  N:RI -> L:RM* -> J:RI
+       8.467  N:RM* -> L:RR -> J:RM*
+       9.720  N:RI -> L:RM* -> J:RM*
+  VGJ:
+       9.320  V:LI -> G:LI -> J:RI
+  COR:
+       6.792  C:LI -> O:RR -> R:LI*
+       6.842  C:LI -> O:RR -> R:LM
+       6.987  C:LM* -> O:RR -> R:LM
+       7.561  C:LI -> O:RM* -> R:LI*
+       7.612  C:LI -> O:RM* -> R:LM
+  ROC:
+       6.792  R:LI* -> O:RR -> C:LI
+       6.842  R:LM -> O:RR -> C:LI
+       6.987  R:LM -> O:RR -> C:LM*
+       7.561  R:LI* -> O:RM* -> C:LI
+       7.612  R:LM -> O:RM* -> C:LI
+  KI:
+       3.556  K:RI* -> I:RM
+       3.867  K:RR* -> I:RM
+       8.190  K:RM -> I:RM
+       9.156  K:RR* -> I:RR*
+      12.216  K:RI* -> I:RR*
+  WD:
+       2.332  W:LR -> D:LM
+       2.447  W:LR -> D:LI*
+       9.278  W:LR -> D:LR*
+  DW:
+       2.371  D:LM -> W:LR
+       2.447  D:LI* -> W:LR
+       8.978  D:LR* -> W:LR
+  AS:
+       2.108  A:LP -> S:LR
+       2.699  A:LR* -> S:LM*
+       3.724  A:LR* -> S:LI*
+       4.022  A:LM* -> S:LI*
+       8.049  A:LR* -> S:LR
+  SA:
+       2.368  S:LR -> A:LP
+       2.949  S:LM* -> A:LR*
+       3.724  S:LI* -> A:LR*
+       4.022  S:LI* -> A:LM*
+       8.049  S:LR -> A:LR*
+  XA:
+       3.449  X:LI* -> A:LR*
+      27.875  X:LI* -> A:LM*
+      39.895  X:LM* -> A:LP
+  AX:
+       3.449  A:LR* -> X:LI*
+      15.690  A:LR* -> X:LM*
+      27.875  A:LM* -> X:LI*
+      39.895  A:LP -> X:LM*
+  UJ:
+       3.547  U:RM -> J:RI
+       4.927  U:RI* -> J:RM*
+       8.592  U:RI* -> J:RI
+       9.360  U:RM -> J:RM*
+      11.649  U:RR* -> J:RI
+  UH:
+       2.577  U:RM -> H:LI*
+  MI:
+       3.523  M:RI -> I:RM
+      11.397  M:RR* -> I:RR*
+      13.173  M:RI -> I:RR*
+      13.404  M:RR* -> I:RM
+  XF:
+       2.580  X:LR -> F:LI
+       3.179  X:LR -> F:LM*
+       8.537  X:LI* -> F:LI
+      15.496  X:LI* -> F:LM*
+  XS:
+       3.592  X:LI* -> S:LM*
+       8.620  X:LR -> S:LR
+       9.033  X:LI* -> S:LI*
+      11.244  X:LI* -> S:LR
+      12.077  X:LR -> S:LI*
+  XW:
+       4.396  X:LI* -> W:LM*
+      27.143  X:LR -> W:LM*
+      36.608  X:LP* -> W:LM*
+      47.261  X:LM* -> W:LM*
+  SW:
+       4.386  S:LI* -> W:LM*
+      25.847  S:LR -> W:LM*
+      36.367  S:LP* -> W:LM*
+      45.156  S:LM* -> W:LM*
+  WXF:
+      11.396  W:LM* -> X:LI* -> F:LI
+      22.155  W:LM* -> X:LI* -> F:LM*
+      28.601  W:LM* -> X:LR -> F:LI
+      32.699  W:LM* -> X:LR -> F:LM*
+      44.105  W:LM* -> X:LP* -> F:LM*
+  FXW:
+      11.696  F:LI -> X:LI* -> W:LM*
+      22.155  F:LM* -> X:LI* -> W:LM*
+      28.593  F:LI -> X:LR -> W:LM*
+      32.804  F:LM* -> X:LR -> W:LM*
+      44.105  F:LM* -> X:LP* -> W:LM*
+  QS:
+       2.674  Q:LM* -> S:LI*
+       2.724  Q:LR -> S:LI*
+       3.136  Q:LR -> S:LM*
+       8.690  Q:LR -> S:LR
+       9.183  Q:LM* -> S:LM*
+  SQ:
+       2.674  S:LI* -> Q:LM*
+       2.724  S:LI* -> Q:LR
+       3.032  S:LM* -> Q:LR
+       8.390  S:LR -> Q:LR
+       8.883  S:LM* -> Q:LM*
+  OK:
+       2.491  O:RR -> K:RM
+       2.668  O:RM* -> K:RI*
+       3.184  O:RR -> K:RI*
+       8.687  O:RR -> K:RR*
+       9.259  O:RM* -> K:RM
+  KO:
+       2.618  K:RM -> O:RR
+       2.668  K:RI* -> O:RM*
+       3.184  K:RI* -> O:RR
+       8.387  K:RR* -> O:RR
+       8.959  K:RM -> O:RM*
+  K;:
+       2.617  K:RM -> ;:RP
+       2.690  K:RR* -> ;:RP
+       3.099  K:RM -> ;:RR*
+       3.370  K:RI* -> ;:RR*
+       3.869  K:RI* -> ;:RP
+  ;K:
+       2.617  ;:RP -> K:RM
+       2.728  ;:RP -> K:RR*
+       3.037  ;:RR* -> K:RM
+       3.370  ;:RR* -> K:RI*
+       3.869  ;:RP -> K:RI*
+  AE:
+       2.300  A:LP -> E:LM
+       2.676  A:LP -> E:LR*
+       2.754  A:LR* -> E:LM
+       9.550  A:LM* -> E:LM
+       9.629  A:LR* -> E:LR*
+  EA:
+       2.300  E:LM -> A:LP
+       2.758  E:LR* -> A:LP
+       2.813  E:LM -> A:LR*
+       9.850  E:LM -> A:LM*
+       9.929  E:LR* -> A:LR*
+  TG:
+       3.722  T:LM -> G:LI
+       8.938  T:LI* -> G:LI
+  GT:
+       3.722  G:LI -> T:LM
+       8.638  G:LI -> T:LI*
+  YU:
+       2.607  Y:LI* -> U:RM
+       2.699  Y:LI* -> U:RI*
+       2.906  Y:LI* -> U:RR*
+      14.474  Y:RM -> U:RR*
+      19.604  Y:RM -> U:RM
+  UY:
+       2.607  U:RM -> Y:LI*
+       2.699  U:RI* -> Y:LI*
+       2.906  U:RR* -> Y:LI*
+      14.224  U:RR* -> Y:RM
+      19.604  U:RM -> Y:RM
+  DA:
+       2.617  D:LM -> A:LP
+       2.999  D:LM -> A:LR*
+       3.296  D:LI* -> A:LR*
+       3.369  D:LR* -> A:LP
+       3.869  D:LI* -> A:LP
+  AD:
+       2.617  A:LP -> D:LM
+       2.937  A:LR* -> D:LM
+       3.296  A:LR* -> D:LI*
+       3.442  A:LP -> D:LR*
+       3.869  A:LP -> D:LI*
+  FS:
+       2.340  F:LI -> S:LR
+       2.683  F:LI -> S:LM*
+       3.099  F:LM* -> S:LR
+       7.497  F:LI -> S:LI*
+       8.346  F:LM* -> S:LM*
+  SF:
+       2.340  S:LR -> F:LI
+       2.683  S:LM* -> F:LI
+       3.037  S:LR -> F:LM*
+       7.497  S:LI* -> F:LI
+       8.346  S:LM* -> F:LM*
+  OJ:
+       2.150  O:RR -> J:RI
+       2.705  O:RM* -> J:RI
+       3.356  O:RR -> J:RM*
+       9.929  O:RM* -> J:RM*
+  JO:
+       2.150  J:RI -> O:RR
+       2.705  J:RI -> O:RM*
+       3.244  J:RM* -> O:RR
+       9.629  J:RM* -> O:RM*
+
+=== hard checks ===
+  [PASS] repeated keys use one finger  26/26
+  [PASS] O->L has L index  RMRI
+  [PASS] K-J-M = ring/middle/ring  RRRMRR
+  [PASS] F-J-M = index/middle/ring  LIRMRR
+  [PASS] L->O keeps L index within 0.2  top RIRM / best L-index 4.577 vs 4.577
+  [PASS] M-J-I first two strokes index  RIRIRM
+  [PASS] H-T-J blocks J middle  LILMRI
+  [PASS] I-U-J blocks J middle  RRRMRI
+  [PASS] H picks LI in left context  LILMRI
+  [PASS] H keeps RI in right context  RIRR
+  [PASS] Y prefers LI over RM  YU LIRM / UY RMLI
+  [PASS] Y does not freely use LM  YU LIRM / UY RMLI
+  [PASS] M never uses RM  [("MI", "RI"), ("MJ", "RR"), ("KJM", "RR"), ("FJM", "RR")]
+  [PASS] M uses RR where preferable  MJ RRRM / FJM LIRMRR
+  [PASS] X prefers LR with LI available  XF LRLI / XS LILM
+  [PASS] V-G-J forces V/G index  LILIRI
+  [PASS] C-O-R endpoints index  LIRRLI
+  [PASS] R-O-C endpoints index  LIRRLI
+  [PASS] L index only with O key (bigram)  all non-O neighbours
+
+=== 2026-10-27 answers ===
+  [PASS] W->D ring/middle (th)  LRLM
+  [PASS] W->D ring/middle is cheaper than D->W  2.332 / 2.371
+  [PASS] A->S pinky/ring is cheaper than S->A  2.108 / 2.368
+  [PASS] X->A index/ring first; middle/ring impossible; ring X + pinky A impossible  LILR LRLI MR inf
+  [PASS] Q-S = middle/index, S-Q = index/middle  LMLI LILM
+  [PASS] O->K ring/middle, K->O middle/ring  RRRM RMRR
+  [PASS] K->; middle/pinky, ;->K pinky/middle  RMRP RPRM
+  [PASS] A->E pinky/middle, E->A middle/pinky  LPLM LMLP
+  [PASS] defaults first: both keys at rest -> rest fingers (24 pairs)  24/24
+  [PASS] U->J middle, U->H left index  RMRI RMLI
+  [PASS] X->W and S->W index/middle  LILM LILM
+  [PASS] wxf = MII  LMLILI
+  [PASS] fxw does not use the M/R full-span scissor  LILILM
+  [PASS] T->G middle/index, G->T index/middle  LMLI LILM
+  [PASS] YU and RT/TR ring-middle / middle-ring on both hands  LIRM RMLI LRLM LMLR
+  [PASS] D->A middle/pinky, A->D pinky/middle  LMLP LPLM
+  [PASS] F->S index/ring, S->F ring/index; O->J ring/index, J->O index/ring  LILR LRLI RRRI RIRR
+  [PASS] X->A order: index/ring < index/middle < middle/pinky; middle/ring and index/pinky impossible  IR 3.45 MR inf IM 27.88 MP 39.90 IP inf
+  [PASS] ring-pinky reverse scissors blocked (O->. RP, .->O PR) without blocking O->. MR  O. RP 12.0 .O PR 12.0 O. MR 0.0
+  [PASS] index + pinky needs >= 1.9 key widths between the keys (pattern)  all such pairs impossible
+  [PASS] 2026-10-29: ;->U PM, U->; MP; T->F IM, F->T MI; ;->L PR, L->; RP  RPRM RMRP LILM LMLI RPRR RRRP
+  [PASS] ;-U with ring + middle is borderline impossible (>= 5)  9.12 9.12
+  [PASS] A->S PR and the ring/pinky pair is not scissor-penalised away (S->A RP)  LPLR LRLP
+  [PASS] isolated key -> your default fingermap (all 30 keys + ;)  all keys
+  [PASS] A->B and B->A price alike except ring/middle and pinky/ring pairs (direction rules)  symmetric
+probes+checks: 44/44
+corpus primary /home/akai/git/layout-opencode-investigation/corpora/shai/parsed: letters=418,381,828 bigrams=327,253,737 trigrams=240,524,895
+corpus secondary /home/akai/git/layout-opencode-investigation/corpora/douglas/parsed: letters=8,584,068 bigrams=6,723,441 trigrams=4,983,706
+
+=== every ruling (legacy + round 8) ===
+  [PASS] bi_OL            O->L want RMRI got RMRI (4.58; target 4.58)
+  [PASS] bi_LO            L->O want RIRM got RIRM (4.58; target 4.58)
+  [PASS] bi_XQ            X->Q want LILM got LILM (3.62; target 3.62)
+  [PASS] bi_QX            Q->X want LMLI got LMLI (3.62; target 3.62)
+  [PASS] bi_SW            S->W want LILM got LILM (4.39; target 4.39)
+  [PASS] bi_WS            W->S want LMLI got LMLI (4.39; target 4.39)
+  [PASS] bi_XS            X->S want LILM got LILM (3.59; target 3.59)
+  [PASS] bi_SX            S->X want LMLI got LMLI (3.59; target 3.59)
+  [PASS] bi_XW            X->W want LILM got LILM (4.40; target 4.40)
+  [PASS] bi_WX            W->X want LMLI got LMLI (4.40; target 4.40)
+  [PASS] bi_O,            O->, want RMRI got RMRI (4.55; target 4.55)
+  [PASS] bi_,O            ,->O want RIRM got RIRM (4.55; target 4.55)
+  [PASS] bi_L,            L->, want RMRI got RMRI (2.88; target 2.88)
+  [PASS] bi_,L            ,->L want RIRM got RIRM (2.88; target 2.88)
+  [PASS] bi_SQ            S->Q want LILM got LILM (2.67; target 2.67)
+  [PASS] bi_QS            Q->S want LMLI got LMLI (2.67; target 2.67)
+  [PASS] bi_WQ            W->Q want LMLR got LMLR (2.73; target 2.73)
+  [PASS] bi_QW            Q->W want LRLM got LRLM (2.48; target 2.48)
+  [PASS] bi_O.            O->. want RMRR got RMRR (3.26; target 3.26)
+  [PASS] bi_.O            .->O want RRRM got RRRM (3.23; target 3.23)
+  [PASS] bi_FX            F->X want LILR got LILR (2.58; target 2.58)
+  [PASS] bi_XF            X->F want LRLI got LRLI (2.58; target 2.58)
+  [PASS] bi_UM            U->M want RMRR got RMRR (2.86; target 2.86)
+  [PASS] bi_MU            M->U want RRRM got RRRM (2.84; target 2.84)
+  [PASS] bi_RV            R->V want LMLI got LMLI (3.57; target 3.57)
+  [PASS] bi_VR            V->R want LILM got LILM (3.57; target 3.57)
+  [PASS] bi_IM            I->M want RMRI got RMRI (3.52; target 3.52)
+  [PASS] bi_MI            M->I want RIRM got RIRM (3.52; target 3.52)
+  [PASS] bi_WA            W->A want LRLP got LRLP (1.95; target 1.95)
+  [PASS] bi_AW            A->W want LPLR got LPLR (1.60; target 1.60)
+  [PASS] tri_WXF          W->X->F want LMLILI got LMLILI (11.40; target 11.40)
+  [PASS] tri_QFB          Q->F->B want LPLMLI got LPLMLI (6.57; target 6.57)
+  [PASS] ord_IM_XW_UM     order 1.52 < 2.40 < 3.66
+  [PASS] ord_RP_dir       order -0.40 < -0.05
+  [PASS] ord_RM_dir       order -0.07 < 0.18
+  [PASS] ord_leap         order 0.28 < 0.34 < 0.50
+  [PASS] tie_MI_sym       tie 0.28 vs 0.28
+  [PASS] ladder           tiers -0.18--0.18 | 0.28-0.29 | 0.31-0.31 | 0.77-0.92 | 2.06-2.59 | 5.51-5.51
+  [PASS] inf_LM,R         pair cost 11.43 (need >= 8)
+  [PASS] inf_OM,R         pair cost 10.79 (need >= 8)
+  [PASS] inf_SRWM         pair cost 10.89 (need >= 8)
+  [PASS] inf_SMWR         pair cost 10.41 (need >= 8)
+  [PASS] inf_XRSM         pair cost 11.37 (need >= 8)
+  [PASS] inf_XMSR         pair cost 8.00 (need >= 8)
+  [PASS] inf_XIFM         pair cost 12.00 (need >= 8)
+  [PASS] inf_XRQP         pair cost 12.00 (need >= 8)
+  [PASS] inf_QPXR         pair cost 12.00 (need >= 8)
+  [PASS] inf_XIWR         pair cost 9.02 (need >= 8)
+  [PASS] inf_ORcM         pair cost 12.00 (need >= 8)
+  [PASS] feas_OMLR        pair cost 1.82 (need < 7)
+  [PASS] feas_UMMI        pair cost 3.22 (need < 7)
+  [PASS] feas_IMKI        pair cost 1.26 (need < 7)
+  [PASS] feas_WRAP        pair cost -0.05 (need < 7)
+  [PASS] feas_OR.P        pair cost 0.27 (need < 7)
+  [PASS] key_Q            Q: want LR got LR (0.20; default 0.20)
+  [PASS] key_W            W: want LR got LR (0.00; default 0.00)
+  [PASS] key_E            E: want LM got LM (0.00; default 0.00)
+  [PASS] key_R            R: want LM got LM (0.20; default 0.20)
+  [PASS] key_T            T: want LM got LM (0.40; default 0.40)
+  [PASS] key_Y            Y: want RM got RM (0.40; default 0.40)
+  [PASS] key_U            U: want RM got RM (0.20; default 0.20)
+  [PASS] key_I            I: want RM got RM (0.00; default 0.00)
+  [PASS] key_O            O: want RR got RR (0.00; default 0.00)
+  [PASS] key_P            P: want RR got RR (0.20; default 0.20)
+  [PASS] key_A            A: want LP got LP (0.00; default 0.00)
+  [PASS] key_S            S: want LR got LR (0.19; default 0.19)
+  [PASS] key_D            D: want LM got LM (0.19; default 0.19)
+  [PASS] key_F            F: want LI got LI (0.00; default 0.00)
+  [PASS] key_G            G: want LI got LI (0.20; default 0.20)
+  [PASS] key_H            H: want RI got RI (0.20; default 0.20)
+  [PASS] key_J            J: want RI got RI (0.00; default 0.00)
+  [PASS] key_K            K: want RM got RM (0.19; default 0.19)
+  [PASS] key_L            L: want RR got RR (0.19; default 0.19)
+  [PASS] key_;            ;: want RP got RP (0.00; default 0.00)
+  [PASS] key_Z            Z: want LP got LP (0.24; default 0.24)
+  [PASS] key_X            X: want LR got LR (0.43; default 0.43)
+  [PASS] key_C            C: want LI got LI (0.24; default 0.24)
+  [PASS] key_V            V: want LI got LI (0.24; default 0.24)
+  [PASS] key_B            B: want LI got LI (0.44; default 0.44)
+  [PASS] key_N            N: want RI got RI (0.24; default 0.24)
+  [PASS] key_M            M: want RI got RI (0.24; default 0.24)
+  [PASS] key_,            ,: want RR got RR (0.33; default 0.33)
+  [PASS] key_.            .: want RR got RR (0.43; default 0.43)
+  [PASS] key_/            /: want RP got RP (0.24; default 0.24)
+  [PASS] r8_KJM           K->J->M want RRRMRR got RRRMRR (7.50; target 7.50)
+  [PASS] r8_FJM           F->J->M want LIRMRR got LIRMRR (4.74; target 4.74)
+  [PASS] r8_MJI           no alternative
+  [PASS] r8_HTJ           no alternative
+  [PASS] r8_IUJ           I-U-J legal 2.09 vs best-other 5.08
+  [PASS] r8_VGJ           no alternative
+  [PASS] r8_COR           C-O-R legal 3.79 vs best-other 3.84
+  [PASS] r8_ROC           R-O-C legal 3.79 vs best-other 3.84
+  [PASS] r8_LO            no alternative
+  [PASS] r8_CRrev_a       pair cost 3.00 (want 3-7)
+  [PASS] r8_CRrev_b       pair cost 3.00 (want 3-7)
+  [PASS] r9_WD_RM         W->D want LRLM got LRLM (2.33; target 2.33)
+  [PASS] r9_DW_MR         D->W want LMLR got LMLR (2.37; target 2.37)
+  [PASS] r9_ord_WD        order 0.33 < 0.37
+  [PASS] r9_inf_XRAP      pair cost 10.24 (need >= 8)
+  [PASS] r9_inf_APXR      pair cost 10.59 (need >= 8)
+  [PASS] r9_UJ            U->J want RMRI got RMRI (3.55; target 3.55)
+  [PASS] r9_JU            J->U want RIRM got RIRM (3.55; target 3.55)
+  [PASS] r9_UH            U->H want RMLI got RMLI (2.58; target 2.58)
+  [PASS] r9_HU            H->U want RIRM got RIRM (2.09; target 2.09)
+  [PASS] r9_XA_IR         X->A want LILR got LILR (3.45; target 3.45)
+  [PASS] r9_AX_RI         A->X want LRLI got LRLI (3.45; target 3.45)
+  [PASS] r9_ord_XA        order 1.45 < 1.61
+  [PASS] r9_OK_RM         O->K want RRRM got RRRM (2.49; target 2.49)
+  [PASS] r9_KO_MR         K->O want RMRR got RMRR (2.62; target 2.62)
+  [PASS] r9_K;_MP         K->; want RMRP got RMRP (2.62; target 2.62)
+  [PASS] r9_;K_PM         ;->K want RPRM got RPRM (2.62; target 2.62)
+  [PASS] r9_AE_PM         A->E want LPLM got LPLM (2.30; target 2.30)
+  [PASS] r9_EA_MP         E->A want LMLP got LMLP (2.30; target 2.30)
+  [PASS] rest_AW          A->W want LPLR got LPLR (1.60; target 1.60)
+  [PASS] rest_AE          A->E want LPLM got LPLM (2.30; target 2.30)
+  [PASS] rest_AF          A->F want LPLI got LPLI (2.50; target 2.50)
+  [PASS] rest_WA          W->A want LRLP got LRLP (1.95; target 1.95)
+  [PASS] rest_WE          W->E want LRLM got LRLM (1.55; target 1.55)
+  [PASS] rest_WF          W->F want LRLI got LRLI (2.15; target 2.15)
+  [PASS] rest_EA          E->A want LMLP got LMLP (2.30; target 2.30)
+  [PASS] rest_EW          E->W want LMLR got LMLR (1.80; target 1.80)
+  [PASS] rest_EF          E->F want LMLI got LMLI (1.82; target 1.82)
+  [PASS] rest_FA          F->A want LILP got LILP (2.50; target 2.50)
+  [PASS] rest_FW          F->W want LILR got LILR (2.15; target 2.15)
+  [PASS] rest_FE          F->E want LILM got LILM (1.82; target 1.82)
+  [PASS] rest_;O          ;->O want RPRR got RPRR (1.74; target 1.74)
+  [PASS] rest_;I          ;->I want RPRM got RPRM (2.30; target 2.30)
+  [PASS] rest_;J          ;->J want RPRI got RPRI (2.50; target 2.50)
+  [PASS] rest_O;          O->; want RRRP got RRRP (1.97; target 1.97)
+  [PASS] rest_OI          O->I want RRRM got RRRM (1.55; target 1.55)
+  [PASS] rest_OJ          O->J want RRRI got RRRI (2.15; target 2.15)
+  [PASS] rest_I;          I->; want RMRP got RMRP (2.30; target 2.30)
+  [PASS] rest_IO          I->O want RMRR got RMRR (1.80; target 1.80)
+  [PASS] rest_IJ          I->J want RMRI got RMRI (1.73; target 1.73)
+  [PASS] rest_J;          J->; want RIRP got RIRP (2.50; target 2.50)
+  [PASS] rest_JO          J->O want RIRR got RIRR (2.15; target 2.15)
+  [PASS] rest_JI          J->I want RIRM got RIRM (1.73; target 1.73)
+  [PASS] r10_inf_XIAP     pair cost 11.54 (need >= 8)
+  [PASS] r10_inf_APXI     pair cost 11.54 (need >= 8)
+  [PASS] r10_ord_XA_IM    order 1.45 < 1.88
+  [PASS] r10_XA_IM_top2   order 1.88 < 1.90
+  [PASS] r10_XA_MR_top2   order 1.61 < 1.90
+  [PASS] r10_TG_MI        T->G want LMLI got LMLI (3.72; target 3.72)
+  [PASS] r10_GT_IM        G->T want LILM got LILM (3.72; target 3.72)
+  [PASS] r11_ord_XA_MR_IM order 1.61 < 1.88
+  [PASS] r11_DA_MP        D->A want LMLP got LMLP (2.62; target 2.62)
+  [PASS] r11_AD_PM        A->D want LPLM got LPLM (2.62; target 2.62)
+  [PASS] r11_ord_DA       order 0.62 < 1.87
+  [PASS] r11_FS_IR        F->S want LILR got LILR (2.34; target 2.34)
+  [PASS] r11_SF_RI        S->F want LRLI got LRLI (2.34; target 2.34)
+  [PASS] r11_OJ_RI        O->J want RRRI got RRRI (2.15; target 2.15)
+  [PASS] r11_JO_IR        J->O want RIRR got RIRR (2.15; target 2.15)
+  [PASS] r11_RT_RM        R->T want LRLM got LRLM (2.22; target 2.22)
+  [PASS] r11_TR_MR        T->R want LMLR got LMLR (2.47; target 2.47)
+  [PASS] r12_YU_MR        Y->U want LIRM got LIRM (2.61; target 2.61)
+  [PASS] r12_UY_RM        U->Y want RMLI got RMLI (2.61; target 2.61)
+  [PASS] r13_AS_PR        A->S want LPLR got LPLR (2.11; target 2.11)
+  [PASS] r13_SA_RP        S->A want LRLP got LRLP (2.37; target 2.37)
+  [PASS] r13_;U_PM        ;->U want RPRM got RPRM (2.50; target 2.50)
+  [PASS] r13_U;_MP        U->; want RMRP got RMRP (2.50; target 2.50)
+  [PASS] r13_band_;RUM    pair cost 5.96 (want 5-12)
+  [PASS] r13_band_URM;    pair cost 5.96 (want 5-12)
+  [PASS] r13_TF_IM        T->F want LILM got LILM (4.87; target 4.87)
+  [PASS] r13_FT_MI        F->T want LMLI got LMLI (4.87; target 4.87)
+  [PASS] r13_;L_PR        ;->L want RPRR got RPRR (2.11; target 2.11)
+  [PASS] r13_L;_RP        L->; want RRRP got RRRP (2.37; target 2.37)
+rulings: 166/166
+anchor (not a ruling): 75/204 default-finger pairs more than 0.25 away from the shipped price

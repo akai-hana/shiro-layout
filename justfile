@@ -1,7 +1,7 @@
 # Verification helpers. The Rust binary is the only runtime implementation.
 # Build it once with `just build`; the Python tree is development tooling only.
-shirolyzer := "shirolyzer/target/release/shirolyzer"
-manifest := "shirolyzer/Cargo.toml"
+shirolyzer := "target/release/shirolyzer"
+manifest := "Cargo.toml"
 python := env_var_or_default("PYTHON", ".venv/bin/python")
 
 # List available recipes
@@ -16,18 +16,18 @@ build:
 test:
     cargo test --manifest-path {{manifest}} --release
 
-# Measure compute run-to-run variance across seeds
+# Measure generate run-to-run variance across seeds
 variance *ARGS: build
-    {{python}} shirolyzer/utils/compute_variance.py {{ARGS}}
+    {{python}} utils/compute_variance.py {{ARGS}}
 
 # Sweep config variants across seeds and report preference metrics
 sweep *ARGS: build
-    {{python}} shirolyzer/utils/preference_sweep.py {{ARGS}}
+    {{python}} utils/preference_sweep.py {{ARGS}}
 
 # Verify the retained Python development tools still import
 dev-tools:
-    {{python}} -m compileall -q shirolyzer corpora
-    {{python}} -c "import shirolyzer.fitting, shirolyzer.utils.fitlib, shirolyzer.utils.gateset"
+    {{python}} -m compileall -q fitting utils corpora
+    {{python}} -c "import fitting, utils.fitlib, utils.gateset"
 
 # Run the full local verification suite
 check: test

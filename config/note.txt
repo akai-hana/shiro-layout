@@ -1,0 +1,1 @@
+to-do later: make it so that config.toml.fixed isn't needed, and instead derive fixed fingering from provided config.toml, removing the need to keep two identical config files (except the alt fingering) in sync all the time, providing a more robust config experience by letting the shirolyzer handle that part of the logic instead.

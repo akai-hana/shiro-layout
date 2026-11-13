@@ -16,4 +16,21 @@ corpora/*/resources/*/
 # Temporary corpus working directories
 corpora/*/tmp/
 corpora/*/.tmp/
-shirolyzer/results/
+# Local generated outputs; curated layouts under layouts/<name>/ are tracked.
+/layouts/layout_*.txt
+/layouts/latest
+/layouts/generate_*
+/layouts/analysis*
+/layouts/audit_*
+/layouts/compute_*
+/layouts/preference_sweep_*
+/layouts/archive/
+/layouts/calibration/
+/layouts/fitting/
+/layouts/repeat-aware/
+/layouts/round8/
+/layouts/rust/
+/layouts/validation/
+
+# Rust build artifacts
+/target
